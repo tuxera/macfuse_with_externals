@@ -143,7 +143,7 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 		CFRelease(uuid);
 	}
 	
-	MLog(@"%@", tempPath);
+	//MLog(@"%@", tempPath);
 	
 	/* write the resource-fork-as-data to the temporary file */
 	if (tempPath && data) {
