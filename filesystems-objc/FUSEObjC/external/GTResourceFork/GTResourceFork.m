@@ -22,7 +22,13 @@
 #import "GTResourceFork.h"
 
 #if defined(__cplusplus)
-extern "C" {
+	#include <stdlib>
+	#include <string>
+	using namespace std;
+	extern "C" {
+#else
+	#include <stdlib.h>
+	#include <string.h>
 #endif
 	
 #pragma mark Threading and Memory
@@ -34,8 +40,9 @@ extern "C" {
 	#include <FurcKit/GTThreading.h>
 #else /* defined(MF_APPLICATION) */
 	/* you can substitute your own memory management functions if you want (e.g.
-       MPAllocate/MPFree, NewPtr/DisposePtr, or NSZoneMalloc/NSZoneFree) */
-	#define GTAllocate(SIZE) malloc(SIZE)
+       NewPtrClear/DisposePtr, or NSZoneCalloc/NSZoneFree), but you must ensure
+       the allocated memory is zeroed before the macro/function returns. */
+	#define GTAllocate(SIZE) calloc(1, SIZE)
 	#define GTFree(PTR) free(PTR)
 
 	/* you can use some other implementation here too */
@@ -59,6 +66,13 @@ static GTMutexRef resourcesMutex = (GTMutexRef)0;
    it will close the reference number, leaving the other with an invalid reference
    number. Better to maintain only one GTResourceFork object per reference number. */
 static CFMutableDictionaryRef activeResourceForks = NULL;
+/* This is just a short function to get the key from a refnum (duh.) I use it instead of
+   CFNumberCreate() for slightly shorter code (and so I don't have to worry about releasing
+   the key and associated potential memory leaks.) I do not check that the result is
+   non-NULL; This may potentially be an error condition. */
+static inline __attribute__((__always_inline__)) CFNumberRef GTGetKeyForRefNum(ResFileRefNum num) {
+	return (CFNumberRef)[NSNumber numberWithShort: (short int)num];
+}
 
 #pragma mark -
 #pragma mark Resource Sections
@@ -66,12 +80,13 @@ static CFMutableDictionaryRef activeResourceForks = NULL;
    Resource Manager so one can send multiple GTResourceFork messages or call
    multiple Resource Manager functions. */
 struct OpaqueGTResourceSectionStateStruct {
-	short int lastRefNum;
+	ResFileRefNum lastRefNum;
+	id unretainedOwner;
 };
 
 #pragma mark -
 #pragma mark String Encodings
-const NSStringEncoding kGTResourceForkStringEncoding = NSMacOSRomanStringEncoding;
+const NSStringEncoding GTResourceForkStringEncoding = NSMacOSRomanStringEncoding;
 const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRoman;
 
 #pragma mark -
@@ -143,8 +158,6 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 		CFRelease(uuid);
 	}
 	
-	//MLog(@"%@", tempPath);
-	
 	/* write the resource-fork-as-data to the temporary file */
 	if (tempPath && data) {
 		[data writeToFile: tempPath atomically: YES];
@@ -198,6 +211,7 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 		return [self initWithContentsOfFSRef: &ref dataFork: df error: outError];
 	}
 	
+	/* some error above */
 	return [self initWithContentsOfFSRef: NULL namedFork: NULL error: outError];
 }
 
@@ -237,7 +251,7 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 - (id)initWithContentsOfFSRef: (const FSRef *)ref namedFork: (ConstHFSUniStr255Param)forkName error: (NSError **)outError {
 	GTResourceSectionStateRef state;
 	OSErr error;
-	short int refNumber;
+	ResFileRefNum refNumber;
 
 	self = [super init];
 	
@@ -287,11 +301,11 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	return self;
 }
 
-- (id)initWithResourceManagerReferenceNumber: (short int)refNumber {
+- (id)initWithResourceManagerReferenceNumber: (ResFileRefNum)refNumber {
 	return [self initWithResourceManagerReferenceNumber: refNumber error: NULL];
 }
 
-- (id)initWithResourceManagerReferenceNumber: (short int)refNumber error: (NSError **)outError {
+- (id)initWithResourceManagerReferenceNumber: (ResFileRefNum)refNumber error: (NSError **)outError {
 	GTResourceFork *otherFork;
 	GTResourceSectionStateRef state;
 	CFNumberRef key;
@@ -306,11 +320,8 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 		if (refNumber >= 0) {
 			if (NULL != (state = [[self class] beginGlobalResourceSection])) {
 				/* check if the refNumber is in use */
-				key = CFNumberCreate(NULL, kCFNumberShortType, &refNumber);
-				if (key)
-					otherFork = (GTResourceFork *)CFDictionaryGetValue(activeResourceForks, key);
-				else
-					otherFork = nil;
+				key = GTGetKeyForRefNum(refNumber);
+				otherFork = (GTResourceFork *)CFDictionaryGetValue(activeResourceForks, key);
 			
 				if (otherFork) {
 					/* is already open, so kill self and replace with otherFork */
@@ -320,7 +331,7 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 					/* isn't already open, so creating a new fork object */
 
 					/* check if the refNumber is open by calling GetResFileAttrs and then checking ResError */
-					GetResFileAttrs(refNumber);
+					(void)GetResFileAttrs(refNumber);
 					error = ResError();
 					
 					if (error == noErr) {
@@ -329,14 +340,9 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 						self->isTemporary = NO;
 						
 						/* add to dictionary so it'll be used again */
-						if (key)
-							CFDictionarySetValue(activeResourceForks, key, self);
+						CFDictionarySetValue(activeResourceForks, key, self);
 					}
 				}
-				
-				/* done with the key object */
-				if (key)
-					CFRelease(key);
 				
 				/* exit section */
 				[[self class] endGlobalResourceSection: state];
@@ -370,15 +376,13 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	   by this call to -retain; if it fails, still retain */
 	state = [[self class] beginGlobalResourceSection];
 	result = [super retain];
-	if (state)
-		[[self class] endGlobalResourceSection: state];
+	[[self class] endGlobalResourceSection: state];
 	
 	return result;
 }
 
 - (void)release {
 	GTResourceSectionStateRef state;
-	CFNumberRef key;
 
 	/* have to do this in -release rather than in -dealloc because of the following possibility:
 			Thread 0:						Thread 1:
@@ -386,26 +390,30 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 											newFork = [[GTResourceFork alloc] initWithResourceManagerReferenceNumber: aFork's number];
 			[aFork dealloc];
 	*/
-	if (NULL != (state = [[self class] beginGlobalResourceSection])) {
-		if ([self retainCount] == 1) {
-			/* last release -- remove self from the table, so that
-			   future resource forks on the same refNum will create
-			   their own objects */
-			key = CFNumberCreate(NULL, kCFNumberShortType, &(self->refNum));
-			if (key) {
-				CFDictionaryRemoveValue(activeResourceForks, key);
-				CFRelease(key);
-			}
+	state = [[self class] beginGlobalResourceSection];
+	if ([self retainCount] == 1) {
+		/* last release -- remove self from the table, so that
+		   future resource forks on the same refNum will create
+		   their own objects */
+		CFDictionaryRemoveValue(activeResourceForks, GTGetKeyForRefNum(self->refNum));
+		
+		/* To ensure that another resource fork object does not attempt to reference
+		   this one's refnum in its final moments, close the resource file here instead
+		   of in -dealloc */
+		if (self->refNum > 0) {
+			/* let Resource Manager know we're done */
+			CloseResFile(self->refNum);
+			/* Ensure any possible future messages don't attempt to use our refnum */
+			self->refNum = -1;
 		}
-		[[self class] endGlobalResourceSection: state];
 	}
-
+	[[self class] endGlobalResourceSection: state];
+	
 	[super release];
 }
 
 - (void)dealloc {
 	NSURL *url;
-	GTResourceSectionStateRef state;
 
 	if (self->isTemporary) {
 		/* delete file on disk */
@@ -413,15 +421,8 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 		if (url && [url isFileURL])
 			[[NSFileManager defaultManager] removeFileAtPath: [url path] handler: nil];
 	}
-		
-	if (NULL != (state = [[self class] beginGlobalResourceSection])) {
-		/* have to lock it because we're calling Resource Manager functions */
-		if (self->refNum > 0) {
-			/* let Resource Manager know we're done */
-			CloseResFile(self->refNum);
-		}
-		[[self class] endGlobalResourceSection: state];
-	}
+	
+	/* CloseResFile() is called in -release */
 	
 	[super dealloc];
 }
@@ -439,12 +440,70 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	return [self resourceManagerReferenceNumber] == [resourceFork resourceManagerReferenceNumber];
 }
 
-- (int)hash {
-	return [self resourceManagerReferenceNumber];
+- (unsigned int)hash {
+	return (unsigned int)[self resourceManagerReferenceNumber];
 }
 
 - (id)copyWithZone: (NSZone *)zone {
 	return [self retain];
+}
+
+- (void)copyResourcesToResourceFork: (GTResourceFork *)otherFork {
+	NSEnumerator *e;
+	NSString *type;
+	GTResourceSectionStateRef state;
+	
+	if (!otherFork || otherFork == self)
+		return;
+	
+	if (NULL != (state = [self beginResourceSection])) {
+		e = [[self usedTypes] objectEnumerator];
+		while ((type = [e nextObject]) != nil) {
+			[self copyResourcesOfType: GTResTypeFromString(type) toResourceFork: otherFork];
+		}
+		
+		[self endResourceSection: state];
+	}
+}
+
+- (void)copyResourcesOfType: (ResType)type toResourceFork: (GTResourceFork *)otherFork {
+	GTResourceSectionStateRef state;
+
+	if (!otherFork || otherFork == self)
+		return;
+
+	if (NULL != (state = [self beginResourceSection])) {
+		[self copyResources: [self usedResourcesOfType: type] ofType: type toResourceFork: otherFork];
+		[self endResourceSection: state];
+	}
+}
+
+- (void)copyResources: (NSArray *)resIDs ofType: (ResType)type toResourceFork: (GTResourceFork *)otherFork {
+	NSEnumerator *e;
+	NSNumber *resIDNumber;
+	GTResourceSectionStateRef state;
+	NSData *resData;
+	ResID resID;
+
+	if (!otherFork || otherFork == self)
+		return;
+	else if (!resIDs || [resIDs count] < 1)
+		return;
+	
+	/* global resource section so we can deal with multiple forks at a time */
+	if (NULL != (state = [[self class] beginGlobalResourceSection])) {
+		e = [resIDs objectEnumerator];
+		while ((resIDNumber = [e nextObject]) != nil) {
+			/* get the resource ID number */
+			resID = (ResID)[resIDNumber shortValue];
+			/* get the resource data */
+			resData = [self dataForResource: resID ofType: type];
+			/* set it on the other fork */
+			[otherFork setData: resData forResource: resID withName: [self nameOfResource: resID ofType: type] ofType: type];
+		}
+		
+		[[self class] endGlobalResourceSection: state];
+	}	
 }
 
 - (NSURL *)URL {
@@ -468,7 +527,7 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	SInt64 offset;
 	ByteCount got;
 	OSErr error;
-	short int myRefNum;
+	ResFileRefNum myRefNum;
 	
 	/* iterates through the resource fork as a byte stream, reading it in
 	   512 bytes at a time, outputting to mutResult, and returning an
@@ -487,7 +546,7 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 		
 		do {
 			/* read a chunk of data from the fork */
-			error = FSReadFork(myRefNum, fsFromStart, offset, sizeof(buffer), buffer, &got);
+			error = FSReadFork(myRefNum, fsFromStart, offset, (ByteCount)sizeof(buffer), buffer, &got);
 			if (error != noErr && error != eofErr)
 				break;
 			
@@ -504,6 +563,10 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	result = [[mutResult copy] autorelease];
 	[mutResult release];
 	return result;
+}
+
+- (NSString *)description {
+	return [NSString stringWithFormat: @"%@ { ResFileRefNum: %i }", [super description], (int)[self resourceManagerReferenceNumber]];
 }
 
 - (BOOL)writeToFile: (NSString *)filename dataFork: (BOOL)df {
@@ -543,7 +606,7 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	NSData *data;
 	GTResourceSectionStateRef state;
 	ByteCount written;
-	short forkRefNum;
+	ResFileRefNum forkRefNum;
 	BOOL success;
 	
 	pool = [[NSAutoreleasePool alloc] init];
@@ -597,7 +660,7 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	(void)[self write];
 }
 
-- (short int)resourceManagerReferenceNumber {
+- (ResFileRefNum)resourceManagerReferenceNumber {
 	/* If in a multithreaded environment, be sure to call -beginResourceSection
 	   first and -endResourceSection: after! This class doesn't always obey this
 	   rule, but when it breaks it it's for good reason (e.g. deallocating self.) */
@@ -605,10 +668,10 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	return self->refNum;
 }
 
-- (NSData *)dataForResource: (short int)ID ofType: (ResType)type {
+- (NSData *)dataForResource: (ResID)resID ofType: (ResType)type {
 	Handle hand;
 
-	hand = [self handleForResource: ID ofType: type];
+	hand = [self handleForResource: resID ofType: type];
 	if (hand && *hand) {
 		return [NSData dataWithBytes: *hand length: GTUnsignedIntFromSize(GetHandleSize(hand))];
 	} else {
@@ -627,48 +690,45 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	}
 }
 
-- (void)setData: (NSData *)data forResource: (short int)ID ofType: (ResType)type {
+- (void)setData: (NSData *)data forResource: (ResID)resID ofType: (ResType)type {
+	[self setData: data forResource: resID withName: nil ofType: type];
+}
+
+- (void)setData: (NSData *)data forNamedResource: (NSString *)name ofType: (ResType)type {
 	GTResourceSectionStateRef state;
-	Handle hand;
+	ResID resID;
 	
 	if (NULL != (state = [self beginResourceSection])) {
-		[self removeDataForResource: ID ofType: type];
-	
-		if (data) {
-			hand = NULL;
-			if (noErr == PtrToHand([data bytes], &hand, GTSizeFromUnsignedInt([data length]))) {
-				AddResource(hand, type, ID, "\p");
-				ChangedResource(hand);
-			}
+		if ([self getUniqueID: &resID forType: type]) {
+			[self setData: data forResource: resID withName: name ofType: type];
 		}
-
 		[self endResourceSection: state];
 	}
 }
 
-- (void)setData: (NSData *)data forNamedResource: (NSString *)name ofType: (ResType)type {
+- (void)setData: (NSData *)data forResource: (ResID)resID withName: (NSString *)name ofType: (ResType)type {
 	ConstStringPtr pascStr;
 	GTResourceSectionStateRef state;
 	Handle hand;
-	short int ID;
 	
 	if (NULL != (state = [self beginResourceSection])) {
 		[self removeDataForNamedResource: name ofType: type];
 	
-		if (data && name) {
-			pascStr = GTStringGetPascalString(name);
-			if (pascStr) {
-				hand = NULL;
-				if (noErr == PtrToHand([data bytes], &hand, GTSizeFromUnsignedInt([data length]))) {
-					ID = [self uniqueIDForType: type];
-					if (ID == 0) {
-						/* failed getting ID, free memory */
-						DisposeHandle(hand);
-					} else {
-						/* got ID, yay */
-						AddResource(hand, type, ID, pascStr);
-						ChangedResource(hand);
-					}
+		if (!name)
+			name = @"";
+		pascStr = GTStringGetPascalString(name);
+
+		if (data && pascStr) {
+			hand = NULL;
+			if (noErr == PtrToHand([data bytes], &hand, GTSizeFromUnsignedInt([data length]))) {
+				/* got ID, yay */
+				AddResource(hand, type, resID, pascStr);
+				if (noErr == ResError()) {
+					/* success adding resource */
+					ChangedResource(hand);
+				} else {
+					/* failure */
+					DisposeHandle(hand);
 				}
 			}
 		}
@@ -677,12 +737,12 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	}
 }
 
-- (void)removeDataForResource: (short int)ID ofType: (ResType)type {
+- (void)removeDataForResource: (ResID)resID ofType: (ResType)type {
 	GTResourceSectionStateRef state;
 	Handle hand;
 	
 	if (NULL != (state = [self beginResourceSection])) {
-		hand = [self handleForResource: ID ofType: type];
+		hand = [self handleForResource: resID ofType: type];
 		if (hand) {
 			RemoveResource(hand);
 			/* the handle is orphaned by RemoveResource() */
@@ -713,11 +773,11 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 - (void)removeAllResourcesOfType: (ResType)type {
 	GTResourceSectionStateRef state;
 	Handle hand;
-	short int resCount;
+	unsigned int resCount;
 	
 	if (NULL != (state = [self beginResourceSection])) {
-		resCount = (short int)[self countOfResourcesOfType: type];
-		short int i = 0; for (; i < resCount; i++) {
+		resCount = [self countOfResourcesOfType: type];
+		unsigned int i = 0; for (; i < resCount; i++) {
 			hand = Get1IndResource(type, i + 1);
 			if (hand) {
 				RemoveResource(hand);
@@ -729,9 +789,9 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	}
 }
 
-- (BOOL)hasResource: (short int)ID ofType: (ResType)type {
+- (BOOL)hasResource: (ResID)resID ofType: (ResType)type {
 	/* no Resource Manager function to specifically check for the existence of a resource, so must load it */
-	return [self handleForResource: ID ofType: type] ? YES : NO;
+	return [self handleForResource: resID ofType: type] ? YES : NO;
 }
 
 - (BOOL)hasNamedResource: (NSString *)name ofType: (ResType)type {
@@ -739,14 +799,14 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	return [self handleForNamedResource: name ofType: type] ? YES : NO;
 }
 
-- (unsigned int)sizeOfResource: (short int)ID ofType: (ResType)type {
+- (unsigned int)sizeOfResource: (ResID)resID ofType: (ResType)type {
 	GTResourceSectionStateRef state;
 	Handle hand;
 	unsigned int result;
 	
 	result = 0;
 	if (NULL != (state = [self beginResourceSection])) {
-		hand = [self handleForResource: ID ofType: type];
+		hand = [self handleForResource: resID ofType: type];
 		if (hand && *hand)
 			result = GTUnsignedIntFromSize(GetHandleSize(hand));
 		[self endResourceSection: state];
@@ -771,35 +831,41 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	return result;
 }
 
-- (int)IDOfNamedResource: (NSString *)name ofType: (ResType)type {
+- (BOOL)getID: (ResID *)outID ofNamedResource: (NSString *)name ofType: (ResType)type {
 	Handle hand;
 	GTResourceSectionStateRef state;
-	int result;
-	short int outID;
+	ResID theID;
+	BOOL gotIt;
 	
-	result = SHRT_MAX + 1;
+	theID = 0;
+	gotIt = NO;
+	
 	if (NULL != (state = [self beginResourceSection])) {
 		hand = [self handleForNamedResource: name ofType: type];
 		if (hand) {
-			if ([[self class] getInfoForHandle: hand type: NULL name: NULL ID: &outID]) {
-				result = outID;
+			if ([[self class] getInfoForHandle: hand type: NULL name: NULL ID: &theID]) {
+				gotIt = YES;
 			}
 		}
 		
 		[self endResourceSection: state];
 	}
 	
-	return result;
+	if (gotIt) {
+		if (outID)
+			*outID = theID;
+	}
+	return gotIt;
 }
 
-- (NSString *)nameOfResource: (short int)ID ofType: (ResType)type {
+- (NSString *)nameOfResource: (ResID)resID ofType: (ResType)type {
 	NSString *result;
 	Handle hand;
 	GTResourceSectionStateRef state;
 	
 	result = nil;
 	if (NULL != (state = [self beginResourceSection])) {
-		hand = [self handleForResource: ID ofType: type];
+		hand = [self handleForResource: resID ofType: type];
 		if (hand) {
 			if (![[self class] getInfoForHandle: hand type: NULL name: &result ID: NULL]) {
 				result = nil;
@@ -812,7 +878,7 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	return result;
 }
 
-- (void)setID: (short int)ID ofNamedResource: (NSString *)name ofType: (ResType)type {
+- (void)setID: (ResID)resID ofNamedResource: (NSString *)name ofType: (ResType)type {
 	Handle hand;
 	GTResourceSectionStateRef state;
 	
@@ -821,30 +887,30 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 		if (hand) {
 			/* Passing an empty Pascal string as the name does not change
 			   it, so there's no need to call GTStringGetPascalString() here. */
-			SetResInfo(hand, ID, "\p");
+			SetResInfo(hand, resID, "\p");
 		}
 		[self endResourceSection: state];
 	}
 }
 
-- (void)setName: (NSString *)name ofResource: (short int)ID ofType: (ResType)type {
+- (void)setName: (NSString *)name ofResource: (ResID)resID ofType: (ResType)type {
 	NSData *data;
 	Handle hand;
 	GTResourceSectionStateRef state;
 	
 	if (NULL != (state = [self beginResourceSection])) {
-		hand = [self handleForResource: ID ofType: type];
+		hand = [self handleForResource: resID ofType: type];
 		if (hand) {
 			if (!name || [name length] < 1) {
 				/* SetResInfo() won't change the name if the passed string is
 				   empty, so have to go about it a different way. Delete the existing
 				   resource, then add a new one with the same ID and no name. */
 				data = [NSData dataWithBytes: *hand length: GTUnsignedIntFromSize(GetHandleSize(hand))];
-				[self removeDataForResource: ID ofType: type];
-				[self setData: data forResource: ID ofType: type];
+				[self removeDataForResource: resID ofType: type];
+				[self setData: data forResource: resID ofType: type];
 			} else {
 				/* Can do it the normal way. */
-				SetResInfo(hand, ID, GTStringGetPascalString(name));
+				SetResInfo(hand, resID, GTStringGetPascalString(name));
 			}
 		}
 		[self endResourceSection: state];
@@ -861,9 +927,9 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 
 	result = GTAllocate(sizeof(struct OpaqueGTResourceSectionStateStruct));
 	if (result) {
-		memset(result, 0, sizeof(struct OpaqueGTResourceSectionStateStruct));
 		if (GTMutexLock(resourcesMutex)) {
 			result->lastRefNum = CurResFile();
+			result->unretainedOwner = self;
 		} else {
 			/* couldn't obtain lock, must release memory to avoid leak */
 			GTFree(result);
@@ -890,6 +956,7 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	
 	result = [[self class] beginGlobalResourceSection];
 	if (result) {
+		result->unretainedOwner = self;
 		UseResFile([self resourceManagerReferenceNumber]);
 	}
 	
@@ -900,13 +967,25 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	/* don't rely on this behaviour being identical in the future */
 	[[self class] endGlobalResourceSection: state];
 }
+
++ (id)ownerOfResourceSectionState: (GTResourceSectionStateRef)state {
+	if (state) {
+		return [[state->unretainedOwner retain] autorelease];
+	}
+	
+	return nil;
+}
 @end
 
 @implementation GTResourceFork (Handles)
 + (GTResourceFork *)resourceForkOwningHandle: (Handle)aResource {
+	return [self resourceForkOwningHandle: aResource createIfNotFound: YES];
+}
+
++ (GTResourceFork *)resourceForkOwningHandle: (Handle)aResource createIfNotFound: (BOOL)create {
 	GTResourceSectionStateRef state;
 	GTResourceFork *result;
-	short int refNum;
+	ResFileRefNum refNum;
 
 	result = nil;
 	if (NULL != (state = [self beginGlobalResourceSection])) {
@@ -917,8 +996,15 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 				/* system resource fork */
 				result = [self systemResourceFork];
 			} else if (refNum > 0) {
-				/* non-system, alloc new, might return existing */
-				result = [[[self alloc] initWithResourceManagerReferenceNumber: refNum error: NULL] autorelease];
+				/* see if a fork exists and use it if it does */
+				result = (GTResourceFork *)CFDictionaryGetValue(activeResourceForks, GTGetKeyForRefNum(refNum));
+				if (result) {
+					/* existing GTResourceFork object */
+					result = [[result retain] autorelease];
+				} else if (create) {
+					/* user wants to create a new fork object where none yet exists */
+					result = [[[self alloc] initWithResourceManagerReferenceNumber: refNum error: NULL] autorelease];
+				}
 			}
 		}
 		[self endGlobalResourceSection: state];
@@ -927,16 +1013,16 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	return result;
 }
 
-+ (BOOL)getInfoForHandle: (Handle)aResource type: (ResType *)outType name: (NSString * *)outName ID: (short int *)outID {
++ (BOOL)getInfoForHandle: (Handle)aResource type: (ResType *)outType name: (NSString * *)outName ID: (ResID *)outID {
 	GTResourceSectionStateRef state;
 	Str255 pascStr;
 	ResType type;
-	short int ID;
+	ResID resID;
 	BOOL result;
 
 	result = NO;
 	if (NULL != (state = [self beginGlobalResourceSection])) {
-		GetResInfo(aResource, &ID, &type, pascStr);
+		GetResInfo(aResource, &resID, &type, pascStr);
 		if (ResError() == noErr) {
 			/* get the type */
 			if (outType) {
@@ -945,7 +1031,7 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 			
 			/* get the ID */
 			if (outID) {
-				*outID = ID;
+				*outID = resID;
 			}
 			
 			/* get the name */
@@ -962,13 +1048,13 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	return result;
 }
 
-- (Handle)handleForResource: (short int)ID ofType: (ResType)type {
+- (Handle)handleForResource: (ResID)resID ofType: (ResType)type {
 	GTResourceSectionStateRef state;
 	Handle hand;
 
 	hand = NULL;
 	if (NULL != (state = [self beginResourceSection])) {
-		hand = Get1Resource(type, ID);
+		hand = Get1Resource(type, resID);
 		[self endResourceSection: state];
 	}
 	
@@ -994,9 +1080,17 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	return hand;
 }
 
+- (Handle)copyHandleForResource: (ResID)resID ofType: (ResType)type {
+	return GTCopyHandle([self handleForResource: resID ofType: type]);
+}
+
+- (Handle)copyHandleForNamedResource: (NSString *)name ofType: (ResType)type {
+	return GTCopyHandle([self handleForNamedResource: name ofType: type]);
+}
+
 - (BOOL)isOwnerOfHandle: (Handle)aHandle {
 	GTResourceSectionStateRef state;
-	short int ownerRefNum;
+	ResFileRefNum ownerRefNum;
 	BOOL result;
 	
 	result = NO;
@@ -1020,14 +1114,13 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	GTResourceSectionStateRef state;
 	uintmax_t result;
 	ResType type;
-	short int typeCount;
-	short int i;
+	unsigned int typeCount;
 	
 	result = 0;
 	if (NULL != (state = [self beginResourceSection])) {
-		typeCount = Count1Types();
+		typeCount = [self countOfTypes];
 		
-		for (i = 1; i <= typeCount; i++) {
+		unsigned int i = 1; for (; i <= typeCount; i++) {
 			Get1IndType(&type, i);
 			result += [self countOfResourcesOfType: type];
 		}
@@ -1043,14 +1136,11 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 
 - (unsigned int)countOfTypes {
 	GTResourceSectionStateRef state;
-	short int result;
+	unsigned int result;
 	
 	result = 0;
 	if (NULL != (state = [self beginResourceSection])) {
-		result = Count1Types();
-		if (result < 0)
-			result = 0;
-		
+		result = (unsigned int)Count1Types();
 		[self endResourceSection: state];
 	}
 	
@@ -1059,54 +1149,52 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 
 - (unsigned int)countOfResourcesOfType: (ResType)type {
 	GTResourceSectionStateRef state;
-	short int result;
+	unsigned int result;
 	
 	result = 0;
 	if (NULL != (state = [self beginResourceSection])) {
-		result = Count1Resources(type);
-		if (result < 0)
-			result = 0;
-		
+		result = (unsigned int)Count1Resources(type);
 		[self endResourceSection: state];
 	}
 	
 	return result;
 }
 
-- (short int)uniqueIDForType: (ResType)type {
+- (BOOL)getUniqueID: (ResID *)outID forType: (ResType)type {
 	GTResourceSectionStateRef state;
-	short int result;
+	ResID result;
+	BOOL gotIt;
 	
 	result = 0;
+	gotIt = NO;
+	
 	if (NULL != (state = [self beginResourceSection])) {
-		do {
-			/* this loop is recommended by the documentation for Unique1ID(),
-			   and yes, I know this code won't compile on System 7. ;) */
-			result = Unique1ID(type);
-			if (ResError() != noErr) {
-				result = SHRT_MAX + 1;
-				break;
-			}
-		} while (result < 128);
+		/* System 7 has a bug in this function requiring a while
+		   loop, but this is Mac OS X! */
+		result = Unique1ID(type);
+		gotIt = (ResError() == noErr);
 		[self endResourceSection: state];
 	}
 	
-	return result;
+	if (gotIt) {
+		if (outID)
+			*outID = result;
+	}
+	return gotIt;
 }
 
 - (NSArray *)usedTypes {
 	NSMutableArray *result;
 	GTResourceSectionStateRef state;
 	ResType type;
-	short int typeCount;
-	short int i;
+	unsigned int typeCount;
 	
 	result = nil;
 	if (NULL != (state = [self beginResourceSection])) {
 		result = [NSMutableArray array];		
-		typeCount = Count1Types();
+		typeCount = [self countOfTypes];
 
-		for (i = 1; i <= typeCount; i++) {
+		unsigned int i = 1; for (; i <= typeCount; i++) {
 			Get1IndType(&type, i);
 			[result addObject: GTStringFromResType(type)];
 		}
@@ -1121,25 +1209,23 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	NSMutableArray *result;
 	GTResourceSectionStateRef state;
 	Handle hand;
-	short int count;
-	short int ID;
-	short int i;
+	unsigned int resCount;
+	ResID resID;
 
 	result = nil;
 	if (NULL != (state = [self beginResourceSection])) {
 		result = [NSMutableArray array];
+		resCount = [self countOfResourcesOfType: type];
 		
-		count = Count1Resources(type);
-		if (count < 0)
-			count = 0;
-		
-		for (i = 1; i <= count; i++) {
+		unsigned int i = 1; for (; i <= resCount; i++) {
 			hand = Get1IndResource(type, i);
 			if (hand) {
 				/* find out the ID number */
-				if ([[self class] getInfoForHandle: hand type: NULL name: NULL ID: &ID]) {
-					/* success, add to result array */
-					[result addObject: [NSNumber numberWithShort: ID]];
+				if ([[self class] getInfoForHandle: hand type: NULL name: NULL ID: &resID]) {
+					if (sizeof(ResID) == sizeof(short int))
+						[result addObject: [NSNumber numberWithShort: resID]];
+					else
+						[result addObject: [NSNumber numberWithLongLong: (long long int)resID]];
 				}
 			}
 		}
@@ -1155,18 +1241,14 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	NSString *name;
 	GTResourceSectionStateRef state;
 	Handle hand;
-	short int count;
-	short int i;
+	unsigned int resCount;
 	
 	result = nil;
 	if (NULL != (state = [self beginResourceSection])) {
 		result = [NSMutableArray array];
-
-		count = Count1Resources(type);
-		if (count < 0)
-			count = 0;
+		resCount = [self countOfResourcesOfType: type];
 		
-		for (i = 1; i <= count; i++) {
+		unsigned int i = 1; for (; i <= resCount; i++) {
 			hand = Get1IndResource(type, i);
 			if ([[self class] getInfoForHandle: hand type: NULL name: &name ID: NULL]) {
 				[result addObject: name];
@@ -1183,9 +1265,9 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 #pragma mark -
 #pragma mark GTResourceFork Attributes
 @implementation GTResourceFork (Attributes)
-- (short int)forkAttributes {
+- (ResFileAttributes)forkAttributes {
 	GTResourceSectionStateRef state;
-	short int result;
+	ResFileAttributes result;
 
 	result = 0;
 	if (NULL != (state = [self beginResourceSection])) {
@@ -1198,7 +1280,7 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	return result;
 }
 
-- (void)setForkAttributes: (short int)attrs {
+- (void)setForkAttributes: (ResFileAttributes)attrs {
 	GTResourceSectionStateRef state;
 
 	/* will change */
@@ -1215,14 +1297,14 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 		objc_msgSend(self, @selector(didChangeValueForKey:), @"forkAttributes");
 }
 
-- (short int)attributesForResource: (short int)ID ofType: (ResType)type {
+- (ResAttributes)attributesForResource: (ResID)resID ofType: (ResType)type {
 	GTResourceSectionStateRef state;
 	Handle hand;
-	short int result;
+	ResAttributes result;
 	
 	result = 0;
 	if (NULL != (state = [self beginResourceSection])) {
-		hand = [self handleForResource: ID ofType: type];
+		hand = [self handleForResource: resID ofType: type];
 		if (hand) {
 			result = GetResAttrs(hand);
 			if (ResError() != noErr)
@@ -1234,10 +1316,10 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	return result;
 }
 
-- (short int)attributesForNamedResource: (NSString *)name ofType: (ResType)type {
+- (ResAttributes)attributesForNamedResource: (NSString *)name ofType: (ResType)type {
 	GTResourceSectionStateRef state;
 	Handle hand;
-	short int result;
+	ResAttributes result;
 	
 	if (!name)
 		return 0;
@@ -1256,12 +1338,12 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	return result;
 }
 
-- (void)setAttributes: (short int)attrs forResource: (short int)ID ofType: (ResType)type {
+- (void)setAttributes: (ResAttributes)attrs forResource: (ResID)resID ofType: (ResType)type {
 	GTResourceSectionStateRef state;
 	Handle hand;
 	
 	if (NULL != (state = [self beginResourceSection])) {
-		hand = [self handleForResource: ID ofType: type];
+		hand = [self handleForResource: resID ofType: type];
 		if (hand) {
 			SetResAttrs(hand, attrs);
 			if (ResError() != noErr)
@@ -1271,7 +1353,7 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	}
 }
 
-- (void)setAttributes: (short int)attrs forNamedResource: (NSString *)name ofType: (ResType)type {
+- (void)setAttributes: (ResAttributes)attrs forNamedResource: (NSString *)name ofType: (ResType)type {
 	GTResourceSectionStateRef state;
 	Handle hand;
 	
@@ -1290,7 +1372,7 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 #pragma mark -
 #pragma mark GTResourceFork Specific Types
 @implementation GTResourceFork (SpecificTypes)
-- (NSString *)stringResource: (short int)ID {
+- (NSString *)stringResource: (ResID)resID {
 	NSString *result;
 	NSAutoreleasePool *pool;
 	GTResourceSectionStateRef state;
@@ -1300,11 +1382,11 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	pool = [[NSAutoreleasePool alloc] init];
 	
 	if (NULL != (state = [self beginResourceSection])) {
-		hand = [self handleForResource: ID ofType: 'TEXT'];
+		hand = [self handleForResource: resID ofType: 'TEXT'];
 		if (hand) {
 			result = (NSString *)CFStringCreateWithCString(NULL, *hand, kGTResourceForkCFStringEncoding);
 		} else {
-			hand = [self handleForResource: ID ofType: 'STR '];
+			hand = [self handleForResource: resID ofType: 'STR '];
 			if (hand) {
 				result = GTPascalStringGetString((ConstStringPtr)(*hand));
 				result = [result retain];
@@ -1345,35 +1427,31 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	return [result autorelease];
 }
 
-- (NSArray *)stringTableResource: (short int)ID {
+- (NSArray *)stringTableResource: (ResID)resID {
 	NSMutableArray *result;
 	NSString *string;
 	Handle hand;
 	const void *str;
 	const void *str_end;
-	uint16_t count;
-	uint16_t i;
+	unsigned int strCount;
 	
 	result = nil;
-	hand = [self handleForResource: ID ofType: 'STR#'];
+	hand = [self handleForResource: resID ofType: 'STR#'];
 	if (hand && *hand) {
 		str = *hand;
-		str_end = str + GetHandleSize(hand);
-		if (str_end < str) {
-			/* if GetHandleSize() returned a negative value (e.g. on error), str_end
-			   will be < str, and continuing reading could be disastrous */
-			str = NULL;
-		}
+		str_end = str + GTUnsignedIntFromSize(GetHandleSize(hand));
 		
 		if (str) {
-			/* 'STR#' resources are auto-swapped by Resource Manager */
-			count = *(uint16_t *)str;
+			/* get the number of strings -- this is auto-swapped on Intel, apparently */
+			strCount = (unsigned int)(*(uint16_t *)str);
 			str += sizeof(uint16_t);
-			result = [NSMutableArray arrayWithCapacity: count];
-			for (i = 0; i < count; i++) {
+			
+			/* fill the result array */
+			result = [NSMutableArray arrayWithCapacity: strCount];
+			unsigned int i = 0; for (; i < strCount; i++) {
 				if (str >= str_end)
 					break;
-				else if ((str + *(uint8_t *)str) >= str_end)
+				else if (str + StrLength((ConstStringPtr)str) >= str_end)
 					break;
 
 				/* add the string as object to the resulting array */
@@ -1383,7 +1461,7 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 				[result addObject: string];
 				
 				/* advance pointer */
-				str += *(uint8_t *)str + 1;
+				str += StrLength((ConstStringPtr)str) + 1;
 			}
 		}
 	}
@@ -1394,29 +1472,28 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 - (NSArray *)namedStringTableResource: (NSString *)name {
 	NSArray *result;
 	GTResourceSectionStateRef state;
-	int ID;
+	ResID resID;
 	
 	result = nil;
 
 	if (NULL != (state = [self beginResourceSection])) {
-		ID = [self IDOfNamedResource: name ofType: 'STR#'];
-		if (ID <= SHRT_MAX)
-			result = [self stringTableResource: ID];
+		if ([self getID: &resID ofNamedResource: name ofType: 'STR#'])
+			result = [self stringTableResource: resID];
 		[self endResourceSection: state];
 	}
 	
 	return result;
 }
 
-- (NSAttributedString *)attributedStringResource: (short int)ID {
-	return [self attributedStringResource: ID styleResource: ID];
+- (NSAttributedString *)attributedStringResource: (ResID)resID {
+	return [self attributedStringResource: resID styleResource: resID];
 }
 
 - (NSAttributedString *)namedAttributedStringResource: (NSString *)name {
 	return [self namedAttributedStringResource: name styleResource: name];
 }
 
-- (NSAttributedString *)attributedStringResource: (short int)ID styleResource: (short int)styleID {
+- (NSAttributedString *)attributedStringResource: (ResID)stringID styleResource: (ResID)styleID {
 	NSAttributedString *result;
 	NSAutoreleasePool *pool;
 	NSString *string;
@@ -1429,7 +1506,7 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	pool = [[NSAutoreleasePool alloc] init];
 	
 	if (NULL != (state = [self beginResourceSection])) {
-		strHand = [self handleForResource: ID ofType: 'TEXT'];
+		strHand = [self handleForResource: stringID ofType: 'TEXT'];
 		if (strHand) {
 			string = (NSString *)CFStringCreateWithCString(NULL, *strHand, kGTResourceForkCFStringEncoding);
 			string = [string autorelease];
@@ -1454,16 +1531,14 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	id result;
 	GTResourceSectionStateRef state;
 	Handle strHand;
-	int stringID;
-	int styleID;
+	ResID stringID;
+	ResID styleID;
 	
 	result = nil;
 
 	if (NULL != (state = [self beginResourceSection])) {
-		stringID = [self IDOfNamedResource: name ofType: 'TEXT'];
-		styleID = [self IDOfNamedResource: styleName ofType: 'styl'];
-		if (stringID <= SHRT_MAX) {
-			if (styleID <= SHRT_MAX) {
+		if ([self getID: &stringID ofNamedResource: name ofType: 'TEXT']) {
+			if ([self getID: &styleID ofNamedResource: styleName ofType: 'styl']) {
 				result = [self attributedStringResource: stringID styleResource: styleID];
 			} else {
 				strHand = [self handleForResource: stringID ofType: 'TEXT'];
@@ -1480,7 +1555,7 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	return result;
 }
 
-- (NSImage *)imageResource: (short int)ID {
+- (NSImage *)imageResource: (ResID)resID {
 	NSImage *result;
 	NSAutoreleasePool *pool;
 	NSData *data;
@@ -1489,7 +1564,7 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	result = nil;
 	pool = [[NSAutoreleasePool alloc] init];
 	
-	data = [self dataForResource: ID ofType: 'PICT'];
+	data = [self dataForResource: resID ofType: 'PICT'];
 	if (data) {
 		pict = [[NSPICTImageRep alloc] initWithData: data];
 		if (pict) {
@@ -1506,64 +1581,62 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 - (NSImage *)namedImageResource: (NSString *)name {
 	NSImage *result;
 	GTResourceSectionStateRef state;
-	int ID;
+	ResID resID;
 	
 	result = nil;
 
 	if (NULL != (state = [self beginResourceSection])) {
-		ID = [self IDOfNamedResource: name ofType: 'PICT'];
-		if (ID <= SHRT_MAX)
-			result = [self imageResource: ID];
+		if ([self getID: &resID ofNamedResource: name ofType: 'PICT'])
+			result = [self imageResource: resID];
 		[self endResourceSection: state];
 	}
 	
 	return result;
 }
 
-- (void)playSoundResource: (short int)ID {
-#if defined(__SOUND__)
+- (void)playSoundResource: (ResID)resID {
 	NSAutoreleasePool *pool;
 	Handle hand;
 	
 	pool = [[NSAutoreleasePool alloc] init];
 	
-	hand = [self handleForResource: ID ofType: 'snd '];
+	hand = [self handleForResource: resID ofType: 'snd '];
 	if (hand) {
+#if defined(__SOUND__)
 		SndPlay(NULL, (SndListHandle)hand, FALSE);
+#else
+		NSLog(@"*** couldn't play sound %i in %@: not linked with Sound Manager", (int)ID, self);
+#endif /* defined(__SOUND__) */
 	}
 	
 	[pool release];
-#endif /* defined(__SOUND__) */
 }
 
 - (void)playNamedSoundResource: (NSString *)name {
-#if defined(__SOUND__)
 	GTResourceSectionStateRef state;
-	int ID;
+	ResID resID;
 	
 	if (NULL != (state = [self beginResourceSection])) {
-		ID = [self IDOfNamedResource: name ofType: 'snd '];
-		if (ID <= SHRT_MAX)
-			[self playSoundResource: ID];
+		if ([self getID: &resID ofNamedResource: name ofType: 'snd '])
+			[self playSoundResource: resID];
 		[self endResourceSection: state];
 	}
-#endif /* defined(__SOUND__) */
 }
 
-- (NSCursor *)cursorResource: (short int)ID {
+- (NSCursor *)cursorResource: (ResID)resID {
 	NSCursor *result;
 	GTResourceSectionStateRef state;
 	Handle hand;
 	
 	result = nil;
 	if (NULL != (state = [self beginResourceSection])) {
-		hand = [self handleForResource: ID ofType: 'crsr'];
+		hand = [self handleForResource: resID ofType: 'crsr'];
 		if (hand)
 			result = [self cursorFromcrsrResource: hand];
 		
 		if (!result) {
 			/* fallback to CURS resource */
-			hand = [self handleForResource: ID ofType: 'CURS'];
+			hand = [self handleForResource: resID ofType: 'CURS'];
 			if (hand)
 				result = [self cursorFromCURSResource: hand];
 		}
@@ -1598,6 +1671,32 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 }
 @end
 
+@implementation GTResourceFork (GTResourceFork_Deprecated)
+- (int)IDOfNamedResource: (NSString *)name ofType: (ResType)type {
+	ResID result;
+	
+	NSLog(@"warning: -[GTResourceFork IDOfNamedResource:ofType:] is deprecated; use -[GTResourceFork getID:ofNamedResource:ofType:] instead");
+	
+	if ([self getID: &result ofNamedResource: name ofType: type]) {
+		return (int)(result);
+	} else {
+		return (int)(SHRT_MAX + 1);
+	}
+}
+
+- (ResID)uniqueIDForType: (ResType)type {
+	ResID result;
+	
+	NSLog(@"warning: -[GTResourceFork uniqueIDForType:] is deprecated; use -[GTResourceFork getUniqueID:forType:] instead");
+
+	if ([self getUniqueID: &result forType: type]) {
+		return result;
+	} else {
+		return 0;
+	}
+}
+@end
+
 #pragma mark -
 #pragma mark Private GTResourceFork Category Implementations
 @implementation GTResourceFork (Styles)
@@ -1608,8 +1707,7 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	StScrpPtr scrap;
 	ScrpSTElement entry;
 	NSRange entryRange;
-	short int numStyles;
-	short int i;
+	unsigned int numStyles;
 
 	if (!str)
 		return nil;
@@ -1622,8 +1720,8 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	/* 'styl' resources are auto-swapped by Resource Manager */
 	scrap = (StScrpPtr)(*hand);
 	if (scrap) {
-		numStyles = scrap->scrpNStyles;
-		for (i = 0; i < numStyles; i++) {
+		numStyles = (unsigned int)(scrap->scrpNStyles);
+		unsigned int i = 0; for (; i < numStyles; i++) {
 			entry = scrap->scrpStyleTab[i];
 			entryRange.location = entry.scrpStartChar;
 #if defined(MF_APPLICATION)
@@ -1686,6 +1784,7 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 #else /* MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_3 */
 				obj = [NSNumber numberWithInt: NSSingleUnderlineStyle];
 #endif /* MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_3 */
+
 				if (obj) {
 					[result addAttribute: NSUnderlineStyleAttributeName value: obj range: entryRange];
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_3
@@ -1721,8 +1820,7 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 	NSFont *result;
 	NSString *psName;
 	
-	/* default font, if fetch fails */
-	result = [NSFont userFontOfSize: 0.0f];
+	result = nil;
 	psName = nil;
 
 	if (entry) {
@@ -1746,17 +1844,14 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 		Str255 oldFontName;
 		
 		/* GetFontName and FMGetFontFamilyName don't cover the same fonts, so need to try both */
-		if (noErr != FMGetFontFamilyName(entry->scrpFont, oldFontName))
+		if (noErr != FMGetFontFamilyName((FMFontFamily)(entry->scrpFont), oldFontName))
 			GetFontName(entry->scrpFont, oldFontName);
 		psName = GTPascalStringGetString(oldFontName, kGTResourceForkStringEncoding);
 #endif /* MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_4 */
 		
-		if (psName) {
-			/* got the name, now get font */
-			if ([psName length] > 0) {
-				/* font name is valid, though might not actually refer to a font */
-				result = [NSFont fontWithName: psName size: 0.0f];
-			}
+		/* got the name, now get font */
+		if (psName && [psName length] > 0) {
+			result = [NSFont fontWithName: psName size: 0.0f];
 		}
 		
 		/* make sure even the default font is the correct size, if possible */
@@ -1765,6 +1860,10 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 		}
 	}
 
+	/* fallback to default font */
+	if (!result)
+		result = [NSFont userFontOfSize: 0.0f];
+	
 	/* apply any font traits */
 	return [[NSFontManager sharedFontManager] convertFont: result toHaveTrait: [self traitMaskForStyleEntry: entry]];
 }
@@ -1885,6 +1984,8 @@ const CFStringEncoding kGTResourceForkCFStringEncoding = kCFStringEncodingMacRom
 //}
 @end
 
+#pragma mark -
+#pragma mark Support Functions
 NSString *GTStringFromResType(ResType type) {
 	char buff[5];
 	
@@ -1923,7 +2024,7 @@ ConstStringPtr GTStringGetPascalString(NSString *aString) {
 	localStrPtr = CFStringGetPascalStringPtr((CFStringRef)aString, kGTResourceForkCFStringEncoding);
 	if (!localStrPtr) {
 		/* quick fetch failed, try slow fetch */
-		if (CFStringGetPascalString((CFStringRef)aString, (StringPtr)localStrFull, 256, kGTResourceForkCFStringEncoding))
+		if (CFStringGetPascalString((CFStringRef)aString, (StringPtr)localStrFull, (CFIndex)sizeof(localStrFull), kGTResourceForkCFStringEncoding))
 			localStrPtr = (ConstStringPtr)localStrFull;
 	}
 	
@@ -1965,6 +2066,10 @@ unsigned int GTUnsignedIntFromSize(Size sz) {
 	/* I shouldn't have to explain why I'm checking a signed type to make sure it's >= 0
 	   before returning it cast to an unsigned type. ;) */
 	
+	/* The logic of this function will likely change to use NSUInteger when Leopard is released.
+	   Because NSUInteger is always the same size as a long integer on Mac OS X, the upper-bounds
+	   checking will be unneeded. */
+	
 	if (sz > UINT_MAX)
 		len = UINT_MAX;
 	else if (sz < 0)
@@ -1989,6 +2094,32 @@ Size GTSizeFromUnsignedInt(unsigned int ui) {
 	return sz;
 }
 
-#if defined(__cplusplus)
+unsigned int GTUnsignedIntFromSizeT(size_t sz) {
+	unsigned int len;
+	
+	if (sz > UINT_MAX)
+		len = UINT_MAX;
+	else
+		len = (unsigned int)sz;
+	
+	return len;
 }
+
+size_t GTSizeTFromUnsignedInt(unsigned int ui) {
+	size_t sz;
+	
+	if (ui > SIZE_MAX)
+		sz = SIZE_MAX;
+	else
+		sz = (size_t)ui;
+	
+	return sz;
+}
+
+Handle GTCopyHandle(Handle hand) {
+	return ((noErr == HandToHand(&hand)) ? hand : NULL);
+}
+
+#if defined(__cplusplus)
+	}
 #endif
