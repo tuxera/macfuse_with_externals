@@ -1,7 +1,5 @@
 //
-//  64bit.xcconfig
-//
-//  Xcode configuration file to include for builds wanting 64bit support.
+//  PluginID.h
 //
 //  Copyright 2008 Google Inc.
 //
@@ -18,9 +16,4 @@
 //  the License.
 //
 
-// Compile all flavors: 32 & 64bit on both PPC and Intel
-ARCHS = i386 x86_64 ppc ppc64
-
-// Warn on implicit data conversions in 64bit builds
-GCC_WARN_64_TO_32_BIT_CONVERSION[arch=ppc64] = YES
-GCC_WARN_64_TO_32_BIT_CONVERSION[arch=x86_64] = YES
+#define PLUGIN_ID "1CDB2B3C-CD6F-407D-9217-230E6DED8B00"
