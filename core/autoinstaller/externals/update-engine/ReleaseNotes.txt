@@ -1,0 +1,13 @@
+Update Engine Release Notes
+
+Project site:     http://code.google.com/p/update-engine
+Discussion group: http://groups.google.com/group/update-engine
+
+
+Release 1.0.0
+30-September-2008
+
+- First post!
+
+- Initial public release.  Includes Update Engine and sample programs.
+
