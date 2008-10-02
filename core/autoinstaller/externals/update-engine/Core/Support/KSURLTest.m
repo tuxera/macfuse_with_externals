@@ -117,9 +117,9 @@ static int RunCommand(NSString *cmd) {
   NSString *cmd = nil;
   int rc = -1;
 
-  // God help us all if someone actually buys the following domain.
+  // This file should not exist.
   cmd = [path_ stringByAppendingFormat:
-         @" -url http://www.qwdf23qf2e4f11wedzxerqwlka.com/ -path %@", dlpath_];
+         @" -url file:///qwdf23qf2e4f11wedzxerqwlka.test/ -path %@", dlpath_];
   rc = RunCommand(cmd);
   STAssertTrue(rc != 0, nil);
 

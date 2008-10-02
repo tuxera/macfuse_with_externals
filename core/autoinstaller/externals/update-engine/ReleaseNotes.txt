@@ -4,7 +4,17 @@ Project site:     http://code.google.com/p/update-engine
 Discussion group: http://groups.google.com/group/update-engine
 
 
-Release 1.0.0
+Release 2
+
+- Fixed Tiger Debug build error: Spaces in the enclosing path weren't quoted
+  completely.
+
+- Changed KSURLTest.m to use a file: url for a test rather than an http: url
+  because OpenDNS was messing up the test w/ http:
+  (Issue: http://code.google.com/p/update-engine/issues/detail?id=4)
+
+
+Release 1
 30-September-2008
 
 - First post!
