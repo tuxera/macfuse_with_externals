@@ -4,6 +4,14 @@ Project site:     http://code.google.com/p/update-engine
 Discussion group: http://groups.google.com/group/update-engine
 
 
+Release 3
+11-November-2008
+
+- Added extra field in KSTickets for trusted tester support
+
+- Added dmg mount location clarity
+
+
 Release 2
 
 - Fixed Tiger Debug build error: Spaces in the enclosing path weren't quoted
