@@ -12,14 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Pull in the general settings
-#include "../subconfig/General.xcconfig"
+// Define the current Update Engine version.
+UPDATE_ENGINE_VERSION = R2
 
-// Tiger or later
-#include "../subconfig/TigerOrLater.xcconfig"
-
-// Release settings
-#include "../subconfig/Release.xcconfig"
-
-// UpdateEngine settings
-#include "../UpdateEngine.xcconfig"

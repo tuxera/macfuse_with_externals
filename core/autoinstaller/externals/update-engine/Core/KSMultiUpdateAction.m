@@ -13,12 +13,20 @@
 // limitations under the License.
 
 #import "KSMultiUpdateAction.h"
-#import "KSUpdateEngine.h"
-#import "KSActionProcessor.h"
+
 #import "KSActionPipe.h"
-#import "KSUpdateInfo.h"
-#import "KSUpdateAction.h"
+#import "KSActionProcessor.h"
 #import "KSFrameworkStats.h"
+#import "KSTicket.h"
+#import "KSUpdateAction.h"
+#import "KSUpdateEngine.h"
+#import "KSUpdateInfo.h"
+
+@interface KSMultiUpdateAction(PrivateMethods)
+// Look up the ticket for a given productID in the UpdateEngine
+// instance that we are holding on to.
+- (KSTicket *)ticketForProductID:(NSString *)productID;
+@end
 
 
 @implementation KSMultiUpdateAction
@@ -51,15 +59,35 @@
   return engine_;
 }
 
+- (KSTicket *)ticketForProductID:(NSString *)productID {
+  KSTicketStore *store = [engine_ ticketStore];
+  KSTicket *ticket = [store ticketForProductID:productID];
+  return ticket;
+}
+
 - (void)performAction {
-  NSArray *availableUpdates = [[self inPipe] contents];
-  if (availableUpdates == nil) {
+  NSArray *updates = [[self inPipe] contents];
+  if (updates == nil) {
     GTMLoggerInfo(@"no updates available.");
     [[self processor] finishedProcessing:self successfully:YES];
     return;
   }
 
   _GTMDevAssert(engine_ != nil, @"engine_ must not be nil");
+
+  // Make mutable copies of the updateInfos so we can update each one
+  // with its corresponding ticket.
+  NSMutableArray *availableUpdates = [NSMutableArray array];
+  NSEnumerator *updateEnumerator = [updates objectEnumerator];
+  KSUpdateInfo *info = nil;
+  while ((info = [updateEnumerator nextObject])) {
+    KSUpdateInfo *mutableInfo = [info mutableCopy];
+    [availableUpdates addObject:mutableInfo];
+
+    // Put the ticket into the info.
+    KSTicket *ticket = [self ticketForProductID:[mutableInfo productID]];
+    if (ticket != nil) [mutableInfo setValue:ticket forKey:kTicket];
+  }
 
   // Call through to our "pure virtual" method that the concrete subclass
   // should have overridden to figure out which of the available prodcuts we
@@ -98,7 +126,6 @@
   // Convert each dictionary in |filteredUpdates| into a KSUpdateAction and
   // enqueue it on our subProcessor_
   NSEnumerator *filteredUpdateEnumerator = [filteredUpdates objectEnumerator];
-  KSUpdateInfo *info = nil;
   while ((info = [filteredUpdateEnumerator nextObject])) {
     id<KSCommandRunner> runner = [engine_ commandRunnerForAction:self];
     KSAction *action =

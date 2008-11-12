@@ -157,6 +157,7 @@ ERCommand and add it to the command runner.
 #import "ERListTicketsCommand.h"
 #import "ERRunUpdateCommand.h"
 #import "ERRunUpdateTicketCommand.h"
+#import "ERSelfUpdateCommand.h"
 
 // Spool GTMLogger output (which is what Update Engine uses for its
 // chatter) to a ring buffer.  If an error happens, dump the ring
@@ -184,6 +185,7 @@ int main(int argc, const char *argv[]) {
   [runner registerCommand:[ERRunUpdateTicketCommand command]];
   [runner registerCommand:[ERDryRunCommand command]];
   [runner registerCommand:[ERDryRunTicketCommand command]];
+  [runner registerCommand:[ERSelfUpdateCommand command]];
 
   // First see if the user neglected to give us any arguments, an obvious
   // cry for help.

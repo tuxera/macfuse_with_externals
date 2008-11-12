@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Move to the disk image
+cd "$1"
+
+# Copy the disk image's executable over the existing EngineRunner
+# executable.  This is safe to do.  The old executable is still open
+# and mapped, so won't be disturbed.  It doesn't load any resources
+# either.
+
+# TODO(mdalrymple) - once we have the "ticket info into KSUpdateInfo",
+# use the existence checker path here.
+
+if [ "${KS_BINARY_PATH:=undefined}" = "undefined" ]; then
+  echo "Do'h - not done yet with Ticket->Update Info support"
+else
+  cp EngineRunner ${KS_BINARY_PATH}
+fi
+

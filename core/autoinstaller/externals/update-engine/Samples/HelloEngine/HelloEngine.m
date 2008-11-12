@@ -15,7 +15,8 @@
 // Welcome to HelloEngine, a minimal, but functional, Update Engine
 // program.  See the README.html file for build and run instructions.
 //
-// TODO(mdalrymple): include link to the Update Engine HTTP Dox
+// Visit the Update Engine  project page at
+// http://code.google.com/p/update-engine for more information.
 //
 // When using Update Engine, you first need to create a ticket
 // store that contains one or more "tickets".  HelloEngine creates a

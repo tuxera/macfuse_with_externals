@@ -20,7 +20,7 @@
 // "registering" with UpdateEngine. Tickets are a central part of UpdateEngine.
 // UpdateEngine maintains one ticket for each registered application. Tickets
 // are how UpdateEngine knows what's installed.
-// 
+//
 // The creation date simply records the date the ticket was created. If a ticket
 // is unarchived (from a KSTicketStore), the creationDate_ will be the date the
 // ticket was originally created, not the date it was unarchived.
@@ -31,6 +31,7 @@
   KSExistenceChecker *existenceChecker_;
   NSURL *serverURL_;
   NSDate *creationDate_;
+  NSString *trustedTesterToken_;
 }
 
 // Returns an autoreleased KSTicket instance initialized with the specified
@@ -40,12 +41,32 @@
          existenceChecker:(KSExistenceChecker *)xc
                 serverURL:(NSURL *)serverURL;
 
+// Returns an autoreleased KSTicket instance initialized with the
+// specified arguments, also allowing a trusted tester token to be
+// specified.  All arguments other than the trusted tester token are
+// required; if any are nil, then nil is returned.
++ (id)ticketWithProductID:(NSString *)productid
+                  version:(NSString *)version
+         existenceChecker:(KSExistenceChecker *)xc
+                serverURL:(NSURL *)serverURL
+       trustedTesterToken:(NSString *)trustedTesterToken;
+
 // Designated initializer. Returns a KSTicket initialized with the specified
 // arguments. All arguments are required; if any are nil, then nil is returned.
 - (id)initWithProductID:(NSString *)productid
                 version:(NSString *)version
        existenceChecker:(KSExistenceChecker *)xc
               serverURL:(NSURL *)serverURL;
+
+// Designated initializer. Returns a KSTicket initialized with the
+// specified arguments, also allowing a trusted tester token.  All
+// arguments other than the trusted tester token are required; if any
+// are nil, then nil is returned.
+- (id)initWithProductID:(NSString *)productid
+                version:(NSString *)version
+       existenceChecker:(KSExistenceChecker *)xc
+              serverURL:(NSURL *)serverURL
+     trustedTesterToken:(NSString *)trustedTesterToken;
 
 // Returns YES if ticket is equal to the ticket identified by self.
 - (BOOL)isEqualToTicket:(KSTicket *)ticket;
@@ -68,5 +89,8 @@
 
 // Returns the date this ticket was created.
 - (NSDate *)creationDate;
+
+// Returns the trusted tester token, or nil if the ticket does not have one.
+- (NSString *)trustedTesterToken;
 
 @end

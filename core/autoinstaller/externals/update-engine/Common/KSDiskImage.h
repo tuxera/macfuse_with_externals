@@ -62,8 +62,10 @@
 // sure the license was indeed removed by calling -hasLicense.
 - (void)removeLicense;
 
-// Mounts the disk image and returns the path to the mount point.
-- (NSString *)mount;
+// Mounts the disk image and returns the path to the mount point. If a nil 
+// value is specified, a default value is chosen. Otherwise, the requested
+// mountPoint is used.
+- (NSString *)mount:(NSString *)mountPoint;
 
 // Returns YES if the disk image is currently mounted.
 - (BOOL)isMounted;

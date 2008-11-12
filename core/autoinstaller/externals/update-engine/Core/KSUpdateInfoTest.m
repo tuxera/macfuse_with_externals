@@ -15,6 +15,8 @@
 #import <SenTestingKit/SenTestingKit.h>
 #import "KSUpdateInfo.h"
 
+#import "KSExistenceChecker.h"
+#import "KSTicket.h"
 
 @interface KSUpdateInfoTest : SenTestCase 
 @end
@@ -35,6 +37,13 @@
   STAssertNil([update requireReboot], nil);
   STAssertNil([update localizationBundle], nil);
   STAssertNil([update displayVersion], nil);
+  STAssertNil([update ticket], nil);
+
+  KSTicket *ticket =
+    [KSTicket ticketWithProductID:@"com.google.glockenspiel"
+                          version:@"17"
+                 existenceChecker:[KSExistenceChecker trueChecker]
+                        serverURL:[[[NSURL alloc] init] autorelease]];
 
   // Now, make sure these return non-nil values for a real dictionary.
   update = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -47,6 +56,7 @@
             [NSNumber numberWithBool:YES], kServerRequireReboot,
             @"/Hassel/Hoff", kServerLocalizationBundle,
             @"1.3.2 (with pudding)", kServerDisplayVersion,
+            ticket, kTicket,
             nil];
   
   STAssertEqualObjects(@"foo", [update productID], nil);
@@ -58,6 +68,7 @@
   STAssertEqualObjects([NSNumber numberWithBool:YES], [update requireReboot], nil);
   STAssertEqualObjects(@"/Hassel/Hoff", [update localizationBundle], nil);
   STAssertEqualObjects(@"1.3.2 (with pudding)", [update displayVersion], nil);
+  STAssertEqualObjects(ticket, [update ticket], nil);
 }
 
 @end

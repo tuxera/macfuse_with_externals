@@ -23,6 +23,7 @@
   NSString *basicDmgPath_;
   NSString *encryptedDmgPath_;
   NSString *slaDmgPath_;
+  NSString *testMountPoint_;
 }
 @end
 
@@ -49,6 +50,10 @@
                                     toPath:slaDmgPath_
                                    handler:nil];
   chmod([slaDmgPath_ fileSystemRepresentation], 0600);  // Make writable
+  
+  testMountPoint_ = [[NSString alloc] initWithFormat:
+                     @"/tmp/KSDiskImageTest_mountpoint_%@",
+                     [KSUUID uuidString]];
 }
 
 - (void)tearDown {
@@ -56,6 +61,7 @@
   [basicDmgPath_ release];
   [encryptedDmgPath_ release];
   [slaDmgPath_ release];
+  [testMountPoint_ release];
 }
 
 - (void)testCreation {
@@ -83,7 +89,7 @@
   STAssertTrue([di isEncrypted], nil);
   
   STAssertNil([di mountPoint], nil);
-  NSString *mountPoint = [di mount];
+  NSString *mountPoint = [di mount:nil];
   STAssertNil(mountPoint, nil);
 }
 
@@ -99,22 +105,32 @@
   STAssertFalse([di hasLicense], nil);
 }
 
-- (void)testMounting {
+- (void)runMountTestsWithMountPoint:(NSString *)mp {
   KSDiskImage *di = [KSDiskImage diskImageWithPath:basicDmgPath_];
   STAssertNotNil(di, nil);
   
   STAssertNil([di mountPoint], nil);
   
-  NSString *mountPoint = [di mount];
+  NSString *mountPoint = [di mount:mp];
   STAssertNotNil(mountPoint, nil);
   STAssertTrue([di isMounted], nil);
-  STAssertTrue([mountPoint hasPrefix:@"/Volumes/"], nil);
+  
+  if (mp == nil)
+    STAssertTrue([mountPoint hasPrefix:@"/Volumes/"], nil);
+  else
+    STAssertTrue([mountPoint isEqualToString:mp], nil);
+
   STAssertEqualObjects([di mountPoint], mountPoint, nil);
   
   // Unmount
   STAssertTrue([di unmount], nil);
   STAssertNil([di mountPoint], nil);
   STAssertFalse([di isMounted], nil);
+}
+
+- (void)testMounting {
+  [self runMountTestsWithMountPoint:nil];
+  [self runMountTestsWithMountPoint:testMountPoint_];
 }
 
 - (void)testHDIUtilTaskCreation {

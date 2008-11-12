@@ -53,6 +53,9 @@
 + (id)checkerWithPath:(NSString *)path;
 - (id)initWithPath:(NSString *)path;
 
+// Returns the existence checker's path.
+- (NSString *)path;
+
 @end
 
 

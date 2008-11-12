@@ -14,9 +14,12 @@
 
 #import <SenTestingKit/SenTestingKit.h>
 #import "KSInstallAction.h"
+
 #import "KSActionPipe.h"
 #import "KSActionProcessor.h"
 #import "KSCommandRunner.h"
+#import "KSExistenceChecker.h"
+#import "KSTicket.h"
 
 
 @interface KSInstallActionTest : SenTestCase {
@@ -24,7 +27,13 @@
   NSString *successDMGPath_;
   NSString *failureDMGPath_;
   NSString *tryAgainDMGPath_;
+  NSString *envVarDMGPath_;
 }
+@end
+
+
+@interface KSInstallAction (Friend)
+- (NSString *)mountPoint;
 @end
 
 
@@ -88,9 +97,13 @@
   tryAgainDMGPath_ = [[mainBundle pathForResource:@"Test-TRYAGAIN"
                                            ofType:@"dmg"] retain];
 
+  envVarDMGPath_ = [[mainBundle pathForResource:@"Test-ENVVAR"
+                                           ofType:@"dmg"] retain];
+
   STAssertNotNil(successDMGPath_, nil);
   STAssertNotNil(failureDMGPath_, nil);
   STAssertNotNil(tryAgainDMGPath_, nil);
+  STAssertNotNil(envVarDMGPath_, nil);
 
   // Make sure we're always using the default script prefix
   [KSInstallAction setInstallScriptPrefix:nil];
@@ -279,6 +292,86 @@
   // Make sure we get a script failure code (not zero) from the action.
   int rc = [[[action outPipe] contents] intValue];
   STAssertTrue(rc != 0, nil);
+}
+
+- (void)testEnvironmentVariables {
+  id<KSCommandRunner> runner = [KSTaskCommandRunner commandRunner];
+  STAssertNotNil(runner, nil);
+
+  // Construct a ticket and update info, and then check the values
+  // in the three scripts on the disk image.
+  // It's the scripts on the disk image which check the values and in
+  // the case of error will complain to standard out (which will then
+  // get printed by KSInstallAction) and return a non-zero value from
+  // the script.
+  KSTicket *ticket =
+      [KSTicket ticketWithProductID:@"com.google.hasselhoff"
+                            version:@"3.14.15.9"
+                   existenceChecker:[KSPathExistenceChecker 
+                                      checkerWithPath:@"/oombly/foombly"]
+                          serverURL:[NSURL URLWithString:@"http://google.com"]];
+
+  KSUpdateInfo *info;
+  info = [NSDictionary dictionaryWithObjectsAndKeys:
+            @"com.google.hasselhoff", kServerProductID,
+            [NSURL URLWithString:@"a://a"], kServerCodebaseURL,
+            [NSNumber numberWithInt:2], kServerCodeSize,
+            @"zzz", kServerCodeHash,
+            @"a://b", kServerMoreInfoURLString,
+            [NSNumber numberWithBool:YES], kServerPromptUser,
+            [NSNumber numberWithBool:YES], kServerRequireReboot,
+            @"/Hassel/Hoff", kServerLocalizationBundle,
+            @"1.3.2 (with pudding)", kServerDisplayVersion,
+            ticket, kTicket,
+            nil];
+
+  KSInstallAction *action = nil;
+  action = [KSInstallAction actionWithDMGPath:envVarDMGPath_
+                                       runner:runner
+                                userInitiated:NO
+                                   updateInfo:info];
+  STAssertNotNil(action, nil);
+
+  // Create an action processor and run the action
+  KSActionProcessor *ap = [[[KSActionProcessor alloc] init] autorelease];
+  STAssertNotNil(ap, nil);
+
+  [ap enqueueAction:action];
+  [ap startProcessing];  // Runs the whole action because our action is sync.
+
+  STAssertFalse([action isRunning], nil);
+  STAssertEqualObjects([[action outPipe] contents], [NSNumber numberWithInt:0],
+                       nil);
+}
+
+- (void)testMountPointGeneration {
+  id<KSCommandRunner> runner = [KSTaskCommandRunner commandRunner];
+  STAssertNotNil(runner, nil);
+  
+  NSDictionary *fakeUpdateInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+                                  @"product", @"kServerProductID",
+                                  @"hash", @"kServerCodeHash", nil];
+  
+  KSInstallAction *action = nil;
+  action = [KSInstallAction actionWithDMGPath:successDMGPath_
+                                       runner:runner
+                                userInitiated:NO
+                                   updateInfo:fakeUpdateInfo];
+  STAssertEqualObjects([action mountPoint], @"/Volumes/product-hash", nil);
+  
+  
+  // Now try the test w/ a huge product ID and it should be truncated to 50 cols
+  fakeUpdateInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+                    @"12345678901234567890123456789012345678901234567890"  // 50
+                    @"ABCDEFG...", @"kServerProductID",
+                    @"hash", @"kServerCodeHash", nil];
+  action = [KSInstallAction actionWithDMGPath:successDMGPath_
+                                       runner:runner
+                                userInitiated:NO
+                                   updateInfo:fakeUpdateInfo];
+  STAssertEqualObjects([action mountPoint], @"/Volumes/"
+                       @"12345678901234567890123456789012345678901234567890"  // 50
+                       @"-hash", nil);
 }
 
 @end

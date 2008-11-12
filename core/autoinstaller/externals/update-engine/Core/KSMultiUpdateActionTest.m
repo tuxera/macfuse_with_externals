@@ -14,26 +14,48 @@
 
 #import <SenTestingKit/SenTestingKit.h>
 #import "KSMultiUpdateAction.h"
-#import "KSActionProcessor.h"
+
 #import "KSActionPipe.h"
+#import "KSActionProcessor.h"
+#import "KSMemoryTicketStore.h"
+#import "KSTicketStore.h"
 #import "KSUpdateAction.h"
-#import "KSUpdateInfo.h"
 #import "KSUpdateEngine.h"
+#import "KSUpdateInfo.h"
 
 
 @interface KSMultiUpdateActionTest : SenTestCase
 @end
 
 
-@interface Concrete : KSMultiUpdateAction
+@interface Concrete : KSMultiUpdateAction {
+  // Hang on to the avaialble updates array we get from Update Engine
+  // to verify that the ticket info has been added.
+  NSArray *availableUpdates_;
+}
+
+- (NSArray *)availableUpdates;
 @end
 
 @implementation Concrete
 
 - (NSArray *)productsToUpdateFromAvailable:(NSArray *)availableUpdates {
+  // Hang on to the updates so we can check their tickettude after
+  // the update has run.
+  availableUpdates_ = [availableUpdates retain];
+
   return [availableUpdates filteredArrayUsingPredicate:
           [NSPredicate predicateWithFormat:
            @"%K like 'allow*'", kServerProductID]];
+}
+
+- (void)dealloc {
+  [availableUpdates_ release];
+  [super dealloc];
+}
+
+- (NSArray *)availableUpdates {
+  return availableUpdates_;
 }
 
 @end
@@ -81,15 +103,56 @@ static NSString *const kTicketStorePath = @"/tmp/KSMultiUpdateActionTest.tickets
   action = [Concrete actionWithEngine:engine];
   STAssertNotNil(action, nil);
   STAssertFalse([action isRunning], nil);
-  
+
   // For the sake of code coverage, let's call this method even though we don't
   // really have a good way to test the functionality.
   [action terminateAction];
 }
 
 
+// Struct to hold the values used to create a ticket.
+typedef struct RawTicketInfo {
+  const char *productID;
+  const char *version;
+  const char *xcpath;
+  const char *serverURL;
+} RawTicketInfo;
+
+static RawTicketInfo denyTix[] = {
+  { "deny1", "123", "/blah", "http://google.com" },
+  { "deny2", "234", "/blah", "http://google.com" },
+};
+
+- (KSTicketStore *)ticketStoreFromRawInfo:(RawTicketInfo *)rawBits
+                                   length:(int)length {
+  KSTicketStore *ticketStore = [[[KSMemoryTicketStore alloc] init] autorelease];
+  RawTicketInfo *scan, *stop;
+  scan = rawBits;
+  stop = scan + length;
+  while (scan < stop) {
+    NSString *productID = [NSString stringWithUTF8String:scan->productID];
+    NSString *version = [NSString stringWithUTF8String:scan->version];
+    KSExistenceChecker *xc = [KSPathExistenceChecker checkerWithPath:
+        [NSString stringWithUTF8String:scan->xcpath]];
+    NSURL *serverURL =
+      [NSURL URLWithString:[NSString stringWithUTF8String:scan->serverURL]];
+    KSTicket *ticket =
+      [KSTicket ticketWithProductID:productID
+                            version:version
+                   existenceChecker:xc
+                          serverURL:serverURL];
+    [ticketStore storeTicket:ticket];
+    scan++;
+  }
+  return ticketStore;
+}
+
 - (void)testNegativeFiltering {
-  KSUpdateEngine *engine = [KSUpdateEngine engineWithDelegate:self];
+  KSTicketStore *store =
+    [self ticketStoreFromRawInfo:denyTix
+                          length:sizeof(denyTix) / sizeof(*denyTix)];
+  KSUpdateEngine *engine =
+    [KSUpdateEngine engineWithTicketStore:store delegate:self];
   STAssertNotNil(engine, nil);
   
   Concrete *action = [Concrete actionWithEngine:engine];
@@ -125,6 +188,19 @@ static NSString *const kTicketStorePath = @"/tmp/KSMultiUpdateActionTest.tickets
   [self loopUntilDone:ap];
   STAssertFalse([ap isProcessing], nil);
   STAssertEqualsWithAccuracy([ap progress], 1.0f, 0.01, nil);
+
+  // Make sure the ticket made it to the update infos.
+  NSEnumerator *updateEnumerator = [[action availableUpdates] objectEnumerator];
+  KSUpdateInfo *info = nil;
+  while ((info = [updateEnumerator nextObject])) {
+    KSTicket *ticket = [info ticket];
+    STAssertNotNil(ticket, nil);
+
+    // Sanity check the ticket.
+    NSString *ticketProductID = [ticket productID];
+    NSString *infoProductID = [info productID];
+    STAssertEqualObjects(ticketProductID, infoProductID, nil);
+  }
   
   STAssertEquals([action subActionsProcessed], 0, nil);
 }

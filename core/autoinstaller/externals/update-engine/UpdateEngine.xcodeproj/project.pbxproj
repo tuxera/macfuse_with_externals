@@ -7,6 +7,32 @@
 	objects = {
 
 /* Begin PBXAggregateTarget section */
+		38132B240EB77E3E008EC2FB /* EngineRunner Update DMG */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 38132B2A0EB77E4A008EC2FB /* Build configuration list for PBXAggregateTarget "EngineRunner Update DMG" */;
+			buildPhases = (
+				38132B440EB78538008EC2FB /* CopyFiles */,
+				38132B2C0EB780B9008EC2FB /* ShellScript */,
+			);
+			dependencies = (
+				38132B280EB77E47008EC2FB /* PBXTargetDependency */,
+			);
+			name = "EngineRunner Update DMG";
+			productName = "Build EngineRunner DMG";
+		};
+		38132B6D0EB794BA008EC2FB /* Generate EngineRunner Config */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 38132B710EB79546008EC2FB /* Build configuration list for PBXAggregateTarget "Generate EngineRunner Config" */;
+			buildPhases = (
+				38132B960EB79DB7008EC2FB /* CopyFiles */,
+				38132B8B0EB79DB2008EC2FB /* ShellScript */,
+			);
+			dependencies = (
+				3864EFF00EB8B5A8009706DA /* PBXTargetDependency */,
+			);
+			name = "Generate EngineRunner Config";
+			productName = "Generate EngineRunner Config";
+		};
 		F95BABA70E5F61A600C4AA72 /* Build All */ = {
 			isa = PBXAggregateTarget;
 			buildConfigurationList = F95BABB30E5F61C400C4AA72 /* Build configuration list for PBXAggregateTarget "Build All" */;
@@ -19,6 +45,8 @@
 				F95BABAF0E5F61BD00C4AA72 /* PBXTargetDependency */,
 				F966F2E40E8168FA009FCD64 /* PBXTargetDependency */,
 				38AF83150E8805A70060B504 /* PBXTargetDependency */,
+				38132B4F0EB78FE7008EC2FB /* PBXTargetDependency */,
+				3864EFE10EB8B0A6009706DA /* PBXTargetDependency */,
 			);
 			name = "Build All";
 			productName = "Build All";
@@ -39,6 +67,12 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		38132B410EB7852B008EC2FB /* engine_install in CopyFiles */ = {isa = PBXBuildFile; fileRef = 38132B110EB77B98008EC2FB /* engine_install */; };
+		38132B880EB79DAC008EC2FB /* enginerunner-plist-generator.sh in CopyFiles */ = {isa = PBXBuildFile; fileRef = 38132B860EB79D6A008EC2FB /* enginerunner-plist-generator.sh */; };
+		38132B890EB79DAC008EC2FB /* kshash.sh in CopyFiles */ = {isa = PBXBuildFile; fileRef = 38132B850EB79D6A008EC2FB /* kshash.sh */; };
+		3830F7350EA8FA9700A8D0D3 /* ERSelfUpdateCommand.m in Sources */ = {isa = PBXBuildFile; fileRef = 3830F7340EA8FA9700A8D0D3 /* ERSelfUpdateCommand.m */; };
+		389603E30EBA3D2900BDA613 /* Test-ENVVAR.dmg in Resources */ = {isa = PBXBuildFile; fileRef = 389603E20EBA3D2900BDA613 /* Test-ENVVAR.dmg */; };
+		389603E40EBA3D2900BDA613 /* Test-ENVVAR.dmg in Resources */ = {isa = PBXBuildFile; fileRef = 389603E20EBA3D2900BDA613 /* Test-ENVVAR.dmg */; };
 		38AF7FD10E799EAA0060B504 /* KSCompositeAction.m in Sources */ = {isa = PBXBuildFile; fileRef = F9A707C20E5F4BCF004B295E /* KSCompositeAction.m */; };
 		38AF7FD20E799EAA0060B504 /* KSDiskImage.m in Sources */ = {isa = PBXBuildFile; fileRef = F9A707C60E5F4BCF004B295E /* KSDiskImage.m */; };
 		38AF7FD30E799EAA0060B504 /* KSMultiAction.m in Sources */ = {isa = PBXBuildFile; fileRef = F9A707CE0E5F4BCF004B295E /* KSMultiAction.m */; };
@@ -271,6 +305,34 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		38132B270EB77E47008EC2FB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F98DD3E10E5F4B5E00FE644D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 38AF82420E81A5FA0060B504;
+			remoteInfo = EngineRunner;
+		};
+		38132B4E0EB78FE7008EC2FB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F98DD3E10E5F4B5E00FE644D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 38132B240EB77E3E008EC2FB;
+			remoteInfo = "EngineRunner Update DMG";
+		};
+		3864EFE00EB8B0A6009706DA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F98DD3E10E5F4B5E00FE644D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 38132B6D0EB794BA008EC2FB;
+			remoteInfo = "Generate EngineRunner Config";
+		};
+		3864EFEF0EB8B5A8009706DA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F98DD3E10E5F4B5E00FE644D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 38132B240EB77E3E008EC2FB;
+			remoteInfo = "EngineRunner Update DMG";
+		};
 		38AF83140E8805A70060B504 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = F98DD3E10E5F4B5E00FE644D /* Project object */;
@@ -385,7 +447,37 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		38132B440EB78538008EC2FB /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 16;
+			files = (
+				38132B410EB7852B008EC2FB /* engine_install in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		38132B960EB79DB7008EC2FB /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 16;
+			files = (
+				38132B880EB79DAC008EC2FB /* enginerunner-plist-generator.sh in CopyFiles */,
+				38132B890EB79DAC008EC2FB /* kshash.sh in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		38132B110EB77B98008EC2FB /* engine_install */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = engine_install; path = Samples/EngineRunner/engine_install; sourceTree = "<group>"; };
+		38132B850EB79D6A008EC2FB /* kshash.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = kshash.sh; path = Samples/EngineRunner/kshash.sh; sourceTree = SOURCE_ROOT; };
+		38132B860EB79D6A008EC2FB /* enginerunner-plist-generator.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = "enginerunner-plist-generator.sh"; path = "Samples/EngineRunner/enginerunner-plist-generator.sh"; sourceTree = SOURCE_ROOT; };
+		3830F7330EA8FA9700A8D0D3 /* ERSelfUpdateCommand.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ERSelfUpdateCommand.h; path = Samples/EngineRunner/ERSelfUpdateCommand.h; sourceTree = "<group>"; };
+		3830F7340EA8FA9700A8D0D3 /* ERSelfUpdateCommand.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ERSelfUpdateCommand.m; path = Samples/EngineRunner/ERSelfUpdateCommand.m; sourceTree = "<group>"; };
+		389603E20EBA3D2900BDA613 /* Test-ENVVAR.dmg */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Test-ENVVAR.dmg"; sourceTree = "<group>"; };
 		38AF7CA10E781C450060B504 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		38AF7D4A0E781CA90060B504 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		38AF80050E799EAA0060B504 /* HelloEngine */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = HelloEngine; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -744,6 +836,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		38132B830EB79D5C008EC2FB /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				38132B110EB77B98008EC2FB /* engine_install */,
+				38132B850EB79D6A008EC2FB /* kshash.sh */,
+				38132B860EB79D6A008EC2FB /* enginerunner-plist-generator.sh */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
 		38AF7B3E0E7817A80060B504 /* Samples */ = {
 			isa = PBXGroup;
 			children = (
@@ -764,6 +866,7 @@
 		38AF823E0E81A5E60060B504 /* EngineRunner */ = {
 			isa = PBXGroup;
 			children = (
+				38132B830EB79D5C008EC2FB /* Build */,
 				38AF82870E81A7180060B504 /* main.m */,
 				38AF82930E81A7180060B504 /* ERCommand.h */,
 				38AF82920E81A7180060B504 /* ERCommand.m */,
@@ -785,6 +888,8 @@
 				38AF82880E81A7180060B504 /* ERRunUpdateCommand.m */,
 				38AF830C0E87EB230060B504 /* ERRunUpdateTicketCommand.h */,
 				38AF830D0E87EB230060B504 /* ERRunUpdateTicketCommand.m */,
+				3830F7330EA8FA9700A8D0D3 /* ERSelfUpdateCommand.h */,
+				3830F7340EA8FA9700A8D0D3 /* ERSelfUpdateCommand.m */,
 			);
 			name = EngineRunner;
 			sourceTree = "<group>";
@@ -1130,6 +1235,7 @@
 				F9A708430E5F4BDC004B295E /* Test-FAILURE.dmg */,
 				F9A708440E5F4BDC004B295E /* Test-SUCCESS.dmg */,
 				F9A708450E5F4BDC004B295E /* Test-TRYAGAIN.dmg */,
+				389603E20EBA3D2900BDA613 /* Test-ENVVAR.dmg */,
 			);
 			path = TestResources;
 			sourceTree = "<group>";
@@ -1405,6 +1511,8 @@
 				F95BAB790E5F612E00C4AA72 /* ksurl Tests */,
 				38AF7FCF0E799EAA0060B504 /* HelloEngine */,
 				38AF82420E81A5FA0060B504 /* EngineRunner */,
+				38132B240EB77E3E008EC2FB /* EngineRunner Update DMG */,
+				38132B6D0EB794BA008EC2FB /* Generate EngineRunner Config */,
 			);
 		};
 /* End PBXProject section */
@@ -1425,6 +1533,7 @@
 				F95BAB460E5F5FD300C4AA72 /* Test-FAILURE.dmg in Resources */,
 				F95BAB470E5F5FD300C4AA72 /* Test-SUCCESS.dmg in Resources */,
 				F95BAB480E5F5FD300C4AA72 /* Test-TRYAGAIN.dmg in Resources */,
+				389603E40EBA3D2900BDA613 /* Test-ENVVAR.dmg in Resources */,
 				F94F33A50E70612E002EE743 /* ServerFailure.plist in Resources */,
 				F94F33A60E70612E002EE743 /* ServerSuccess.plist in Resources */,
 			);
@@ -1447,12 +1556,40 @@
 				F95BAA870E5F5AA100C4AA72 /* Test-TRYAGAIN.dmg in Resources */,
 				F95BAA590E5F59F800C4AA72 /* Encrypted.dmg in Resources */,
 				F95BAA5A0E5F59F800C4AA72 /* WithSLA.dmg in Resources */,
+				389603E30EBA3D2900BDA613 /* Test-ENVVAR.dmg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		38132B2C0EB780B9008EC2FB /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd \"${TARGET_BUILD_DIR}\"\n\nif [ EngineRunner.dmg -ot EngineRunner ]; then\n    echo \"Making new EngineRunner.dmg\"\n    \n    rm -rf EngineRunnerSource\n    mkdir EngineRunnerSource\n    cp EngineRunner EngineRunnerSource\n\n    # make sure the install script is correctly named and executable\n    cp engine_install EngineRunnerSource/.engine_install\n    chmod +x EngineRunnerSource/.engine_install\n\n    # create the disk image\n    hdiutil create -ov -srcfolder EngineRunnerSource -fs HFS+ -format UDZO -imagekey zlib-level=9 -volname EngineRunner -noscrub -nocrossdev \"EngineRunner-${UPDATE_ENGINE_VERSION}.dmg\"\nfi\n";
+			showEnvVarsInLog = 0;
+		};
+		38132B8B0EB79DB2008EC2FB /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd \"${TARGET_BUILD_DIR}\" \\\n&& /bin/bash enginerunner-plist-generator.sh > enginerunner.plist\n\n\n\n";
+		};
 		F95BAB130E5F5F5600C4AA72 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -1595,6 +1732,7 @@
 				38AF830E0E87EB240060B504 /* ERRunUpdateTicketCommand.m in Sources */,
 				38AF83110E87EEAD0060B504 /* ERDryRunTicketCommand.m in Sources */,
 				F9FBC9BE0E883E97006E0CD1 /* KSURLData.m.xxd in Sources */,
+				3830F7350EA8FA9700A8D0D3 /* ERSelfUpdateCommand.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1721,6 +1859,26 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		38132B280EB77E47008EC2FB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 38AF82420E81A5FA0060B504 /* EngineRunner */;
+			targetProxy = 38132B270EB77E47008EC2FB /* PBXContainerItemProxy */;
+		};
+		38132B4F0EB78FE7008EC2FB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 38132B240EB77E3E008EC2FB /* EngineRunner Update DMG */;
+			targetProxy = 38132B4E0EB78FE7008EC2FB /* PBXContainerItemProxy */;
+		};
+		3864EFE10EB8B0A6009706DA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 38132B6D0EB794BA008EC2FB /* Generate EngineRunner Config */;
+			targetProxy = 3864EFE00EB8B0A6009706DA /* PBXContainerItemProxy */;
+		};
+		3864EFF00EB8B5A8009706DA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 38132B240EB77E3E008EC2FB /* EngineRunner Update DMG */;
+			targetProxy = 3864EFEF0EB8B5A8009706DA /* PBXContainerItemProxy */;
+		};
 		38AF83150E8805A70060B504 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 38AF82420E81A5FA0060B504 /* EngineRunner */;
@@ -1804,6 +1962,34 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		38132B250EB77E3E008EC2FB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "EngineRunner Update DMG";
+			};
+			name = Debug;
+		};
+		38132B260EB77E3E008EC2FB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "EngineRunner Update DMG";
+			};
+			name = Release;
+		};
+		38132B6E0EB794BA008EC2FB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "Generate EngineRunner Config";
+			};
+			name = Debug;
+		};
+		38132B6F0EB794BA008EC2FB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "Generate EngineRunner Config";
+			};
+			name = Release;
+		};
 		38AF80030E799EAA0060B504 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1829,6 +2015,10 @@
 		38AF82700E81A5FA0060B504 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-DUPDATE_ENGINE_VERSION=$(UPDATE_ENGINE_VERSION)",
+				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-lcrypto",
@@ -1840,6 +2030,10 @@
 		38AF82710E81A5FA0060B504 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-DUPDATE_ENGINE_VERSION=$(UPDATE_ENGINE_VERSION)",
+				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-lcrypto",
@@ -2075,6 +2269,24 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		38132B2A0EB77E4A008EC2FB /* Build configuration list for PBXAggregateTarget "EngineRunner Update DMG" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				38132B250EB77E3E008EC2FB /* Debug */,
+				38132B260EB77E3E008EC2FB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		38132B710EB79546008EC2FB /* Build configuration list for PBXAggregateTarget "Generate EngineRunner Config" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				38132B6E0EB794BA008EC2FB /* Debug */,
+				38132B6F0EB794BA008EC2FB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		38AF80020E799EAA0060B504 /* Build configuration list for PBXNativeTarget "HelloEngine" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

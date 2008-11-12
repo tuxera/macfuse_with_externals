@@ -65,6 +65,14 @@
 // as the keys in the KSUpdateInfo, with the exception that they will all be 
 // prepended with the string "KS_".
 //
+// Also, if there is ticket info in the |updateInfo|, these environment
+// variables will be set:
+//    KS_TICKET_PRODUCT_ID : the productID from the ticket
+//    KS_TICKET_VERSION    : the version from the ticket
+//    KS_TICKET_SERVER_URL : the URL used to fetch the update information
+//  If the ticket's existence checker has a path, then this will be set too:
+//    KS_TICKET_XC_PATH    : The existence checker path from the ticket.
+//
 // Input-Output
 // ------------
 // KSInstallAction reads the path (NSString *) of the DMG to be installed from

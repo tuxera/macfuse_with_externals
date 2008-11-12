@@ -14,6 +14,7 @@
 
 #import <Foundation/Foundation.h>
 
+@class KSTicket;
 
 // Dictionary keys for the KSUpdateInfo dictionaries. Although any
 // key/value may be included in a results dictionary, the key listed
@@ -30,6 +31,7 @@
 #define kServerDisplayVersion     @"kServerDisplayVersion"  // NSString
 #define kServerLocalizationBundle \
   @"kServerLocalizationBundle"  // NSString, either a path or a bundleID
+#define kTicket                   @"kTicket"                // KSTicket
 
 // KSUpdateInfo
 //
@@ -87,6 +89,7 @@
 // Returns the object for kServerDisplayVersion
 - (NSString *)displayVersion;
 
+// Returns the object for kTicket
+- (KSTicket *)ticket;
+
 @end
-
-

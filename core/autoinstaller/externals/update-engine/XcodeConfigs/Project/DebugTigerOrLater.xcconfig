@@ -21,3 +21,5 @@
 // Debug settings
 #include "../subconfig/Debug.xcconfig"
 
+// UpdateEngine settings
+#include "../UpdateEngine.xcconfig"

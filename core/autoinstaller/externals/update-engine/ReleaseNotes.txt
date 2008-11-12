@@ -13,6 +13,25 @@ Release 2
   because OpenDNS was messing up the test w/ http:
   (Issue: http://code.google.com/p/update-engine/issues/detail?id=4)
 
+- Added EngineRunner selfupdate command.
+
+- Added kshash.sh and enginerunner-plist-generator.sh scripts that can
+  be used to automate configuration plist creation.
+
+- Added UPDATE_ENGINE_VERSION xcode setting.
+
+- Ticket information now added to the KSUpdateInfo, accessible by -ticket.
+
+- Ticket information is set as environment variables provided to the
+  install scripts:
+    * KS_TICKET_PRODUCT_ID
+    * KS_TICKET_SERVER_URL
+    * KS_TICKET_VERSION
+    * KS_TICKET_XC_PATH
+
+- Added -path accessor for file existence checkers.
+
+
 
 Release 1
 30-September-2008

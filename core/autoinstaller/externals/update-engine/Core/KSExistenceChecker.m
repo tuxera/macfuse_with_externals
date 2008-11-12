@@ -128,6 +128,10 @@
                      @"<%@:%p path=%@>", [self class], self, path_];
 }
 
+- (NSString *)path {
+  return path_;
+}
+
 @end
 
 

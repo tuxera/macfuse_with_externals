@@ -135,7 +135,7 @@
   }
 }
 
-- (NSString *)mount {
+- (NSString *)mount:(NSString *)mountPoint {
   _GTMDevAssert(path_ != nil, @"path_ must not be nil");
   if (mountPoint_ != nil) return mountPoint_;
   
@@ -147,9 +147,15 @@
   [self removeLicense];
 
   NSString *plist = nil;
-  NSArray *args = [NSArray arrayWithObjects:
-                   @"attach", path_, @"-plist", 
-                   @"-readonly", @"-nobrowse", @"-noverify", nil];
+  NSMutableArray *args = [NSMutableArray arrayWithObjects:
+                          @"attach", path_, @"-plist", 
+                          @"-readonly", @"-nobrowse", @"-noverify", nil];
+  // If a mountpoint was specified, then request it. Otherwise, hdiutil will
+  // give us a default one in /Volumes/
+  if (mountPoint != nil) {
+    [args addObject:@"-mountPoint"];
+    [args addObject:mountPoint];
+  }
   
   int status = [[KSHDIUtilTask hdiutil] runWithArgs:args
                                         inputString:nil

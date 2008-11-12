@@ -12,14 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Pull in the general settings
-#include "../subconfig/General.xcconfig"
+#import "ERCommand.h"
 
-// Tiger or later
-#include "../subconfig/TigerOrLater.xcconfig"
-
-// Release settings
-#include "../subconfig/Release.xcconfig"
-
-// UpdateEngine settings
-#include "../UpdateEngine.xcconfig"
+// ERSelfUpdateCommand is an EngineRunner command that will attempt to update
+// itself to the latest version.
+//
+// Required arguments:
+//   none.  It will use built-in defaults to look at
+//   code.google.com/p/update-engine for the latest version
+//
+// Optional arguments, useful for testing and debugging:
+//   productid: productID to say we are
+//   url: Server URL
+//   version: The version to say we are
+//
+@interface ERSelfUpdateCommand: ERCommand
+@end  // ERSelfUpdateCommand

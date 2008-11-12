@@ -37,7 +37,7 @@
 }
 
 - (void)testPathChecker {
-  KSExistenceChecker *xc = nil;
+  KSPathExistenceChecker *xc = nil;
   
   xc = [[[KSPathExistenceChecker alloc] init] autorelease];
   STAssertNil(xc, nil);
@@ -49,26 +49,32 @@
   xc = [KSPathExistenceChecker checkerWithPath:@"/"];
   STAssertNotNil(xc, nil);
   STAssertTrue([xc exists], nil);
+  STAssertEqualObjects([xc path], @"/", nil);
   
   xc = [KSPathExistenceChecker checkerWithPath:@"/etc/passwd"];
   STAssertNotNil(xc, nil);
   STAssertTrue([xc exists], nil);
+  STAssertEqualObjects([xc path], @"/etc/passwd", nil);
   
   xc = [KSPathExistenceChecker checkerWithPath:@"/../../.."];
   STAssertNotNil(xc, nil);
   STAssertTrue([xc exists], nil);
+  STAssertEqualObjects([xc path], @"/../../..", nil);
   
   xc = [KSPathExistenceChecker checkerWithPath:@"/tmp"];
   STAssertNotNil(xc, nil);
   STAssertTrue([xc exists], nil);
+  STAssertEqualObjects([xc path], @"/tmp", nil);
   
   xc = [KSPathExistenceChecker checkerWithPath:@"/tmp/."];
   STAssertNotNil(xc, nil);
   STAssertTrue([xc exists], nil);
+  STAssertEqualObjects([xc path], @"/tmp/.", nil);
   
   xc = [KSPathExistenceChecker checkerWithPath:@"/Library/Application Support"];
   STAssertNotNil(xc, nil);
   STAssertTrue([xc exists], nil);
+  STAssertEqualObjects([xc path], @"/Library/Application Support", nil);
   
   //
   // Should NOT exist
@@ -77,14 +83,17 @@
   xc = [KSPathExistenceChecker checkerWithPath:@"/fake/path/to/quuuuuuuux"];
   STAssertNotNil(xc, nil);
   STAssertFalse([xc exists], nil);
+  STAssertEqualObjects([xc path], @"/fake/path/to/quuuuuuuux", nil);
   
   xc = [KSPathExistenceChecker checkerWithPath:@"http://www.google.com"];
   STAssertNotNil(xc, nil);
   STAssertFalse([xc exists], nil);
-  
+  STAssertEqualObjects([xc path], @"http://www.google.com", nil);
+
   xc = [KSPathExistenceChecker checkerWithPath:@":etc:passwd"];
   STAssertNotNil(xc, nil);
   STAssertFalse([xc exists], nil);
+  STAssertEqualObjects([xc path], @":etc:passwd", nil);
   
   xc = [KSPathExistenceChecker checkerWithPath:nil];
   STAssertNil(xc, nil);
@@ -92,10 +101,12 @@
   xc = [KSPathExistenceChecker checkerWithPath:@""];
   STAssertNotNil(xc, nil);
   STAssertFalse([xc exists], nil);
+  STAssertEqualObjects([xc path], @"", nil);
   
   xc = [KSPathExistenceChecker checkerWithPath:@" "];
   STAssertNotNil(xc, nil);
   STAssertFalse([xc exists], nil);
+  STAssertEqualObjects([xc path], @" ", nil);
   
   //
   // Test equality

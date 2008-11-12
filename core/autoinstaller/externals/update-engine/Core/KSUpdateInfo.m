@@ -53,4 +53,8 @@
   return [self objectForKey:kServerDisplayVersion];
 }
 
+- (KSTicket *)ticket {
+  return [self objectForKey:kTicket];
+}
+
 @end

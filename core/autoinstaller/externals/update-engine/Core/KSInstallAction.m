@@ -13,11 +13,15 @@
 // limitations under the License.
 
 #import "KSInstallAction.h"
-#import "KSActionProcessor.h"
+
+#import <sys/mount.h>  // for MNAMELEN
+
+#import "GTMLogger.h"
 #import "KSActionPipe.h"
+#import "KSActionProcessor.h"
 #import "KSCommandRunner.h"
 #import "KSDiskImage.h"
-#import "GTMLogger.h"
+#import "KSTicket.h"
 
 
 static NSString *gInstallScriptPrefix;
@@ -25,6 +29,7 @@ static NSString *gInstallScriptPrefix;
 
 @interface KSInstallAction (PrivateMethods)
 - (NSString *)engineToolsPath;
+- (NSString *)mountPoint;
 - (void)addUpdateInfoToEnvironment:(NSMutableDictionary *)env;
 - (BOOL)isPathToExecutableFile:(NSString *)path;
 @end
@@ -113,9 +118,10 @@ static NSString *gInstallScriptPrefix;
   BOOL success = NO;
 
   KSDiskImage *diskImage = [KSDiskImage diskImageWithPath:[self dmgPath]];
-  NSString *mountPoint = [diskImage mount];
+  NSString *mountPoint = [diskImage mount:[self mountPoint]];
   if (mountPoint == nil) {
-    GTMLoggerError(@"Failed to mount %@", [self dmgPath]);
+    GTMLoggerError(@"Failed to mount %@ at %@",
+                   [self dmgPath], [self mountPoint]);
     rc = kNoScriptsRunRC;
     success = NO;
     goto bail_no_unmount;
@@ -292,6 +298,33 @@ bail_no_unmount:
   return [NSString stringWithFormat:@"%@/../../MacOS", [framework bundlePath]];
 }
 
+// Returns a mount point path to be used for mounting the current dmg
+// ([self dmgPath]). The mountPoint is simply /Volumes/<product_id>-<code_hash>
+// The only trick is that the full mount point must be less than 90 characters
+// (this is a strange Apple limitation). So, we guarantee this by ensuring that
+// the product ID is never more than 50 characters. And since "/Volumes/" is 9
+// characters, and our hashes are 28 characters, we will always end up w/ a 
+// mountpoint less than 90. But just to be sure, we have a GTMLoggerError that
+// will tell us.
+- (NSString *)mountPoint {
+  if (updateInfo_ == nil) return nil;  // nil means to use the default value
+  
+  static const int kMaxProductIDLen = 50;
+  NSString *prodid = [updateInfo_ productID];
+  if ([prodid length] > kMaxProductIDLen)
+    prodid = [prodid substringToIndex:kMaxProductIDLen];
+  
+  NSString *mountPoint = [@"/Volumes/" stringByAppendingPathComponent:
+                          [NSString stringWithFormat:@"%@-%@",
+                           prodid, [updateInfo_ codeHash]]];
+
+  // MNAMELEN is the max mount point name length (hint: it's 90)
+  if ([mountPoint length] >= MNAMELEN)
+    GTMLoggerError(@"Oops! mountPoint path is too long (>=90): %@", mountPoint);
+    
+  return mountPoint;
+}
+
 // Add all of the objects in |updateInfo_| to the mutable dictionary |env|, but
 // prepend all of updateInfo_'s keys with the string @"KS_". This avoids the
 // possibility that someone's server config conflicts w/ an actual shell
@@ -301,8 +334,27 @@ bail_no_unmount:
   NSEnumerator *keyEnumerator = [updateInfo_ keyEnumerator];
 
   while ((key = [keyEnumerator nextObject])) {
-    [env setObject:[[updateInfo_ objectForKey:key] description]
-            forKey:[@"KS_" stringByAppendingString:key]];
+    id value = [updateInfo_ objectForKey:key];
+
+    // Pick apart a ticket and add its pieces to the environment individually.
+    if ([value isKindOfClass:[KSTicket class]]) {
+      KSTicket *ticket = value;
+      [env setObject:[ticket productID]
+              forKey:@"KS_TICKET_PRODUCT_ID"];
+      [env setObject:[ticket version]
+              forKey:@"KS_TICKET_VERSION"];
+      [env setObject:[[ticket serverURL] description]
+              forKey:@"KS_TICKET_SERVER_URL"];
+      KSExistenceChecker *xc = [ticket existenceChecker];
+      if ([xc respondsToSelector:@selector(path)]) {
+        [env setObject:[xc path]
+                forKey:@"KS_TICKET_XC_PATH"];
+      }
+
+    } else {
+      [env setObject:[value description]
+              forKey:[@"KS_" stringByAppendingString:key]];
+    }
   }
 }
 
