@@ -36,8 +36,7 @@
   CGFloat repDistance = CGFLOAT_MAX;
   
   NSImageRep *thisRep;
-  NSEnumerator *repEnum = [reps objectEnumerator];
-  while ((thisRep = [repEnum nextObject])) {
+  GTM_FOREACH_OBJECT(thisRep, reps) {
     CGFloat thisDistance;
     thisDistance = MIN(size.width - [thisRep size].width,
                        size.height - [thisRep size].height);  
@@ -62,8 +61,7 @@
   NSArray *reps = [self representations];
   
   NSImageRep *thisRep;
-  NSEnumerator *repEnum = [reps objectEnumerator];
-  while ((thisRep = [repEnum nextObject])) {
+  GTM_FOREACH_OBJECT(thisRep, reps) {
     if (NSEqualSizes([thisRep size], size)) {
       return thisRep;
     }
@@ -98,9 +96,12 @@
                                        GTMNSRectOfSize(size),
                                        GTMScaleProportionally,
                                        GTMRectAlignCenter);
-  
-  if ([bestRep respondsToSelector:@selector(CGImage)]) {
-    CGImageRef imageRef = (CGImageRef)[bestRep performSelector:@selector(CGImage)];
+  // Using NSSelectorFromString because CGImage isn't a declared selector
+  // on Tiger, and just using straight @selector(CGImage) will cause compile
+  // errors on a 10.4 SDK.
+  SEL cgImageSel = NSSelectorFromString(@"CGImage");
+  if ([bestRep respondsToSelector:cgImageSel]) {
+    CGImageRef imageRef = (CGImageRef)[bestRep performSelector:cgImageSel];
     
     CGColorSpaceRef cspace = CGColorSpaceCreateDeviceRGB();   
     if (!cspace) return NO;
@@ -155,12 +156,18 @@
 }
 
 - (void)gtm_removeRepresentationsLargerThanSize:(NSSize)size {
-  NSEnumerator *e = [[self representations] reverseObjectEnumerator];
+  NSMutableArray *repsToRemove = [NSMutableArray array];
   NSImageRep *thisRep;
-  while((thisRep = [e nextObject]) ) {
+  // Remove them in a second loop so we don't change things will doing the
+  // initial loop.
+  GTM_FOREACH_OBJECT(thisRep, [self representations]) {
     if ([thisRep size].width > size.width
-        && [thisRep size].height > size.height)
-      [self removeRepresentation:thisRep];
+        && [thisRep size].height > size.height) {
+      [repsToRemove addObject:thisRep];
+    }
+  }
+  GTM_FOREACH_OBJECT(thisRep, repsToRemove) {
+    [self removeRepresentation:thisRep];
   }
 }
 
