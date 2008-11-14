@@ -33,9 +33,8 @@
 // Iterates through all of our subviews testing the exposed bindings
 - (void)doSubviewBindingTest:(NSView*)view {
   NSArray *subviews = [view subviews];
-  NSEnumerator *subviewEnum = [subviews objectEnumerator];
   NSView *subview;
-  while ((subview = [subviewEnum nextObject])) {
+  GTM_FOREACH_OBJECT(subview, subviews) {
     GTMTestExposedBindings(subview, @"testing %@", subview);
     [self doSubviewBindingTest:subview];
   }
@@ -103,14 +102,14 @@ NSString *const kGTMKeyThatIsntEqual = @"keyThatIsntEqual";
 
 - (id)valueForKey:(NSString*)binding {
   if ([binding isEqualTo:kGTMKeyWithNoValue]) {
-    [NSException raise:NSUndefinedKeyException format:nil];
+    [NSException raise:NSUndefinedKeyException format:@""];
   }
   return @"foo";
 }
 
 - (void)setValue:(id)value forKey:(NSString*)binding {
   if ([binding isEqualTo:kGTMKeyWeCantSet]) {
-    [NSException raise:NSUndefinedKeyException format:nil];
+    [NSException raise:NSUndefinedKeyException format:@""];
   }
 }
 @end

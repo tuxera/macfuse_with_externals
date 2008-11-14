@@ -62,17 +62,27 @@ NSString *const kShortTextBlock = @"Short";
   // See the comment/warning in the GTMLargeTypeWindow.h for more details,
   // but we disable them to avoid the tests failing (crashing) when it's Apple's 
   // bug. Please bump the system  check as appropriate when new systems are 
-  // tested. Currently broken on 10.5.5 and below. 
+  // tested. Currently broken on 10.5.6 and below. 
   // Radar 6137322 CIFilter crashing when run with GC enabled
   SInt32 major, minor, bugfix;
   [GTMSystemVersion getMajor:&major minor:&minor bugFix:&bugfix];
   if (!(GTMIsGarbageCollectionEnabled() 
-        && major <= 10 && minor <= 5 && bugfix <= 5)) {
+        && major <= 10 && minor <= 5 && bugfix <= 6)) {
     return YES;
   } else {
     NSLog(@"--- animated copy not run because of GC incompatibilites ---");
     return NO;
   }
+}
+
+- (void)setUp {
+  [GTMLargeTypeWindow setCopyAnimationDuration:0];
+  [GTMLargeTypeWindow setFadeAnimationDuration:0];
+}
+
+- (void)tearDown {
+  [GTMLargeTypeWindow setCopyAnimationDuration:0.5];
+  [GTMLargeTypeWindow setFadeAnimationDuration:0.333];
 }
 
 - (void)testLargeTypeWindowIllegalInits {
@@ -113,7 +123,7 @@ NSString *const kShortTextBlock = @"Short";
   STAssertTrue([window canBecomeKeyWindow], nil);
   [window makeKeyAndOrderFront:nil];
   NSDate *endDate 
-    = [NSDate dateWithTimeIntervalSinceNow:kGTMLargeTypeWindowFadeTime];
+    = [NSDate dateWithTimeIntervalSinceNow:.1];
   [[NSRunLoop currentRunLoop] runUntilDate:endDate];
   GTMAssertObjectStateEqualToStateNamed(window, 
                                         @"GTMLargeTypeWindowMediumTextTest",
@@ -134,7 +144,7 @@ NSString *const kShortTextBlock = @"Short";
   STAssertTrue([window canBecomeKeyWindow], nil);
   [window makeKeyAndOrderFront:nil];
   NSDate *endDate 
-    = [NSDate dateWithTimeIntervalSinceNow:kGTMLargeTypeWindowFadeTime];
+    = [NSDate dateWithTimeIntervalSinceNow:.1];
   [[NSRunLoop currentRunLoop] runUntilDate:endDate];
   GTMAssertObjectStateEqualToStateNamed(window, 
                                         @"GTMLargeTypeWindowShortTextTest",
@@ -154,7 +164,7 @@ NSString *const kShortTextBlock = @"Short";
   STAssertNotNil(window, nil);
   [window orderFront:nil];
   NSDate *endDate
-    = [NSDate dateWithTimeIntervalSinceNow:kGTMLargeTypeWindowFadeTime];
+    = [NSDate dateWithTimeIntervalSinceNow:.1];
   [[NSRunLoop currentRunLoop] runUntilDate:endDate];
   // Can't do state for long text as it will wrap differently on different
   // sized screens.
@@ -177,7 +187,7 @@ NSString *const kShortTextBlock = @"Short";
   STAssertNotNil(window, nil);
   [window makeKeyAndOrderFront:nil];
   NSDate *endDate 
-    = [NSDate dateWithTimeIntervalSinceNow:kGTMLargeTypeWindowFadeTime];
+    = [NSDate dateWithTimeIntervalSinceNow:.1];
   [[NSRunLoop currentRunLoop] runUntilDate:endDate];
   GTMAssertObjectStateEqualToStateNamed(window, 
                                         @"GTMLargeTypeWindowImageTest",

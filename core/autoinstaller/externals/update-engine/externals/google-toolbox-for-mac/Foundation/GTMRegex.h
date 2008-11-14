@@ -60,7 +60,7 @@ typedef NSUInteger GTMRegexOptions;
 #define _EXTERN 
 #define _INITIALIZE_AS(x) =x
 #else
-#define _EXTERN extern
+#define _EXTERN GTM_EXTERN
 #define _INITIALIZE_AS(x)
 #endif
 
@@ -84,12 +84,10 @@ _EXTERN NSString* kGTMRegexPatternErrorErrorString _INITIALIZE_AS(@"patternError
 // Example usage:
 //
 //   NSArray *inputArrayOfStrings = ...
-//   NSEnumerator *enumerator = [inputArrayOfString objectEnumerator];
-//   NSString *curStr = nil;
 //   NSArray *matches = [NSMutableArray array];
 //
 //   GTMRegex *regex = [GTMRegex regexWithPattern:@"foo.*bar"];
-//   while ((curStr = [enumerator nextObject]) != nil) {
+//   for (NSString *curStr in inputArrayOfStrings) {
 //     if ([regex matchesString:curStr])
 //       [matches addObject:curStr];
 //   }
