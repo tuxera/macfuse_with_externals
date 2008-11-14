@@ -19,11 +19,7 @@
 #import "GTMSenTestCase.h"
 #import "GTMPath.h"
 #import "GTMUnitTestDevLog.h"
-#import "GTMNSFileHandle+UniqueName.h"
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-// NSFileManager has improved substantially in Leopard and beyond, so GTMPath
-// is now deprecated.
 
 @interface GTMPathTest : GTMTestCase {
  @private
@@ -34,18 +30,27 @@
 @implementation GTMPathTest
 
 - (void)setUp {
-  NSFileManager *mgr = [NSFileManager defaultManager];
-  testDirectory_ 
-    = [[mgr gtm_createTemporaryDirectoryBasedOn:@"GTMPathTestXXXXXX"] retain];
+  NSString *tmp = NSTemporaryDirectory();
+  STAssertNotNil(tmp, nil);
   
+  testDirectory_ = [[tmp stringByAppendingPathComponent:@"GTMPathTest"] retain];
   STAssertNotNil(testDirectory_, nil);
+ 
+  BOOL created = [[NSFileManager defaultManager]
+                  createDirectoryAtPath:testDirectory_
+                             attributes:nil];
+  STAssertTrue(created, nil);
 }
 
 - (void)tearDown {
   // Make sure it's safe to remove this directory before nuking it.
   STAssertNotNil(testDirectory_, nil);
   STAssertNotEqualObjects(testDirectory_, @"/", nil);
+#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
   [[NSFileManager defaultManager] removeFileAtPath:testDirectory_ handler:nil];
+#else
+  [[NSFileManager defaultManager] removeItemAtPath:testDirectory_ error:NULL];
+#endif
   [testDirectory_ release];
 }
 
@@ -229,5 +234,3 @@
 }
 
 @end
-
-#endif //  MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5

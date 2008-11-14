@@ -30,7 +30,7 @@
 // iPhone settings
 #include "../subconfig/iPhone20.xcconfig"
 
-// Debug settings
+// Release settings
 #include "../subconfig/Debug.xcconfig"
 
 // Merge settings

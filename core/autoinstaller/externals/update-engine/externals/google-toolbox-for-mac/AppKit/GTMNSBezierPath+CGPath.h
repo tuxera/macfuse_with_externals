@@ -26,8 +26,8 @@
 //  Args: 
 //
 //  Returns:
-//    Converted autoreleased CGPathRef. 
+//    Converted CGPathRef. Must be released by client (CGPathRelease).
 //    nil if failure.
-- (CGPathRef)gtm_CGPath;
+- (CGPathRef)gtm_createCGPath;
 
 @end

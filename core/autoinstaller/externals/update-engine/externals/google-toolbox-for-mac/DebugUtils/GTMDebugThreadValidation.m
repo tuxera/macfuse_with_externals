@@ -16,9 +16,10 @@
 //  the License.
 //
 
-#import "GTMDebugThreadValidation.h"
 
 #if DEBUG && MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
+
+#import "GTMDebugThreadValidation.h"
 
 static NSThread *gGTMMainThread = nil;
 

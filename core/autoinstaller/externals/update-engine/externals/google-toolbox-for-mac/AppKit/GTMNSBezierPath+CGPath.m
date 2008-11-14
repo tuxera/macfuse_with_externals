@@ -19,7 +19,6 @@
 //
 #import "GTMNSBezierPath+CGPath.h"
 #import "GTMDefines.h"
-#import "GTMGarbageCollection.h"
 
 @implementation NSBezierPath (GTMBezierPathCGPathAdditions)
 
@@ -28,9 +27,9 @@
 //  Args: 
 //
 //  Returns:
-//    Converted CGPathRef.
+//    Converted CGPathRef. Must be released by client (CGPathRelease).
 //    nil if failure.
-- (CGPathRef)gtm_CGPath {
+- (CGPathRef)gtm_createCGPath {
   CGMutablePathRef thePath = CGPathCreateMutable();
   if (!thePath) return nil;
   
@@ -64,7 +63,7 @@
         break;  // COV_NF_END
     };
   }
-  return (CGPathRef)GTMCFAutorelease(thePath);
+  return thePath;
 }
 
 @end

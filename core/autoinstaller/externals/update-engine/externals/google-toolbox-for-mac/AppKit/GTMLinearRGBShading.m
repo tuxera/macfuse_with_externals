@@ -17,7 +17,6 @@
 //
 
 #import "GTMLinearRGBShading.h"
-#import "GTMDefines.h"
 
 // Carbon callback function required for CoreGraphics
 static void cShadeFunction(void *info, const CGFloat *inPos, CGFloat *outVals);
@@ -58,7 +57,6 @@ static void cShadeFunction(void *info, const CGFloat *inPos, CGFloat *outVals);
   return self;
 }
 
-#if GTM_SUPPORT_GC
 - (void)finalize {
   if (nil != function_) {
     CGFunctionRelease(function_);
@@ -68,7 +66,6 @@ static void cShadeFunction(void *info, const CGFloat *inPos, CGFloat *outVals);
   }
   [super finalize];
 }
-#endif
 
 - (void)dealloc {
   if (nil != function_) {
@@ -98,6 +95,7 @@ static void cShadeFunction(void *info, const CGFloat *inPos, CGFloat *outVals);
   positionIndex += 1;
   CGFloat stop2Position = 0.0;
   NSColor *stop2Color = nil;
+  NSColor *theColor = nil;
   if (colorCount > 1) {
     stop2Color = [self stopAtIndex:positionIndex position:&stop2Position];
     positionIndex += 1;
@@ -116,6 +114,7 @@ static void cShadeFunction(void *info, const CGFloat *inPos, CGFloat *outVals);
 
   if (position <= stop1Position) {
     // if we are less than our lowest position, return our first color
+    theColor = stop1Color;
     [stop1Color getRed:&colorValue_[0] green:&colorValue_[1] 
                   blue:&colorValue_[2] alpha:&colorValue_[3]];
   } else if (position >= stop2Position) {

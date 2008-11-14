@@ -36,14 +36,14 @@
   // GTMNSAppleScript+Handler.h for more details, but we disable them to avoid
   // the tests failing (crashing) when it's Apple's bug. Please bump the system
   // check as appropriate when new systems are tested. Currently broken on
-  // 10.5.8 and below. Radar 6126682.
+  // 10.5.5 and below. Radar 6126682.
   SInt32 major, minor, bugfix;
   [GTMSystemVersion getMajor:&major minor:&minor bugFix:&bugfix];
-  BOOL gcEnabled = GTMIsGarbageCollectionEnabled();
-  if (gcEnabled && major <= 10 && minor <= 5 && bugfix <= 8) {
-    NSLog(@"--- %@ NOT run because of GC incompatibilites ---", [self name]);
-  } else {
+  if (!(GTMIsGarbageCollectionEnabled() 
+        && major <= 10 && minor <= 5 && bugfix <= 5)) {
     [super invokeTest];
+  } else {
+    NSLog(@"--- %@ NOT run because of GC incompatibilites ---", [self name]);
   }
 }
 
@@ -159,14 +159,7 @@
                                     parameters:[NSArray array] 
                                          error:&error];
   STAssertNil(desc, @"Desc should by nil %@", desc);
-  
-  // Verify that our error handling is working correctly.
-  STAssertEquals([[error allKeys] count], (NSUInteger)6, @"%@", error);
-  STAssertNotNil([error objectForKey:GTMNSAppleScriptErrorOffendingObject], 
-                 @"%@", error);
-  STAssertNotNil([error objectForKey:GTMNSAppleScriptErrorPartialResult], 
-                 @"%@", error);
-  
+  STAssertNotNil(error, nil);
   error = nil;
   
   desc = [script_ gtm_executePositionalHandler:@"testReturnParam" 
@@ -293,7 +286,7 @@
                      @"testadd",
                      @"testgetscript",
                      nil];
-  if ([GTMSystemVersion isSnowLeopardOrGreater]) {
+  if ([GTMSystemVersion isBuildEqualTo:kGTMSystemBuild10_6_0_WWDC]) {
     // Workaround for bug in SnowLeopard
     // rdar://66688601 OSAGetHandlersNames returns names in camelcase instead
     // of smallcaps.
@@ -335,8 +328,8 @@
   NSSet *properties = [script gtm_properties];
   NSSet *expected 
     = [NSSet setWithObjects:
-       @"testscriptproperty",
-       @"parenttestscriptproperty",
+       @"testscriptproperty", 
+       @"parenttestscriptproperty", 
        @"foo",
        @"testscript",
        @"parenttestscript",
@@ -365,19 +358,11 @@
        [GTMFourCharCode fourCharCodeWithFourCharCode:pASHours],
        [GTMFourCharCode fourCharCodeWithFourCharCode:pASTab],
        nil];
-  if ([GTMSystemVersion isSnowLeopardOrGreater]) {
+  if ([GTMSystemVersion isBuildEqualTo:kGTMSystemBuild10_6_0_WWDC]) {
     // Workaround for bug in SnowLeopard
     // rdar://6289077 OSAGetPropertyNames returns names in camelcase instead
     // of lowercase.
-    id obj;
-    NSMutableSet *properties2 = [NSMutableSet set];
-    GTM_FOREACH_OBJECT(obj, properties) {
-      if ([obj isKindOfClass:[NSString class]]) {
-        obj = [obj lowercaseString];
-      }
-      [properties2 addObject:obj];
-    }
-    properties = properties2;
+    properties = [properties valueForKey:@"lowercaseString"];
   }
   STAssertEqualObjects(properties, expected, @"Unexpected properties?");
   id value = [script gtm_valueForProperty:@"testScriptProperty"];
@@ -470,20 +455,15 @@
   NSAppleScript *script 
     = [[[NSAppleScript alloc] initWithSource:@"david hasselhoff"] autorelease];
   [GTMUnitTestDevLog expectPattern:@"Unable to compile script: .*"];
-  [GTMUnitTestDevLog expectString:@"Unable to coerce script -2147450879"];
+  [GTMUnitTestDevLog expectPattern:@"Unable to coerce script -2147450879"];
   NSSet *handlers = [script gtm_handlers];
   STAssertEquals([handlers count], (NSUInteger)0, @"Should have no handlers");
   [GTMUnitTestDevLog expectPattern:@"Unable to compile script: .*"];
-  [GTMUnitTestDevLog expectString:@"Unable to coerce script -2147450879"];
+  [GTMUnitTestDevLog expectPattern:@"Unable to coerce script -2147450879"];
   NSSet *properties = [script gtm_properties];
   STAssertEquals([properties count], 
                  (NSUInteger)0, 
                  @"Should have no properties");
-  [GTMUnitTestDevLog expectPattern:@"Unable to compile script: .*"];
-  [GTMUnitTestDevLog expectString:@"Unable to get script info about "
-   @"open handler -2147450879"];
-  STAssertFalse([script gtm_hasOpenDocumentsHandler],
-                @"Has an opendoc handler?");
 }
 
 - (void)testScriptDescriptors {

@@ -28,7 +28,7 @@
 @implementation GTMNSBezierPath_RoundRectTest
 
 - (void)testRoundRects {
-  GTMAssertDrawingEqualToImageNamed(self, NSMakeSize(490, 500), 
+  GTMAssertDrawingEqualToImageNamed(self, NSMakeSize(490, 430), 
                                     @"GTMNSBezierPath+RoundRectTest", nil, nil);
 }
 
@@ -95,17 +95,7 @@
       [roundRect stroke];
       theRects[j].origin.y += 35.0;
     }
-  }
-  
-  // Different radii
-  NSRect bigRect = NSMakeRect(50, 440, 200, 40);
-  NSBezierPath *roundRect = [NSBezierPath gtm_bezierPathWithRoundRect:bigRect 
-                                                  topLeftCornerRadius:0.0
-                                                 topRightCornerRadius:5.0
-                                               bottomLeftCornerRadius:10.0
-                                              bottomRightCornerRadius:20.0];
-  [roundRect setLineWidth:5.0];
-  [roundRect stroke];
+  }  
 }
 
 
