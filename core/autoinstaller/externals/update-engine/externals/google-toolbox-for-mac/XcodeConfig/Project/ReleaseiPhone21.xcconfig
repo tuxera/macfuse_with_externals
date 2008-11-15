@@ -27,7 +27,7 @@
 // Pull in the general settings
 #include "../subconfig/General.xcconfig"
 
-// iPhone settings.
+// iPhone Settings.
 #include "../subconfig/iPhone21.xcconfig"
 
 // Release settings

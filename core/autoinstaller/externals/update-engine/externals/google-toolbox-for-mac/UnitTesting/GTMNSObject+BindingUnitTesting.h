@@ -46,9 +46,10 @@ do { \
   NSArray *errors = nil; \
   BOOL isGood = GTMDoExposedBindingsFunctionCorrectly(a1Object, &errors); \
   if (!isGood) { \
+    NSEnumerator *errorEnum = [errors objectEnumerator]; \
     NSString *failString; \
-    GTM_FOREACH_OBJECT(failString, errors) { \
-      if (description != nil) { \
+    while ((failString = [errorEnum nextObject])) { \
+      if (description) { \
         STFail(@"%@: %@", failString, STComposeString(description, ##__VA_ARGS__)); \
       } else { \
         STFail(@"%@", failString); \

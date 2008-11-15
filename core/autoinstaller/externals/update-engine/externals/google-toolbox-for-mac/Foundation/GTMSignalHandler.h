@@ -23,26 +23,28 @@
 // This is a very simple, easy-to-use class for registering handlers that get
 // called when a specific signal is delivered.  Also handy for ignoring
 // inconvenient signals.  Ignoring SIGKILL is not support for what should be
-// obvious reasons.  You can pass nil for target & action to ignore the signal.
+// obvious reasons.
 //
 // Example of how to catch SIGABRT and SIGTERM while ignring SIGWINCH:
 //   GTMSignalHandler *abrt, *term, *winch;
 //   abrt = [[GTMSignalHandler alloc]
 //               initWithSignal:SIGABRT
 //                       target:self
-//                       action:@selector(handleAbort:)];
+//                      handler:@selector(handleAbort:)];
 //
 //   term = [[GTMSignalHandler alloc]
 //               initWithSignal:SIGTERM
 //                       target:self
-//                       action:@selector(handleTerm:)];
+//                      handler:@selector(handleTerm:)];
 //
 //   winch = [[GTMSignalHandler alloc] initWithSignal:SIGWINCH
 //                initWithSignal:SIGWINCH
 //                        target:nil
-//                        action:NULL
+//                       handler:NULL
 //
-//  -(void)handleTerm:(int)signo {
+// And then the signal handler has the triggered signal number boxed in an
+// NSNumber:
+//  -(void)handleTerm:(NSNumber *)signo {
 //    .. do stuff ..
 //  }
 //
@@ -61,16 +63,13 @@
  @private
   int signo_;
   __weak id target_;
-  SEL action_;
+  SEL handler_;
 }
 
 // Returns a retained signal handler object that will invoke |handler| on the
 // |target| whenever a signal of number |signo| is delivered to the process.
 -(id)initWithSignal:(int)signo
              target:(id)target
-             action:(SEL)action;
+            handler:(SEL)handler;
 
-// Invalidates the handler so that it isn't listening anymore.
-- (void)invalidate;
-
-@end
+@end  // GTMSignalHandler

@@ -6,9 +6,9 @@
 //  Licensed under the Apache License, Version 2.0 (the "License"); you may not
 //  use this file except in compliance with the License.  You may obtain a copy
 //  of the License at
-//
+// 
 //  http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 //  Unless required by applicable law or agreed to in writing, software
 //  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
 //  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -36,20 +36,20 @@
 
 - (void)logInternalFunc:(const char *)func
                  format:(NSString *)fmt
-                 valist:(va_list)args
-                  level:(GTMLoggerLevel)level NS_FORMAT_FUNCTION(2, 0);
+                 valist:(va_list)args 
+                  level:(GTMLoggerLevel)level;
 
 @end
 
 
-// Reference to the shared GTMLogger instance. This is not a singleton, it's
+// Reference to the shared GTMLogger instance. This is not a singleton, it's 
 // just an easy reference to one shared instance.
 static GTMLogger *gSharedLogger = nil;
 
 
 @implementation GTMLogger
 
-// Returns a pointer to the shared logger instance. If none exists, a standard
+// Returns a pointer to the shared logger instance. If none exists, a standard 
 // logger is created and returned.
 + (id)sharedLogger {
   @synchronized(self) {
@@ -245,16 +245,16 @@ static GTMLogger *gSharedLogger = nil;
 
 - (void)logInternalFunc:(const char *)func
                  format:(NSString *)fmt
-                 valist:(va_list)args
+                 valist:(va_list)args 
                   level:(GTMLoggerLevel)level {
   GTMLOGGER_ASSERT(formatter_ != nil);
   GTMLOGGER_ASSERT(filter_ != nil);
   GTMLOGGER_ASSERT(writer_ != nil);
-
+  
   NSString *fname = func ? [NSString stringWithUTF8String:func] : nil;
   NSString *msg = [formatter_ stringForFunc:fname
                                  withFormat:fmt
-                                     valist:args
+                                     valist:args 
                                       level:level];
   if (msg && [filter_ filterAllowsMessage:msg level:level])
     [writer_ logMessage:msg level:level];
@@ -279,13 +279,7 @@ static GTMLogger *gSharedLogger = nil;
 - (void)logMessage:(NSString *)msg level:(GTMLoggerLevel)level {
   @synchronized(self) {
     NSString *line = [NSString stringWithFormat:@"%@\n", msg];
-    // Closed pipes should not generate exceptions in our caller
-    @try {
-      [self writeData:[line dataUsingEncoding:NSUTF8StringEncoding]];
-    }
-    @catch (NSException *e) {
-      // Ignored
-    }
+    [self writeData:[line dataUsingEncoding:NSUTF8StringEncoding]];
   }
 }
 
@@ -297,7 +291,8 @@ static GTMLogger *gSharedLogger = nil;
 - (void)logMessage:(NSString *)msg level:(GTMLoggerLevel)level {
   @synchronized(self) {
     id<GTMLogWriter> child = nil;
-    GTM_FOREACH_OBJECT(child, self) {
+    NSEnumerator *childEnumerator = [self objectEnumerator];
+    while ((child = [childEnumerator nextObject])) {
       if ([child conformsToProtocol:@protocol(GTMLogWriter)])
         [child logMessage:msg level:level];
     }
@@ -312,18 +307,18 @@ static GTMLogger *gSharedLogger = nil;
 - (void)logMessage:(NSString *)msg level:(GTMLoggerLevel)level {
   switch (level) {
     case kGTMLoggerLevelDebug:
-      [self logDebug:@"%@", msg];
+      [self logDebug:@"%@", msg]; 
       break;
     case kGTMLoggerLevelInfo:
       [self logInfo:@"%@", msg];
       break;
-    case kGTMLoggerLevelError:
+    case kGTMLoggerLevelError:   
       [self logError:@"%@", msg];
       break;
     case kGTMLoggerLevelAssert:
       [self logAssert:@"%@", msg];
       break;
-    default:
+    default: 
       // Ignore the message.
       break;
   }
@@ -334,31 +329,19 @@ static GTMLogger *gSharedLogger = nil;
 
 @implementation GTMLogBasicFormatter
 
-- (NSString *)prettyNameForFunc:(NSString *)func {
-  NSString *name = [func stringByTrimmingCharactersInSet:
-                     [NSCharacterSet whitespaceAndNewlineCharacterSet]];
-  NSString *function = @"(unknown)";
-  if ([name length]) {
-    if (// Objective C __func__ and __PRETTY_FUNCTION__
-        [name hasPrefix:@"-["] || [name hasPrefix:@"+["] ||
-        // C++ __PRETTY_FUNCTION__ and other preadorned formats
-        [name hasSuffix:@")"]) {
-      function = name;
-    } else {
-      // Assume C99 __func__
-      function = [NSString stringWithFormat:@"%@()", name];
-    }
-  }
-  return function;
-}
-
 - (NSString *)stringForFunc:(NSString *)func
                  withFormat:(NSString *)fmt
-                     valist:(va_list)args
+                     valist:(va_list)args 
                       level:(GTMLoggerLevel)level {
-  // Performance note: We may want to do a quick check here to see if |fmt|
-  // contains a '%', and if not, simply return 'fmt'.
-  return [[[NSString alloc] initWithFormat:fmt arguments:args] autorelease];
+  // Performance note: since we always have to create a new NSString from the 
+  // returned CFStringRef, we may want to do a quick check here to see if |fmt|
+  // contains a '%', and if not, simply return 'fmt'. 
+  CFStringRef cfmsg = NULL;  
+  cfmsg = CFStringCreateWithFormatAndArguments(kCFAllocatorDefault, 
+                                               NULL,  // format options
+                                               (CFStringRef)fmt, 
+                                               args);
+  return GTMCFAutorelease(cfmsg);
 }
 
 @end  // GTMLogBasicFormatter
@@ -385,7 +368,7 @@ static GTMLogger *gSharedLogger = nil;
 
 - (NSString *)stringForFunc:(NSString *)func
                  withFormat:(NSString *)fmt
-                     valist:(va_list)args
+                     valist:(va_list)args 
                       level:(GTMLoggerLevel)level {
   GTMLOGGER_ASSERT(dateFormatter_ != nil);
   NSString *tstamp = nil;
@@ -394,7 +377,7 @@ static GTMLogger *gSharedLogger = nil;
   }
   return [NSString stringWithFormat:@"%@ %@[%d/%p] [lvl=%d] %@ %@",
           tstamp, pname_, pid_, pthread_self(),
-          level, [self prettyNameForFunc:func],
+          level, (func ? func : @"(no func)"),
           [super stringForFunc:func withFormat:fmt valist:args level:level]];
 }
 
@@ -412,7 +395,7 @@ static BOOL IsVerboseLoggingEnabled(void) {
   static char *env = NULL;
   if (env == NULL)
     env = getenv([kVerboseLoggingKey UTF8String]);
-
+  
   if (env && env[0]) {
     return (strtol(env, NULL, 10) != 0);
   }
@@ -427,9 +410,9 @@ static BOOL IsVerboseLoggingEnabled(void) {
 #if DEBUG
   return YES;
 #endif
-
+    
   BOOL allow = YES;
-
+  
   switch (level) {
     case kGTMLoggerLevelDebug:
       allow = NO;

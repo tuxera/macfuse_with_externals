@@ -17,94 +17,8 @@
 //
 
 #import "GTMUnitTestDevLog.h"
-
-
 #import "GTMRegex.h"
 #import "GTMSenTestCase.h"
-
-#if !GTM_IPHONE_SDK
-// Add support for grabbing messages from Carbon.
-#import <CoreServices/CoreServices.h>
-static void GTMDevLogDebugAssert(OSType componentSignature,
-                                 UInt32 options, 
-                                 const char *assertionString, 
-                                 const char *exceptionLabelString, 
-                                 const char *errorString, 
-                                 const char *fileName, 
-                                 long lineNumber, 
-                                 void *value, 
-                                 ConstStr255Param outputMsg) {
-  NSString *outLog = [[[NSString alloc] initWithBytes:&(outputMsg[1])
-                                               length:StrLength(outputMsg)
-                                             encoding:NSMacOSRomanStringEncoding]
-                      autorelease];
-  _GTMDevLog(@"%@", outLog); // Don't want any percents in outLog honored
-}
-static inline void GTMInstallDebugAssertOutputHandler(void) {
-  InstallDebugAssertOutputHandler(GTMDevLogDebugAssert);
-}
-static inline void GTMUninstallDebugAssertOutputHandler(void) {
-  InstallDebugAssertOutputHandler(NULL);
-}
-#else  // GTM_IPHONE_SDK
-static inline void GTMInstallDebugAssertOutputHandler(void) {};
-static inline void GTMUninstallDebugAssertOutputHandler(void) {};
-#endif  // GTM_IPHONE_SDK
-
-@interface GTMUnttestDevLogAssertionHandler : NSAssertionHandler
-@end
-
-@implementation GTMUnttestDevLogAssertionHandler
-- (void)handleFailureInMethod:(SEL)selector 
-                       object:(id)object 
-                         file:(NSString *)fileName 
-                   lineNumber:(NSInteger)line 
-                  description:(NSString *)format, ... {
-  va_list argList;
-  va_start(argList, format);
-  NSString *descStr
-    = [[[NSString alloc] initWithFormat:format arguments:argList] autorelease];
-  va_end(argList);
-  
-  // You need a format that will be useful in logs, but won't trip up Xcode or
-  // any other build systems parsing of the output.
-  NSString *outLog
-    = [NSString stringWithFormat:@"RecordedNSAssert in %@ - %@ (%@:%ld)",
-                                 NSStringFromSelector(selector),
-                                 descStr,
-                                 fileName, (long)line];
-  // To avoid unused variable warning when _GTMDevLog is stripped.
-  (void)outLog;
-  _GTMDevLog(@"%@", outLog); // Don't want any percents in outLog honored
-  [NSException raise:NSInternalInconsistencyException
-              format:@"NSAssert raised"];
-}
-
-- (void)handleFailureInFunction:(NSString *)functionName 
-                           file:(NSString *)fileName 
-                     lineNumber:(NSInteger)line 
-                    description:(NSString *)format, ... {
-  va_list argList;
-  va_start(argList, format);
-  NSString *descStr
-    = [[[NSString alloc] initWithFormat:format arguments:argList] autorelease];
-  va_end(argList);
-  
-  // You need a format that will be useful in logs, but won't trip up Xcode or
-  // any other build systems parsing of the output.
-  NSString *outLog
-    = [NSString stringWithFormat:@"RecordedNSAssert in %@ - %@ (%@:%ld)",
-                                 functionName,
-                                 descStr,
-                                 fileName, (long)line];
-  // To avoid unused variable warning when _GTMDevLog is stripped.
-  (void)outLog;
-  _GTMDevLog(@"%@", outLog); // Don't want any percents in outLog honored
-  [NSException raise:NSInternalInconsistencyException
-              format:@"NSAssert raised"];
-}
-
-@end
 
 @implementation GTMUnitTestDevLog
 // If unittests are ever being run on separate threads, this may need to be
@@ -124,30 +38,10 @@ static BOOL gTrackingEnabled = NO;
 }
 
 + (void)enableTracking {
-  GTMInstallDebugAssertOutputHandler();
-
-  NSMutableDictionary *threadDictionary 
-    = [[NSThread currentThread] threadDictionary];
-  if ([threadDictionary objectForKey:@"NSAssertionHandler"] != nil) {
-    NSLog(@"Warning: replacing NSAssertionHandler to capture assertions");
-  }
-
-  // Install an assertion handler to capture those.
-  GTMUnttestDevLogAssertionHandler *handler = 
-    [[[GTMUnttestDevLogAssertionHandler alloc] init] autorelease];
-  [threadDictionary setObject:handler forKey:@"NSAssertionHandler"];
-
   gTrackingEnabled = YES;
 }
 
 + (void)disableTracking {
-  GTMUninstallDebugAssertOutputHandler();
-
-  // Clear our assertion handler back out.
-  NSMutableDictionary *threadDictionary
-    = [[NSThread currentThread] threadDictionary];
-  [threadDictionary removeObjectForKey:@"NSAssertionHandler"];
-
   gTrackingEnabled = NO;
 }
 
@@ -181,14 +75,7 @@ static BOOL gTrackingEnabled = NO;
                       format:@"Unexpected log: %@", logString];
         }
       } else {
-        static BOOL envChecked = NO;
-        static BOOL showExpectedLogs = YES;
-        if (!envChecked) {
-          showExpectedLogs = getenv("GTM_SHOW_UNITTEST_DEVLOGS") ? YES : NO;
-        }
-        if (showExpectedLogs) {
-          NSLog(@"Expected Log: %@", logString);
-        }
+        NSLog(@"Expected Log: %@", logString);
       }
     }
   } else {
@@ -203,7 +90,7 @@ static BOOL gTrackingEnabled = NO;
                                              arguments:argList] autorelease];
   va_end(argList);
   NSString *pattern = [GTMRegex escapedPatternForString:string];
-  [self expect:1 casesOfPattern:@"%@", pattern];
+  [self expect:1 casesOfPattern:pattern];
   
 }
 
@@ -221,7 +108,7 @@ static BOOL gTrackingEnabled = NO;
                                              arguments:argList] autorelease];
   va_end(argList);
   NSString *pattern = [GTMRegex escapedPatternForString:string];
-  [self expect:n casesOfPattern:@"%@", pattern];
+  [self expect:n casesOfPattern:pattern];
 }
 
 + (void)expect:(NSUInteger)n casesOfPattern:(NSString*)format, ... {
@@ -244,7 +131,7 @@ casesOfPattern:(NSString*)format
       [patterns addObject:regex];
     }
   }
-}
+}    
 
 + (void)verifyNoMoreLogsExpected {
   @synchronized(self) {
@@ -264,20 +151,4 @@ casesOfPattern:(NSString*)format
     [patterns removeAllObjects];
   }
 }
-@end
-
-
-@implementation GTMUnitTestDevLogDebug
-
-+ (void)expect:(NSUInteger)n 
-casesOfPattern:(NSString*)format 
-          args:(va_list)args {
-#if DEBUG
-  // In debug, let the base work happen
-  [super expect:n casesOfPattern:format args:args];
-#else
-  // nothing when not in debug
-#endif
-}
-
 @end

@@ -19,7 +19,7 @@
 #import "GTMSystemVersion.h"
 #import "GTMGarbageCollection.h"
 #if GTM_MACOS_SDK
-#import <CoreServices/CoreServices.h>
+#import <Carbon/Carbon.h>
 #endif
 
 static SInt32 sGTMSystemVersionMajor = 0;
@@ -34,6 +34,9 @@ NSString *const kGTMArch_x86_64 = @"x86_64";
 NSString *const kGTMArch_i386 = @"i386";
 
 static NSString *const kSystemVersionPlistPath = @"/System/Library/CoreServices/SystemVersion.plist";
+
+NSString *const kGTMSystemBuild10_5_5 = @"9F33";
+NSString *const kGTMSystemBuild10_6_0_WWDC = @"10A96";
 
 @implementation GTMSystemVersion
 + (void)initialize {
@@ -98,7 +101,7 @@ static NSString *const kSystemVersionPlistPath = @"/System/Library/CoreServices/
   if (minor) {
     *minor = sGTMSystemVersionMinor;
   }
-  if (bugFix) {
+  if (major) {
     *bugFix = sGTMSystemVersionBugFix;
   }
 }

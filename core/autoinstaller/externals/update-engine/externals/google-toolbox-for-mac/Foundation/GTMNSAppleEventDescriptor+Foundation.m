@@ -100,22 +100,15 @@ static NSMutableDictionary *gTypeMap = nil;
   NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
   NSAppleEventDescriptor *userRecord = [self descriptorForKeyword:keyASUserRecordFields];
   if (userRecord) {
-    NSArray *userItems = [userRecord gtm_arrayValue];
-    NSString *key = nil;
-    NSString *item;
-    GTM_FOREACH_OBJECT(item, userItems) {
-      if (key) {
-        // Save the pair and reset our state
-        [dictionary setObject:item forKey:key];
-        key = nil;
-      } else {
-        // Save it for the next pair
-        key = item;
+    NSEnumerator *userItems = [[userRecord gtm_arrayValue] objectEnumerator];
+    NSString *key;
+    while ((key = [userItems nextObject])) {
+      NSString *value = [userItems nextObject];
+      if (!value) {
+        _GTMDevLog(@"Got a key %@ with no value in %@", key, userItems);
+        return nil;
       }
-    }
-    if (key) {
-      _GTMDevLog(@"Got a key %@ with no value in %@", key, userItems);
-      return nil;
+      [dictionary setObject:value forKey:key];
     }
   } else {
     NSUInteger count = [self numberOfItems];
@@ -160,21 +153,21 @@ static NSMutableDictionary *gTypeMap = nil;
 }
 
 - (double)gtm_doubleValue {
-  // Be careful modifying this code as Xcode 3.2.5 gcc 4.2.1 (5664) was
-  // generating bad code with a previous incarnation.
+  double value = NAN;
   NSNumber *number = [self gtm_numberValue];
   if (number) {
-    return [number doubleValue];
+    value = [number doubleValue];
   }
-  return NAN;
+  return value;
 }
 
 - (float)gtm_floatValue {
+  float value = NAN;
   NSNumber *number = [self gtm_numberValue];
   if (number) {
-    return [number floatValue];
+    value = [number floatValue];
   }
-  return NAN;
+  return value;
 }
 
 - (CGFloat)gtm_cgFloatValue {
@@ -241,10 +234,6 @@ static NSMutableDictionary *gTypeMap = nil;
   return [GTMFourCharCode fourCharCodeWithFourCharCode:[self typeCodeValue]];
 }
 
-- (NSAppleEventDescriptor*)gtm_appleEventDescriptor {
-  return self;
-}
-
 @end
 
 @implementation NSObject (GTMAppleEventDescriptorObjectAdditions)
@@ -264,7 +253,7 @@ static NSMutableDictionary *gTypeMap = nil;
   [NSAppleEventDescriptor gtm_registerSelector:@selector(gtm_arrayValue)
                                      forTypes:types
                                         count:sizeof(types)/sizeof(DescType)];
-  [pool drain];
+  [pool release];
 }
 
 - (NSAppleEventDescriptor*)gtm_appleEventDescriptor {
@@ -294,13 +283,14 @@ static NSMutableDictionary *gTypeMap = nil;
   [NSAppleEventDescriptor gtm_registerSelector:@selector(gtm_dictionaryValue)
                                     forTypes:types
                                        count:sizeof(types)/sizeof(DescType)];
-  [pool drain];
+  [pool release];
 }
 
 - (NSAppleEventDescriptor*)gtm_appleEventDescriptor {
+  NSEnumerator* keys = [self keyEnumerator];
   Class keyClass = nil;
   id key = nil;
-  GTM_FOREACH_KEY(key, self) {
+  while ((key = [keys nextObject])) {
     if (!keyClass) {
       if ([key isKindOfClass:[GTMFourCharCode class]]) {
         keyClass = [GTMFourCharCode class];
@@ -320,7 +310,8 @@ static NSMutableDictionary *gTypeMap = nil;
   NSAppleEventDescriptor *desc = [NSAppleEventDescriptor recordDescriptor];
   if ([keyClass isEqual:[NSString class]]) {
     NSMutableArray *array = [NSMutableArray arrayWithCapacity:[self count] * 2];
-    GTM_FOREACH_KEY(key, self) {
+    keys = [self keyEnumerator];
+    while ((key = [keys nextObject])) {
       [array addObject:key];
       [array addObject:[self objectForKey:key]];
     }
@@ -330,7 +321,8 @@ static NSMutableDictionary *gTypeMap = nil;
     }
     [desc setDescriptor:userRecord forKeyword:keyASUserRecordFields];
   } else {
-    GTM_FOREACH_KEY(key, self) {
+    keys = [self keyEnumerator];
+    while ((key = [keys nextObject])) {
       id value = [self objectForKey:key];
       NSAppleEventDescriptor *valDesc = [value gtm_appleEventDescriptor];
       if (!valDesc) {
@@ -354,7 +346,7 @@ static NSMutableDictionary *gTypeMap = nil;
   [NSAppleEventDescriptor gtm_registerSelector:@selector(gtm_nullValue)
                                       forTypes:types
                                          count:sizeof(types)/sizeof(DescType)];
-  [pool drain];
+  [pool release];
 }
 
 - (NSAppleEventDescriptor*)gtm_appleEventDescriptor {
@@ -378,7 +370,7 @@ static NSMutableDictionary *gTypeMap = nil;
   [NSAppleEventDescriptor gtm_registerSelector:@selector(stringValue)
                                       forTypes:types
                                          count:sizeof(types)/sizeof(DescType)];
-  [pool drain];
+  [pool release];
 }
 
 - (NSAppleEventDescriptor*)gtm_appleEventDescriptor {
@@ -404,7 +396,7 @@ static NSMutableDictionary *gTypeMap = nil;
   [NSAppleEventDescriptor gtm_registerSelector:@selector(gtm_numberValue)
                                      forTypes:types
                                         count:sizeof(types)/sizeof(DescType)];
-  [pool drain];
+  [pool release];
 }
 
 - (NSAppleEventDescriptor*)gtm_appleEventDescriptor {
@@ -492,7 +484,7 @@ static NSMutableDictionary *gTypeMap = nil;
   [NSAppleEventDescriptor gtm_registerSelector:@selector(gtm_fourCharCodeValue)
                                       forTypes:types
                                          count:sizeof(types)/sizeof(DescType)];
-  [pool drain];
+  [pool release];
 }
 
 - (NSAppleEventDescriptor*)gtm_appleEventDescriptor {

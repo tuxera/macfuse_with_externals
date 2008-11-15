@@ -37,20 +37,6 @@
 + (NSBezierPath *)gtm_bezierPathWithRoundRect:(NSRect)rect
                                  cornerRadius:(CGFloat)radius;
 
-///  Inscribe a round rectangle inside of rectangle |rect| with corner radii specified
-//
-//  Args:
-//    rect: outer rectangle to inscribe into
-//    radius*: radii of the corners
-//
-//  Returns:
-//    Auto released NSBezierPath
-+ (NSBezierPath *)gtm_bezierPathWithRoundRect:(NSRect)rect
-                          topLeftCornerRadius:(CGFloat)radiusTL
-                         topRightCornerRadius:(CGFloat)radiusTR
-                       bottomLeftCornerRadius:(CGFloat)radiusBL
-                      bottomRightCornerRadius:(CGFloat)radiusBR;
-
 ///  Adds a path which is a round rectangle inscribed inside of rectangle |rect| with a corner radius of |radius|
 //
 //  Args:
@@ -59,15 +45,4 @@
 //            to be no larger than the smaller of half |rect|'s width or height
 - (void)gtm_appendBezierPathWithRoundRect:(NSRect)rect
                              cornerRadius:(CGFloat)radius;
-
-///  Adds a path which is a round rectangle inscribed inside of rectangle |rect| with a corner radii specified
-//
-//  Args:
-//    rect: outer rectangle to inscribe into
-//    radius*: radii of the corners
-- (void)gtm_appendBezierPathWithRoundRect:(NSRect)rect
-                      topLeftCornerRadius:(CGFloat)radiusTL
-                     topRightCornerRadius:(CGFloat)radiusTR
-                   bottomLeftCornerRadius:(CGFloat)radiusBL
-                  bottomRightCornerRadius:(CGFloat)radiusBR;
 @end

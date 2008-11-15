@@ -18,7 +18,6 @@
 //  the License.
 //
 
-#import <AppKit/AppKit.h>
 #import "GTMDefines.h"
 #import "GTMNSObject+BindingUnitTesting.h"
 #import "GTMSystemVersion.h"
@@ -32,8 +31,9 @@ BOOL GTMDoExposedBindingsFunctionCorrectly(NSObject *object,
   NSArray *bindings = [object exposedBindings];
   if ([bindings count]) {
     NSArray *bindingsToIgnore = [object gtm_unitTestExposedBindingsToIgnore];
+    NSEnumerator *bindingsEnum = [bindings objectEnumerator];
     NSString *bindingKey;
-    GTM_FOREACH_OBJECT(bindingKey, bindings) {
+    while ((bindingKey = [bindingsEnum nextObject])) {
       if (![bindingsToIgnore containsObject:bindingKey]) {
         Class theClass = [object valueClassForBinding:bindingKey];
         if (!theClass) {
@@ -54,8 +54,9 @@ BOOL GTMDoExposedBindingsFunctionCorrectly(NSObject *object,
           }  // COV_NF_LINE - compiler bug
           NSArray *testValues 
             = [object gtm_unitTestExposedBindingsTestValues:bindingKey];
+          NSEnumerator *testEnum = [testValues objectEnumerator];
           GTMBindingUnitTestData *testData;
-          GTM_FOREACH_OBJECT(testData, testValues) {
+          while ((testData = [testEnum nextObject])) {
             id valueToSet = [testData valueToSet];
             [object setValue:valueToSet forKey:bindingKey];
             id valueReceived = [object valueForKey:bindingKey];
@@ -373,12 +374,11 @@ BOOL GTMDoExposedBindingsFunctionCorrectly(NSObject *object,
   SInt32 major, minor, bugFix;
   [GTMSystemVersion getMajor:&major minor:&minor bugFix:&bugFix];
   if (major <= 10 && minor <= 5 && bugFix <= 5) {
-    // rdar://5849154 - NSScroller exposes binding with no value 
-    //                  class for NSValueBinding
+    // rdar://5849154 - NSScroller exposes binding with no value class for NSValueBinding
     [array addObject:NSValueBinding];
   }
-  if (major <= 10 && minor <= 6) {
-    // Broken on SnowLeopard and below
+  if ([GTMSystemVersion isBuildLessThanOrEqualTo:kGTMSystemBuild10_6_0_WWDC]) {
+    // Broken on SnowLeopard WWDC and below
     // rdar://5849236 - NSScroller exposes binding for NSFontBinding
     [array addObject:NSFontBinding];
   }
@@ -403,15 +403,11 @@ BOOL GTMDoExposedBindingsFunctionCorrectly(NSObject *object,
 - (NSMutableArray *)gtm_unitTestExposedBindingsTestValues:(NSString*)binding {
   NSMutableArray *array = [super gtm_unitTestExposedBindingsTestValues:binding];
   if ([binding isEqualToString:NSAlignmentBinding]) {
-    SInt32 major, minor, bugFix;
-    [GTMSystemVersion getMajor:&major minor:&minor bugFix:&bugFix];
-    if (major <= 10 && minor <= 6) {
-      // rdar://5851487 - If NSAlignmentBinding for a NSTextField is set to -1 
-      //                  and then got it returns 7
-      NSNumber *textAlignment = [NSNumber numberWithInt:NSNaturalTextAlignment];
+    if ([GTMSystemVersion isBuildLessThanOrEqualTo:kGTMSystemBuild10_6_0_WWDC]) {
+      // rdar://5851487 - If NSAlignmentBinding for a NSTextField is set to -1 and then got it returns 7
       GTMBindingUnitTestData *dataToRemove =
         [GTMBindingUnitTestData testWithValue:[NSNumber numberWithInt:-1] 
-                                    expecting:textAlignment];
+                                    expecting:[NSNumber numberWithInt:NSNaturalTextAlignment]];
       [array removeObject:dataToRemove];
       GTMBindingUnitTestData *dataToAdd =
         [GTMBindingUnitTestData testWithValue:[NSNumber numberWithInt:-1] 
@@ -432,10 +428,9 @@ BOOL GTMDoExposedBindingsFunctionCorrectly(NSObject *object,
   NSMutableArray *array = [super gtm_unitTestExposedBindingsToIgnore];
   SInt32 major, minor, bugFix;
   [GTMSystemVersion getMajor:&major minor:&minor bugFix:&bugFix];
-  if (major <= 10 && minor <= 6) {
-    // rdar://5851491 - Setting NSAlignmentBinding of search field to 
-    //                  NSCenterTextAlignment broken
-    // Broken on 10.6 and below.
+  if (major <= 10 && minor <= 5 && bugFix <= 5) {
+    // rdar://5851491 - Setting NSAlignmentBinding of search field to NSCenterTextAlignment broken
+    // Broken on 10.5.5 and below.
     [array addObject:NSAlignmentBinding];
   }
   // Not KVC Compliant
@@ -486,11 +481,9 @@ BOOL GTMDoExposedBindingsFunctionCorrectly(NSObject *object,
 
 - (NSMutableArray*)gtm_unitTestExposedBindingsToIgnore {
   NSMutableArray *array = [super gtm_unitTestExposedBindingsToIgnore];
-  SInt32 major, minor, bugFix;
-  [GTMSystemVersion getMajor:&major minor:&minor bugFix:&bugFix];
-  if (major <= 10 && minor <= 6) {
+  if ([GTMSystemVersion isBuildLessThanOrEqualTo:kGTMSystemBuild10_6_0_WWDC]) {
     // rdar://6288332 - NSTableView does not respond to NSFontBinding
-    // Broken on 10.5 and SnowLeopard
+    // Broken on 10.5, and SnowLeopard WWDC
     [array addObject:NSFontBinding];
   }
   // Not KVC Compliant
@@ -510,11 +503,8 @@ BOOL GTMDoExposedBindingsFunctionCorrectly(NSObject *object,
 
 - (NSMutableArray*)gtm_unitTestExposedBindingsToIgnore {
   NSMutableArray *array = [super gtm_unitTestExposedBindingsToIgnore];
-  SInt32 major, minor, bugFix;
-  [GTMSystemVersion getMajor:&major minor:&minor bugFix:&bugFix];
-  if (major <= 10 && minor <= 6) {
-    //rdar://5849335 - NSTextView only partially KVC compliant for key 
-    //                 NSAttributedStringBinding
+  if ([GTMSystemVersion isBuildLessThanOrEqualTo:kGTMSystemBuild10_6_0_WWDC]) {
+    //rdar://5849335 - NSTextView only partially KVC compliant for key NSAttributedStringBinding
     [array addObject:NSAttributedStringBinding];
   }
   // Not KVC Compliant
@@ -533,11 +523,8 @@ BOOL GTMDoExposedBindingsFunctionCorrectly(NSObject *object,
 
 - (NSMutableArray*)gtm_unitTestExposedBindingsToIgnore {
   NSMutableArray *array = [super gtm_unitTestExposedBindingsToIgnore];
-  SInt32 major, minor, bugFix;
-  [GTMSystemVersion getMajor:&major minor:&minor bugFix:&bugFix];
-  if (major <= 10 && minor <= 6) {
-    // rdar://5849248 - NSTabView exposes binding with no value class 
-    //                  for NSSelectedIdentifierBinding 
+  if ([GTMSystemVersion isBuildLessThanOrEqualTo:kGTMSystemBuild10_6_0_WWDC]) {
+    // rdar://5849248 - NSTabView exposes binding with no value class for NSSelectedIdentifierBinding 
     [array addObject:NSSelectedIdentifierBinding];
   }
   // Not KVC Compliant
