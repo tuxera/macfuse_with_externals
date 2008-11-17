@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #import "KSCommandRunner.h"
-
+#import <unistd.h>
 
 // Following Unix conventions, a failure code is any non-zero value
 static const int kFailure = 1;
@@ -55,6 +55,18 @@ static const int kFailure = 1;
   if (args) [task setArguments:args];
   if (env) [task setEnvironment:env];
   [task setStandardOutput:pipe];
+
+  // If EUID and UID are not the same, you can run into problems where
+  // privileges are lost when shell scripts are executed without a
+  // (BASH) -p flag. We save and restore the current UID around the task launch.
+  // http://www.delorie.com/gnu/docs/bash/bashref_58.html for details.
+  int savedUID = getuid();
+  int eUID = geteuid();
+  if (eUID == 0) {
+    if (setuid(eUID)) {  // COV_NF_LINE
+      return kFailure;  // COV_NF_LINE
+    }  // COV_NF_LINE
+  }
   
   @try {
     // -launch will throw if it can't find |path|
@@ -76,6 +88,12 @@ static const int kFailure = 1;
   
   // Wait up to 1 hour for the task to complete
   BOOL ok = [task waitUntilExitWithTimeout:3600];
+  
+  // Restore our saved UID.
+  if (eUID == 0) {
+    setuid(savedUID);  // COV_NF_LINE
+  }
+  
   if (!ok) {
     [task terminate];  // COV_NF_LINE
     return kFailure;   // COV_NF_LINE

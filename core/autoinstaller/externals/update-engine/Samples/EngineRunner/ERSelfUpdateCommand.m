@@ -14,18 +14,24 @@
 
 #import "ERSelfUpdateCommand.h"
 
-#import "KSUpdateEngine.h"
+#import <sys/param.h>
+#import <unistd.h>
 
-// Some preprocessor magic to turn a command-line -DUPDATE_ENGINE_VERSION=R35
-// into a string, and then into an NSString.  With -DBLAH=SNORK
-// Doing TO_OBJC_STR(BLAH) will cause it to expand to TO_OBJC_STR2(SNORK).
-// Then TO_BOJC2_STR will stringize SNORK and turn it into a quoted string.
-#define TO_OBJC_STR2(x) @#x
-#define TO_OBJC_STR(x) TO_OBJC_STR2(x)
+#import "ERUtilities.h"
+#import "KSUpdateEngine.h"
 
 static NSString *kSelfProductID = @"EngineRunner";
 static NSString *kSelfUpdateURL = @"http://update-engine.googlecode.com/svn/site/enginerunner.plist";
-static NSString *kSelfVersion = TO_OBJC_STR(UPDATE_ENGINE_VERSION);
+static NSString *kSelfVersion =
+  CONVERT_SYMBOL_TO_NSSTRING(UPDATE_ENGINE_VERSION);
+
+
+@interface ERSelfUpdateCommand (PrivateMethods)
+
+// Returns the path the currently running executable.
+- (NSString *)executablePath;
+
+@end  // PrivateMethods
 
 
 @implementation ERSelfUpdateCommand
@@ -45,19 +51,37 @@ static NSString *kSelfVersion = TO_OBJC_STR(UPDATE_ENGINE_VERSION);
                        @"Version to claim that we are", @"version",
                        @"ProductID to claim that we are", @"productid",
                        @"Server URL", @"url",
+                       @"Existence checker path", @"xcpath",
                        nil];
 }  // requiredArguments
 
 
-- (BOOL)runWithArguments:(NSDictionary *)args {
+- (NSString *)executablePath {
+  // NSProcessInfo's zeroth argument is a full path to the executable,
+  // but it's not documented as actually doing that.  For now, assume
+  // that it works.  If the behavior changes in the future, you should
+  // be able to get the executable's directory by getting the current
+  // working directory (since EngineRunner doesn't change it) and
+  // then attaching argv[0].
 
+  NSProcessInfo *processInfo = [NSProcessInfo processInfo];
+  NSString *command = [[processInfo arguments] objectAtIndex:0];
+
+  return command;
+
+}  // executablePath
+
+
+- (BOOL)runWithArguments:(NSDictionary *)args {
   NSString *productID = [args valueForKey:@"productid"];
   NSString *version = [args valueForKey:@"version"];
   NSString *urlstring = [args valueForKey:@"url"];
+  NSString *xcpath = [args valueForKey:@"xcpath"];
 
   if (productID == nil) productID = kSelfProductID;
   if (version == nil) version = kSelfVersion;
   if (urlstring == nil) urlstring = kSelfUpdateURL;
+  if (xcpath == nil) xcpath = [self executablePath];
 
   NSArray *argv = [[NSProcessInfo processInfo] arguments];
   NSString *me = [argv objectAtIndex:0];
@@ -67,6 +91,7 @@ static NSString *kSelfVersion = TO_OBJC_STR(UPDATE_ENGINE_VERSION);
                                 @"-productid", productID,
                                 @"-version", version,
                                 @"-url", urlstring,
+                                @"-xcpath", xcpath,
                                 nil];
 
   NSTask *task = [NSTask launchedTaskWithLaunchPath:me
@@ -74,6 +99,8 @@ static NSString *kSelfVersion = TO_OBJC_STR(UPDATE_ENGINE_VERSION);
   [task waitUntilExit];
 
   if ([task terminationStatus] != 0) {
+    fprintf(stdout, "Could not perform self-update.  Check out the log at\n");
+    fprintf(stdout, "~/Library/Logs/EngineRunner.log for more information.\n");
     return NO;
   } else {
     return YES;

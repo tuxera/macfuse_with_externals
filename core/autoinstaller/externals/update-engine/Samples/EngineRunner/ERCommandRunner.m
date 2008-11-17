@@ -15,6 +15,7 @@
 #import "ERCommandRunner.h"
 
 #import "ERCommand.h"
+#import "ERUtilities.h"
 
 
 @interface ERCommandRunner (PrivateMethods)
@@ -118,7 +119,8 @@
 
 
 - (void)printUsage {
-  fprintf(stdout, "EngineRunner supports these commands:\n");
+  fprintf(stdout, "EngineRunner version '%s' supports these commands:\n",
+          [CONVERT_SYMBOL_TO_NSSTRING(UPDATE_ENGINE_VERSION) UTF8String]);
 
   NSArray *commandNames =
     [[commands_ allKeys] sortedArrayUsingSelector:@selector(compare:)];

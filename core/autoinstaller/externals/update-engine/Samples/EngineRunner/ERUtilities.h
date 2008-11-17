@@ -12,6 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Define the current Update Engine version.
-UPDATE_ENGINE_VERSION = R4
-
+// Some preprocessor magic to turn a command-line
+// -DUPDATE_ENGINE_VERSION=R35 into a string, and then into an
+// NSString.  With -DBLAH=SNORK Doing CONVERT_SYMBOL_TO_NSSTRING(BLAH)
+// will cause it to expand to CONVERT_SYMBOL_TO_NSSTRING2(SNORK).
+// Then CONVERT_SYMBOL_TO_NSSTRING_2 will stringize SNORK and turn it
+// into a quoted string, with the @ to turn it into an NSString.
+#define CONVERT_SYMBOL_TO_NSSTRING_2(x) @#x
+#define CONVERT_SYMBOL_TO_NSSTRING(x) CONVERT_SYMBOL_TO_NSSTRING_2(x)

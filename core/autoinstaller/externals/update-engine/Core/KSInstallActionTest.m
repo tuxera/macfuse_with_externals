@@ -359,19 +359,20 @@
                                    updateInfo:fakeUpdateInfo];
   STAssertEqualObjects([action mountPoint], @"/Volumes/product-hash", nil);
   
-  
   // Now try the test w/ a huge product ID and it should be truncated to 50 cols
+  // This test also uses a real hash to test that we replace "/" w/ "_"
   fakeUpdateInfo = [NSDictionary dictionaryWithObjectsAndKeys:
                     @"12345678901234567890123456789012345678901234567890"  // 50
                     @"ABCDEFG...", @"kServerProductID",
-                    @"hash", @"kServerCodeHash", nil];
+                    @"l7HuEd/xMLeYU+ZmWvUsHyZTHpE=", @"kServerCodeHash", nil];
   action = [KSInstallAction actionWithDMGPath:successDMGPath_
                                        runner:runner
                                 userInitiated:NO
                                    updateInfo:fakeUpdateInfo];
   STAssertEqualObjects([action mountPoint], @"/Volumes/"
                        @"12345678901234567890123456789012345678901234567890"  // 50
-                       @"-hash", nil);
+                       @"-l7HuEd_xMLeYU+ZmWvUsHyZTHpE=", nil);  // realHash
+                                                                // s,/,_,g
 }
 
 @end

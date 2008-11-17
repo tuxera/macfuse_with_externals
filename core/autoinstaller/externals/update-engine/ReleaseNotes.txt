@@ -4,6 +4,19 @@ Project site:     http://code.google.com/p/update-engine
 Discussion group: http://groups.google.com/group/update-engine
 
 
+Release 4
+17-November-2008
+
+- Fixed bug in the creation of DMG mount paths. The mount paths are using the
+  SHA-1 hash as part of the path component, but SHA-1 hashes often (always?)
+  contain forward slashes, which are illegal in path component names. Now,
+  forward slashes are replaced with underscores.
+
+- Fixed bug where running Update Engine as root would fail if you did not
+  run with sudo and you use bash for your .engine_install script.
+  (thanks to dmaclach)
+
+
 Release 3
 11-November-2008
 

@@ -314,9 +314,19 @@ bail_no_unmount:
   if ([prodid length] > kMaxProductIDLen)
     prodid = [prodid substringToIndex:kMaxProductIDLen];
   
+  // Since the hash will be used as a path component, we must replace "/" chars
+  // with a char that's legal in path component names. We'll use underscores.
+  NSMutableString *legalHash = [[[updateInfo_ codeHash]
+                                 mutableCopy] autorelease];
+  NSRange wholeString = NSMakeRange(0, ([legalHash length]-1));
+  [legalHash replaceOccurrencesOfString:@"/"
+                             withString:@"_"
+                                options:0
+                                  range:wholeString];
+
   NSString *mountPoint = [@"/Volumes/" stringByAppendingPathComponent:
                           [NSString stringWithFormat:@"%@-%@",
-                           prodid, [updateInfo_ codeHash]]];
+                           prodid, legalHash]];
 
   // MNAMELEN is the max mount point name length (hint: it's 90)
   if ([mountPoint length] >= MNAMELEN)

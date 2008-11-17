@@ -475,6 +475,7 @@
 		38132B110EB77B98008EC2FB /* engine_install */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = engine_install; path = Samples/EngineRunner/engine_install; sourceTree = "<group>"; };
 		38132B850EB79D6A008EC2FB /* kshash.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = kshash.sh; path = Samples/EngineRunner/kshash.sh; sourceTree = SOURCE_ROOT; };
 		38132B860EB79D6A008EC2FB /* enginerunner-plist-generator.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = "enginerunner-plist-generator.sh"; path = "Samples/EngineRunner/enginerunner-plist-generator.sh"; sourceTree = SOURCE_ROOT; };
+		38297B240EC257D20071AE98 /* ERUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ERUtilities.h; path = Samples/EngineRunner/ERUtilities.h; sourceTree = "<group>"; };
 		3830F7330EA8FA9700A8D0D3 /* ERSelfUpdateCommand.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ERSelfUpdateCommand.h; path = Samples/EngineRunner/ERSelfUpdateCommand.h; sourceTree = "<group>"; };
 		3830F7340EA8FA9700A8D0D3 /* ERSelfUpdateCommand.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ERSelfUpdateCommand.m; path = Samples/EngineRunner/ERSelfUpdateCommand.m; sourceTree = "<group>"; };
 		389603E20EBA3D2900BDA613 /* Test-ENVVAR.dmg */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Test-ENVVAR.dmg"; sourceTree = "<group>"; };
@@ -890,6 +891,7 @@
 				38AF830D0E87EB230060B504 /* ERRunUpdateTicketCommand.m */,
 				3830F7330EA8FA9700A8D0D3 /* ERSelfUpdateCommand.h */,
 				3830F7340EA8FA9700A8D0D3 /* ERSelfUpdateCommand.m */,
+				38297B240EC257D20071AE98 /* ERUtilities.h */,
 			);
 			name = EngineRunner;
 			sourceTree = "<group>";
