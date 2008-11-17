@@ -6,9 +6,9 @@
 //  Licensed under the Apache License, Version 2.0 (the "License"); you may not
 //  use this file except in compliance with the License.  You may obtain a copy
 //  of the License at
-// 
+//
 //  http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 //  Unless required by applicable law or agreed to in writing, software
 //  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
 //  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -19,8 +19,7 @@
 #import "GTMObjC2Runtime.h"
 #import "GTMSenTestCase.h"
 #import "GTMSystemVersion.h"
-
-
+#import "GTMTypeCasting.h"
 
 #import <string.h>
 
@@ -75,12 +74,29 @@ AT_REQUIRED
 @end
 
 @interface GTMObjC2NotificationWatcher : NSObject
+- (void)startedTest:(NSNotification *)notification;
 @end
 
 @implementation GTMObjC2NotificationWatcher
+- (id)init {
+  if ((self = [super init])) {
+    NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
+    // We release ourselves when we are notified.
+    [self retain];
+    [nc addObserver:self
+           selector:@selector(startedTest:)
+               name:SenTestSuiteDidStartNotification
+             object:nil];
+
+  }
+  return self;
+}
+
 - (void)startedTest:(NSNotification *)notification {
   // Logs if we are testing on Tiger or Leopard runtime.
-  NSString *testName = [(SenTest*)[[notification object] test] name];
+  SenTestSuiteRun *suiteRun = GTM_STATIC_CAST(SenTestSuiteRun,
+                                              [notification object]);
+  NSString *testName = [[suiteRun test] name];
   NSString *className = NSStringFromClass([GTMObjC2RuntimeTest class]);
   if ([testName isEqualToString:className]) {
     NSString *runtimeString;
@@ -101,14 +117,7 @@ AT_REQUIRED
 
 + (void)initialize {
   // This allows us to track which runtime we are actually testing.
-  NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
-
-  // Watcher is released when it is notified.
-  GTMObjC2NotificationWatcher *watcher = [[GTMObjC2NotificationWatcher alloc] init];
-  [nc addObserver:watcher 
-         selector:@selector(startedTest:) 
-             name:SenTestSuiteDidStartNotification 
-           object:nil];
+  [[[GTMObjC2NotificationWatcher alloc] init] autorelease];
 }
 
 - (void)setUp {
@@ -148,9 +157,18 @@ AT_REQUIRED
   // STAssertFalse(class_conformsToProtocol(nil, nil), nil);
 
   // Standard use check
-  STAssertTrue(class_conformsToProtocol(cls_, 
-                                        @protocol(GTMObjC2Runtime_TestProtocol)), 
+  STAssertTrue(class_conformsToProtocol(cls_,
+                                        @protocol(GTMObjC2Runtime_TestProtocol)),
                nil);
+}
+
+- (void)test_class_respondsToSelector {
+  // Nil Checks
+  STAssertFalse(class_respondsToSelector(cls_, @selector(setUp)), nil);
+  STAssertFalse(class_respondsToSelector(cls_, nil), nil);
+
+  // Standard use check
+  STAssertTrue(class_respondsToSelector(cls_, @selector(kwyjibo)), nil);
 }
 
 - (void)test_class_getSuperclass {
@@ -176,10 +194,10 @@ AT_REQUIRED
   STAssertEquals(count, 2U, nil);
   STAssertNULL(list[count], nil);
   free(list);
-  
+
   // Now test meta class
   count = 0;
-  list = class_copyMethodList((Class)objc_getMetaClass(class_getName(cls_)), 
+  list = class_copyMethodList((Class)objc_getMetaClass(class_getName(cls_)),
                               &count);
   STAssertNotNULL(list, nil);
   STAssertEquals(count, 2U, nil);
@@ -219,7 +237,7 @@ AT_REQUIRED
   STAssertNotNil(val3, nil);
   NSString *val4 = [GTMObjC2Runtime_TestClass brokeHisBrain];
   STAssertNotNil(val4, nil);
-  
+
   // exchange the imps
   Method *list = class_copyMethodList(cls_, nil);
   STAssertNotNULL(list, nil);
@@ -236,7 +254,7 @@ AT_REQUIRED
   // Check that other methods not affected
   STAssertEqualStrings([GTMObjC2Runtime_TestClass dontHaveACow], val3, nil);
   STAssertEqualStrings([GTMObjC2Runtime_TestClass brokeHisBrain], val4, nil);
-  
+
   // exchange the imps back
   method_exchangeImplementations(list[0], list[1]);
 
@@ -306,7 +324,7 @@ AT_REQUIRED
   STAssertNULL(nullImp, nil);
   IMP testImp = method_setImplementation(list[0], newImp);
   STAssertEquals(testImp, oldImp, nil);
-#else  
+#else
   // Built for leopard or later means we get the os runtime behavior...
   if ([GTMSystemVersion isLeopard]) {
     // (takes nil)
@@ -322,26 +340,28 @@ AT_REQUIRED
     STAssertEquals(testImp, oldImp, nil);
   }
 #endif
-  
+
   // This case intentionally not tested. Passing nil to method_setImplementation
   // on Leopard crashes. It does on Tiger as well. Half works on SnowLeopard.
-  // We made our Tiger implementation the same as the SnowLeopard 
+  // We made our Tiger implementation the same as the SnowLeopard
   // implementation.
   // Logged as radar 5572981.
-  if (![GTMSystemVersion isLeopard]) {
+  if (![GTMSystemVersion isLeopardOrGreater]) {
     STAssertNULL(method_setImplementation(nil, nil), nil);
   }
-  if ([GTMSystemVersion isBuildGreaterThan:kGTMSystemBuild10_6_0_WWDC]) {
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+  if ([GTMSystemVersion isSnowLeopardOrGreater]) {
     STAssertNULL(method_setImplementation(nil, newImp), nil);
   }
-  
+#endif
+
   [test release];
   free(list);
 }
 
 - (void)test_protocol_getMethodDescription {
   // Check nil cases
-  struct objc_method_description desc = protocol_getMethodDescription(nil, nil, 
+  struct objc_method_description desc = protocol_getMethodDescription(nil, nil,
                                                                       YES, YES);
   STAssertNULL(desc.name, nil);
   desc = protocol_getMethodDescription(nil, @selector(optional), YES, YES);

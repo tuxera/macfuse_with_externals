@@ -18,6 +18,7 @@
 
 #import "GTMSignalHandler.h"
 #import "GTMDefines.h"
+#import "GTMTypeCasting.h"
 
 #import <sys/event.h>  // for kqueue() and kevent
 #import "GTMDebugSelectorValidation.h"
@@ -32,43 +33,32 @@
 
 
 // File descriptor for the kqueue that will hold all of our signal events.
-static int gSignalKQueueFileDescriptor;
+static int gSignalKQueueFileDescriptor = 0;
 
 // A wrapper around the kqueue file descriptor so we can put it into a
 // runloop.
-static CFSocketRef gRunLoopSocket;
+static CFSocketRef gRunLoopSocket = NULL;
 
 
 @interface GTMSignalHandler (PrivateMethods)
-
-// Invoke |handler_| on the |target_|, passing a boxed |signo_|.
 - (void)notify;
-
-// Wrap the file descriptor in a CFSocket and add it to the runloop so that a
-// callback function will be called when there's activity on the descriptor.  In
-// this case, we're interested in new stuff from the kqueue.
 - (void)addFileDescriptorMonitor:(int)fd;
-
-// Add ourselves to our global kqueue.
 - (void)registerWithKQueue;
-
-// Remove ourseves from our global kqueue.
-- (void)unregisterWithKQueue;
-
-@end  // PrivateMethods
+@end
 
 
 @implementation GTMSignalHandler
 
 -(id)init {
   // Folks shouldn't call init directly, so they get what they deserve.
-  return [self initWithSignal:0 target:nil handler:NULL];
-}  // init
-
+  _GTMDevLog(@"Don't call init, use "
+             @"initWithSignal:target:action:");
+  return [self initWithSignal:0 target:nil action:NULL];
+}
 
 - (id)initWithSignal:(int)signo
               target:(id)target
-             handler:(SEL)handler {
+              action:(SEL)action {
 
   if ((self = [super init])) {
 
@@ -79,52 +69,57 @@ static CFSocketRef gRunLoopSocket;
 
     signo_ = signo;
     target_ = target;  // Don't retain since target will most likely retain us.
-    handler_ = handler;
+    action_ = action;
     GTMAssertSelectorNilOrImplementedWithArguments(target_,
-                                                   handler_,
-                                                   @encode(NSNumber *),
+                                                   action_,
+                                                   @encode(int),
                                                    NULL);
     
     // We're handling this signal via kqueue, so turn off the usual signal
     // handling.
     signal(signo_, SIG_IGN);
 
-    if (handler != NULL) {
+    if (action != NULL) {
       [self registerWithKQueue];
     }
   }
   return self;
-}  // initWithSignal
+}
+
+#if GTM_SUPPORT_GC
 
 - (void)finalize {
-  [self unregisterWithKQueue];
-  
+  [self invalidate];
   [super finalize];
-  
-}  // finalize
+}
+
+#endif
 
 - (void)dealloc {
-  [self unregisterWithKQueue];
-  
+  [self invalidate];
   [super dealloc];
-
-}  // dealloc
-
+}
 
 // Cribbed from Advanced Mac OS X Programming.
 static void SocketCallBack(CFSocketRef socketref, CFSocketCallBackType type,
                            CFDataRef address, const void *data, void *info) {
+  // We're using CFRunLoop calls here. Even when used on the main thread, they
+  // don't trigger the draining of the main application's autorelease pool that
+  // NSRunLoop provides. If we're used in a UI-less app, this means that
+  // autoreleased objects would never go away, so we provide our own pool here.
+  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
   struct kevent event;
   
   if (kevent(gSignalKQueueFileDescriptor, NULL, 0, &event, 1, NULL) == -1) {
     _GTMDevLog(@"could not pick up kqueue event.  Errno %d", errno);  // COV_NF_LINE
   } else {
-    GTMSignalHandler *handler = (GTMSignalHandler *)event.udata;
+    GTMSignalHandler *handler = GTM_STATIC_CAST(GTMSignalHandler, event.udata);
     [handler notify];
   }
 
-}  // SocketCallBack
-
+  [pool drain];
+}
 
 // Cribbed from Advanced Mac OS X Programming
 - (void)addFileDescriptorMonitor:(int)fd {
@@ -154,8 +149,7 @@ static void SocketCallBack(CFSocketRef socketref, CFSocketCallBackType type,
  bailout:
   return;
   
-}  // addFileDescriptorMonitor
-
+}
 
 - (void)registerWithKQueue {
   
@@ -182,13 +176,12 @@ static void SocketCallBack(CFSocketRef socketref, CFSocketCallBackType type,
     _GTMDevLog(@"could not add event for signal %d.  Errno %d", signo_, errno);  // COV_NF_LINE
   }
   
-}  // registerWithKQueue
+}
 
-
-- (void)unregisterWithKQueue {
+- (void)invalidate {
   // Short-circuit cases where we didn't actually register a kqueue event.
   if (signo_ == 0) return;
-  if (handler_ == 0) return;
+  if (action_ == nil) return;
 
   struct kevent filter;
   EV_SET(&filter, signo_, EVFILT_SIGNAL, EV_DELETE, 0, 0, self);
@@ -197,13 +190,22 @@ static void SocketCallBack(CFSocketRef socketref, CFSocketCallBackType type,
   if (kevent(gSignalKQueueFileDescriptor, &filter, 1, NULL, 0, &noWait) != 0) {
     _GTMDevLog(@"could not remove event for signal %d.  Errno %d", signo_, errno);  // COV_NF_LINE
   }
-
-}  // unregisterWithKQueue
-
+  
+  // Set action_ to nil so that if invalidate is called on us twice,
+  // nothing happens.
+  action_ = nil;
+}
 
 - (void)notify {
-  [target_ performSelector:handler_
-                withObject:[NSNumber numberWithInt:signo_]];
-}  // notify
+  // Now, fire the selector
+  NSMethodSignature *methodSig = [target_ methodSignatureForSelector:action_];
+  _GTMDevAssert(methodSig != nil, @"failed to get the signature?");
+  NSInvocation *invocation
+    = [NSInvocation invocationWithMethodSignature:methodSig];
+  [invocation setTarget:target_];
+  [invocation setSelector:action_];
+  [invocation setArgument:&signo_ atIndex:2];
+  [invocation invoke];
+}
 
-@end  // GTMSignalHandler
+@end

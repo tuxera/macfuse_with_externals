@@ -21,7 +21,7 @@
 
 // :::WARNING::: NSAppleScript and Garbage Collect (GC)
 //
-// As of 10.5.5 (and below) Apple has bugs in NSAppleScript when running with
+// As of 10.5.6 (and below) Apple has bugs in NSAppleScript when running with
 // GC; ie-things crash that have nothing to do w/ this or your code.  See
 // http://rails.wincent.com/issues/640 for a good amount of detail about the
 // problems and simple cases that show it.
@@ -123,4 +123,17 @@ enum {
 // Return YES if the script has an open documents (odoc) handler
 // Does not require script compilation, so it's a fast check.
 - (BOOL)gtm_hasOpenDocumentsHandler;
+
+@end
+
+// Error keys that we may return in the error dictionary on top of the standard
+// NSAppleScriptError* keys.
+extern NSString const* GTMNSAppleScriptErrorPartialResult;  // id
+extern NSString const* GTMNSAppleScriptErrorOffendingObject;  // id
+extern NSString const* GTMNSAppleScriptErrorExpectedType;  // GTMFourCharCode
+
+@interface NSAppleEventDescriptor (GTMAppleEventDescriptorOSAAdditions)
+// Returns an NSValue containing an NSRange of script source when an error
+// occurs while compiling and/or executing a script.
+- (id)gtm_OSAErrorRangeValue;
 @end
