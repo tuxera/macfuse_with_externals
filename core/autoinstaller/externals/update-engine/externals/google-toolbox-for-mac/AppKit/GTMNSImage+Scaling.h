@@ -19,8 +19,7 @@
 //
 
 
-#import <AppKit/AppKit.h>
-#import "GTMDefines.h"
+#import <Foundation/Foundation.h>
 
 @interface NSImage (GTMNSImageScaling)
 
@@ -30,9 +29,7 @@
 #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_6
 // Return the exact or next largest representation for a size
 // If you are on SnowLeopard use 
-// -[NSImage bestRepresentationForRect:context:hints:]
-// Also, please see http://openradar.appspot.com/radar?id=394401
-// and read notes in GTMNSImage+ScalingTest.m. Search for "8052200".
+// -[NSImage bestRepresentationForRect:context:hints:] 
 - (NSImageRep *)gtm_bestRepresentationForSize:(NSSize)size;
 #endif
 

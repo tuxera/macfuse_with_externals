@@ -28,7 +28,7 @@
 //   = [[[GTMLargeTypeWindow alloc] initWithString:@"Foo"] autorelease];
 // [window makeKeyAndOrderFront:nil];
 
-// NB This class appears to have a problem with GC on 10.5.6 and below.
+// NB This class appears to have a problem with GC on 10.5.5 and below.
 // Radar 6137322 CIFilter crashing when run with GC enabled
 // This appears to be an Apple bug with GC.
 // We do a copy animation that causes things to crash, but only with GC
@@ -37,18 +37,10 @@
 // at this time on our test machines. 
 // Dual-Core Intel Xeon with ATI Radeon X1300
 
+// Amount of time to fade the window in or out
+const NSTimeInterval kGTMLargeTypeWindowFadeTime;
+
 @interface GTMLargeTypeWindow : NSPanel
-
-// Setter and getter for the copy animation duration. Default value is .5s.
-// Note that this affects all windows.
-+ (NSTimeInterval)copyAnimationDuration;
-+ (void)setCopyAnimationDuration:(NSTimeInterval)duration;
-
-// Setter and getter for the fade animation duration. Default value is .3s.
-// Note that this affects all windows.
-+ (NSTimeInterval)fadeAnimationDuration;
-+ (void)setFadeAnimationDuration:(NSTimeInterval)duration;
-
 // Creates a display window with |string| displayed.
 // Formats |string| as best as possible to fill the screen.
 - (id)initWithString:(NSString *)string;
@@ -65,6 +57,4 @@
 // as part of the responder chain so that the user can copy the displayed text
 // using cmd-c.
 - (void)copy:(id)sender;
-
-
 @end

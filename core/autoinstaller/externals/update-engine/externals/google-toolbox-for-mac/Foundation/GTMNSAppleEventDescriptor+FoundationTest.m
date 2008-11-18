@@ -242,7 +242,7 @@
   NSAppleEventDescriptor *userRecord = [array gtm_appleEventDescriptor];
   STAssertNotNil(userRecord, @"");
   [desc setDescriptor:userRecord forKeyword:keyASUserRecordFields];
-  [GTMUnitTestDevLog expectPattern:@"Got a key bam with no value in \\(.*"];
+  [GTMUnitTestDevLog expectPattern:@"Got a key bam with no value in <.*"];
   dictionary = [desc gtm_objectValue];
   STAssertNil(dictionary, @"Should be nil");
 }
@@ -573,13 +573,6 @@
   STAssertNotNil(fcc2, nil);
   STAssertEqualObjects(fcc, fcc2, nil);
   STAssertEquals([desc descriptorType], (DescType)typeKeyword, nil);
-}
-
-- (void)testDescriptorWithDescriptor {
-  NSAppleEventDescriptor *desc
-    = [NSAppleEventDescriptor descriptorWithString:@"foo"];
-  NSAppleEventDescriptor *desc2 = [desc gtm_appleEventDescriptor];
-  STAssertEqualObjects(desc, desc2, nil);
 }
 
 - (void)handleEvent:(NSAppleEventDescriptor*)event 

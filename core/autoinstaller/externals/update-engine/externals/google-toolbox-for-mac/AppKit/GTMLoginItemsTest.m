@@ -31,7 +31,8 @@
 
 static BOOL ItemsListHasPath(NSArray *items, NSString *path) {
   NSDictionary *item = nil;
-  GTM_FOREACH_OBJECT(item, items) {
+  NSEnumerator *itemsEnum  = [items objectEnumerator];
+  while ((item = [itemsEnum nextObject])) {
     NSString *itemPath = [item objectForKey:kGTMLoginItemsPathKey];
     if (itemPath && [itemPath isEqual:path]) {
       return YES;

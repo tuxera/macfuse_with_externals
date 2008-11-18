@@ -17,7 +17,6 @@
 //
 
 #import "GTMNSFileManager+Path.h"
-#import "GTMDefines.h"
 
 @implementation NSFileManager (GMFileManagerPathAdditions)
 
@@ -35,9 +34,10 @@
     return YES;
   
   NSString *actualPath = @"/";
+  NSEnumerator *directoryEnumerator = [[path pathComponents] objectEnumerator];
   NSString *directory;
   
-  GTM_FOREACH_OBJECT(directory, [path pathComponents]) {
+  while ((directory = [directoryEnumerator nextObject])) {
     actualPath = [actualPath stringByAppendingPathComponent:directory];
     
     if ([self fileExistsAtPath:actualPath isDirectory:&isDir] && isDir) {
@@ -68,41 +68,33 @@
 
 - (NSArray *)gtm_filePathsWithExtensions:(NSArray *)extensions
                              inDirectory:(NSString *)directoryPath {
-  if (!directoryPath) {
+  if (directoryPath == nil)
     return nil;
-  }
   
   // |basenames| will contain only the matching file names, not their full paths.
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
-  NSArray *basenames = [self contentsOfDirectoryAtPath:directoryPath 
-                                                 error:nil];
-#else
   NSArray *basenames = [self directoryContentsAtPath:directoryPath];
-#endif  // MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
   
   // Check if dir doesn't exist or couldn't be opened.
-  if (!basenames) {
+  if (basenames == nil)
     return nil;
-  }
   
   // Check if dir is empty.
-  if ([basenames count] == 0) {
+  if ([basenames count] == 0)
     return basenames;
-  }
   
   NSMutableArray *paths = [NSMutableArray arrayWithCapacity:[basenames count]];
   NSString *basename;
+  NSEnumerator *basenamesEnumerator = [basenames objectEnumerator];
   
   // Convert all the |basenames| to full paths.
-  GTM_FOREACH_OBJECT(basename, basenames) {
+  while ((basename = [basenamesEnumerator nextObject])) {
     NSString *fullPath = [directoryPath stringByAppendingPathComponent:basename];
     [paths addObject:fullPath];
   }
   
   // Check if caller wants all files, regardless of extension.
-  if ([extensions count] == 0) {
+  if (extensions == nil || [extensions count] == 0)
     return paths;
-  }
   
   return [paths pathsMatchingExtensions:extensions];
 }

@@ -17,7 +17,7 @@
 //
 
 #import "GTMLightweightProxy.h"
-#import "GTMDefines.h"
+
 
 @implementation GTMLightweightProxy
 
@@ -27,18 +27,12 @@
   return self;
 }
 
-- (id)init {
-  return [self initWithRepresentedObject:nil];
-}
-
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
-#if GTM_SUPPORT_GC
 // -[NSProxy finalize] is only in 10.5 or later
 - (void)finalize {
   representedObject_ = nil;
   [super finalize];
 }
-#endif
 #endif
 
 - (void)dealloc {
@@ -54,9 +48,9 @@
     // Even though we don't retain this object, we hang it on the lifetime
     // of the calling threads pool so it's lifetime is safe for at least that
     // long.
-    repObject = [representedObject_ retain];
+    repObject = [[representedObject_ retain] autorelease];
   }
-  return [repObject autorelease];
+  return repObject;
 }
 
 - (void)setRepresentedObject:(id)object {
