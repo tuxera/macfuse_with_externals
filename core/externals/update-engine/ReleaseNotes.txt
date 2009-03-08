@@ -4,6 +4,14 @@ Project site:     http://code.google.com/p/update-engine
 Discussion group: http://groups.google.com/group/update-engine
 
 
+Release 5
+5-March-2009
+
+- Added KSDiskImage method to make mount visible in the Finder
+
+- Track migration of GTMHTTPFetcher to GDataHTTPFetcher
+
+
 Release 4
 17-November-2008
 

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #import "KSFetcherFactory.h"
-#import "GTMHTTPFetcher.h"
+#import "GDataHTTPFetcher.h"
 
 
 @implementation KSFetcherFactory
@@ -22,8 +22,8 @@
   return [[[self alloc] init] autorelease];
 }
 
-- (GTMHTTPFetcher *)createFetcherForRequest:(NSURLRequest *)request {
-  return [GTMHTTPFetcher httpFetcherWithRequest:request];
+- (GDataHTTPFetcher *)createFetcherForRequest:(NSURLRequest *)request {
+  return [GDataHTTPFetcher httpFetcherWithRequest:request];
 }
 
 @end

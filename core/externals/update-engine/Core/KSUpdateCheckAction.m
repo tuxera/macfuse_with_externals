@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #import "KSUpdateCheckAction.h"
-#import "GTMHTTPFetcher.h"
+#import "GDataHTTPFetcher.h"
 #import "KSFetcherFactory.h"
 #import "KSServer.h"
 #import "KSTicket.h"
@@ -24,11 +24,11 @@
 
 @interface KSUpdateCheckAction (FetcherCallbacks)
 
-// A KSUpdateCheckAction may ask for information via GTMHTTPFetcher
-// which is async.  These are callbacks passed to [GTMHTTPFetcher
+// A KSUpdateCheckAction may ask for information via GDataHTTPFetcher
+// which is async.  These are callbacks passed to [GDataHTTPFetcher
 // beginFetchingWithDelegate::::] to let us know what happened.
-- (void)fetcher:(GTMHTTPFetcher *)fetcher finishedWithData:(NSData *)data;
-- (void)fetcher:(GTMHTTPFetcher *)fetcher failedWithError:(NSError *)error;
+- (void)fetcher:(GDataHTTPFetcher *)fetcher finishedWithData:(NSData *)data;
+- (void)fetcher:(GDataHTTPFetcher *)fetcher failedWithError:(NSError *)error;
 
 @end
 
@@ -113,7 +113,7 @@
   renum = [requests objectEnumerator];
   req = nil;
   while ((req = [renum nextObject])) {
-    GTMHTTPFetcher *fetcher = [fetcherFactory_ createFetcherForRequest:req];
+    GDataHTTPFetcher *fetcher = [fetcherFactory_ createFetcherForRequest:req];
     _GTMDevAssert(fetcher, @"no fetcher");
     [fetchers_ addObject:fetcher];
     [fetcher beginFetchWithDelegate:self
@@ -124,7 +124,7 @@
 
 - (void)terminateAction {
   NSEnumerator *fenum = [fetchers_ objectEnumerator];
-  GTMHTTPFetcher *fetcher = nil;
+  GDataHTTPFetcher *fetcher = nil;
   while ((fetcher = [fenum nextObject])) {
     if ([fetcher isFetching]) {
       [fetcher stopFetching];
@@ -133,7 +133,7 @@
   [fetchers_ removeAllObjects];
 }
 
-- (void)requestFinishedForFetcher:(GTMHTTPFetcher *)fetcher success:(BOOL)successful {
+- (void)requestFinishedForFetcher:(GDataHTTPFetcher *)fetcher success:(BOOL)successful {
   [fetchers_ removeObject:fetcher];
   if (successful == NO)
     allSuccessful_ = NO;
@@ -164,7 +164,7 @@
 
 @implementation KSUpdateCheckAction (FetcherCallbacks)
 
-- (void)fetcher:(GTMHTTPFetcher *)fetcher finishedWithData:(NSData *)data {
+- (void)fetcher:(GDataHTTPFetcher *)fetcher finishedWithData:(NSData *)data {
   NSURLResponse *response = [fetcher response];
   NSString *prettyData = [server_ prettyPrintResponse:response data:data];
   GTMLoggerDebug(@"** XML response:\n%@", prettyData);
@@ -175,7 +175,7 @@
   [self requestFinishedForFetcher:fetcher success:YES];
 }
 
-- (void)fetcher:(GTMHTTPFetcher *)fetcher failedWithError:(NSError *)error {
+- (void)fetcher:(GDataHTTPFetcher *)fetcher failedWithError:(NSError *)error {
   GTMLoggerError(@"KSUpdateCheckAction failed with error %@", error);
   if ([[self delegate] respondsToSelector:@selector(fetcher:failedWithError:)])
     [[self delegate] fetcher:fetcher failedWithError:error];

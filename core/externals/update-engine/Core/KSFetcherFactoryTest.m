@@ -14,7 +14,7 @@
 
 #import <SenTestingKit/SenTestingKit.h>
 #import "KSFetcherFactory.h"
-#import "GTMHTTPFetcher.h"
+#import "GDataHTTPFetcher.h"
 
 
 @interface KSFetcherFactoryTest : SenTestCase
@@ -30,7 +30,7 @@
   for (int x = 0; x < count; x++) {
     NSString *urlString = [NSString stringWithFormat:@"http://google-%d.com", x];
     NSURL *url = [NSURL URLWithString:urlString];
-    GTMHTTPFetcher *fetcher = [factory createFetcherForRequest:
+    GDataHTTPFetcher *fetcher = [factory createFetcherForRequest:
                                         [NSURLRequest requestWithURL:url]];
     STAssertNotNil(fetcher, nil);
   }

@@ -62,10 +62,16 @@
 // sure the license was indeed removed by calling -hasLicense.
 - (void)removeLicense;
 
-// Mounts the disk image and returns the path to the mount point. If a nil 
+// Mounts the disk image and returns the path to the mount point. If a nil
+// value is specified, a default value is chosen. Otherwise, the requested
+// mountPoint is used.  The mount point is not visible in the Finder.
+- (NSString *)mount:(NSString *)mountPoint;
+
+// Mounts the disk image and returns the path to the mount point. If a nil
 // value is specified, a default value is chosen. Otherwise, the requested
 // mountPoint is used.
-- (NSString *)mount:(NSString *)mountPoint;
+// Unlike a normal mount, the mounted image *IS* visible in the Finder.
+- (NSString *)mountBrowsable:(NSString *)mountPoint;
 
 // Returns YES if the disk image is currently mounted.
 - (BOOL)isMounted;

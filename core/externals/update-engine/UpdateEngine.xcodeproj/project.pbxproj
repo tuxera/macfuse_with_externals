@@ -107,7 +107,6 @@
 		38AF7FF70E799EAA0060B504 /* GTMScriptRunner.m in Sources */ = {isa = PBXBuildFile; fileRef = F9A706D90E5F4BB9004B295E /* GTMScriptRunner.m */; };
 		38AF7FF80E799EAA0060B504 /* GTMBase64.m in Sources */ = {isa = PBXBuildFile; fileRef = F9A7068A0E5F4BB9004B295E /* GTMBase64.m */; };
 		38AF7FF90E799EAA0060B504 /* GTMLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = F9A706A10E5F4BB9004B295E /* GTMLogger.m */; };
-		38AF7FFA0E799EAA0060B504 /* GTMHTTPFetcher.m in Sources */ = {isa = PBXBuildFile; fileRef = F9A706980E5F4BB9004B295E /* GTMHTTPFetcher.m */; };
 		38AF7FFB0E799EAA0060B504 /* GTMPath.m in Sources */ = {isa = PBXBuildFile; fileRef = F9A706D00E5F4BB9004B295E /* GTMPath.m */; };
 		38AF7FFD0E799EAA0060B504 /* GTMNSString+FindFolder.m in Sources */ = {isa = PBXBuildFile; fileRef = F9A706BD0E5F4BB9004B295E /* GTMNSString+FindFolder.m */; };
 		38AF7FFF0E799EAA0060B504 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 38AF7CA10E781C450060B504 /* Carbon.framework */; };
@@ -148,7 +147,6 @@
 		38AF82640E81A5FA0060B504 /* GTMScriptRunner.m in Sources */ = {isa = PBXBuildFile; fileRef = F9A706D90E5F4BB9004B295E /* GTMScriptRunner.m */; };
 		38AF82650E81A5FA0060B504 /* GTMBase64.m in Sources */ = {isa = PBXBuildFile; fileRef = F9A7068A0E5F4BB9004B295E /* GTMBase64.m */; };
 		38AF82660E81A5FA0060B504 /* GTMLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = F9A706A10E5F4BB9004B295E /* GTMLogger.m */; };
-		38AF82670E81A5FA0060B504 /* GTMHTTPFetcher.m in Sources */ = {isa = PBXBuildFile; fileRef = F9A706980E5F4BB9004B295E /* GTMHTTPFetcher.m */; };
 		38AF82680E81A5FA0060B504 /* GTMPath.m in Sources */ = {isa = PBXBuildFile; fileRef = F9A706D00E5F4BB9004B295E /* GTMPath.m */; };
 		38AF82690E81A5FA0060B504 /* GTMNSString+FindFolder.m in Sources */ = {isa = PBXBuildFile; fileRef = F9A706BD0E5F4BB9004B295E /* GTMNSString+FindFolder.m */; };
 		38AF826C0E81A5FA0060B504 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 38AF7CA10E781C450060B504 /* Carbon.framework */; };
@@ -166,6 +164,15 @@
 		38AF82AD0E82CA3F0060B504 /* ERDryRunCommand.m in Sources */ = {isa = PBXBuildFile; fileRef = 38AF82AC0E82CA3F0060B504 /* ERDryRunCommand.m */; };
 		38AF830E0E87EB240060B504 /* ERRunUpdateTicketCommand.m in Sources */ = {isa = PBXBuildFile; fileRef = 38AF830D0E87EB230060B504 /* ERRunUpdateTicketCommand.m */; };
 		38AF83110E87EEAD0060B504 /* ERDryRunTicketCommand.m in Sources */ = {isa = PBXBuildFile; fileRef = 38AF830F0E87EEAD0060B504 /* ERDryRunTicketCommand.m */; };
+		F42CD4A80F58C4D300C15DA3 /* GDataHTTPFetcher.m in Sources */ = {isa = PBXBuildFile; fileRef = F42CD48C0F58C39300C15DA3 /* GDataHTTPFetcher.m */; };
+		F42CD4A90F58C4D300C15DA3 /* GDataHTTPFetcherLogging.m in Sources */ = {isa = PBXBuildFile; fileRef = F42CD48E0F58C39300C15DA3 /* GDataHTTPFetcherLogging.m */; };
+		F42CD4AA0F58C4D300C15DA3 /* GDataProgressMonitorInputStream.m in Sources */ = {isa = PBXBuildFile; fileRef = F42CD4900F58C39300C15DA3 /* GDataProgressMonitorInputStream.m */; };
+		F42CD4AE0F58C4F700C15DA3 /* GDataHTTPFetcher.m in Sources */ = {isa = PBXBuildFile; fileRef = F42CD48C0F58C39300C15DA3 /* GDataHTTPFetcher.m */; };
+		F42CD4AF0F58C4F700C15DA3 /* GDataHTTPFetcherLogging.m in Sources */ = {isa = PBXBuildFile; fileRef = F42CD48E0F58C39300C15DA3 /* GDataHTTPFetcherLogging.m */; };
+		F42CD4B00F58C4F700C15DA3 /* GDataProgressMonitorInputStream.m in Sources */ = {isa = PBXBuildFile; fileRef = F42CD4900F58C39300C15DA3 /* GDataProgressMonitorInputStream.m */; };
+		F42CD4B20F58C50300C15DA3 /* GDataHTTPFetcher.m in Sources */ = {isa = PBXBuildFile; fileRef = F42CD48C0F58C39300C15DA3 /* GDataHTTPFetcher.m */; };
+		F42CD4B30F58C50300C15DA3 /* GDataHTTPFetcherLogging.m in Sources */ = {isa = PBXBuildFile; fileRef = F42CD48E0F58C39300C15DA3 /* GDataHTTPFetcherLogging.m */; };
+		F42CD4B40F58C50300C15DA3 /* GDataProgressMonitorInputStream.m in Sources */ = {isa = PBXBuildFile; fileRef = F42CD4900F58C39300C15DA3 /* GDataProgressMonitorInputStream.m */; };
 		F94F33A50E70612E002EE743 /* ServerFailure.plist in Resources */ = {isa = PBXBuildFile; fileRef = F94F33A30E70612E002EE743 /* ServerFailure.plist */; };
 		F94F33A60E70612E002EE743 /* ServerSuccess.plist in Resources */ = {isa = PBXBuildFile; fileRef = F94F33A40E70612E002EE743 /* ServerSuccess.plist */; };
 		F94F495B0E91529200527D68 /* KSAction.h in Headers */ = {isa = PBXBuildFile; fileRef = F9A707B50E5F4BCF004B295E /* KSAction.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -285,7 +292,6 @@
 		F9A708830E5F4E19004B295E /* KSUUID.m in Sources */ = {isa = PBXBuildFile; fileRef = F9A707D60E5F4BCF004B295E /* KSUUID.m */; };
 		F9A708850E5F4E19004B295E /* NSData+Hash.m in Sources */ = {isa = PBXBuildFile; fileRef = F9A707DA0E5F4BCF004B295E /* NSData+Hash.m */; };
 		F9A708880E5F4E36004B295E /* GTM.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F9A708580E5F4C2C004B295E /* GTM.framework */; };
-		F9A708920E5F4EF6004B295E /* GTMHTTPFetcher.m in Sources */ = {isa = PBXBuildFile; fileRef = F9A706980E5F4BB9004B295E /* GTMHTTPFetcher.m */; };
 		F9A708930E5F4EF6004B295E /* GTMLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = F9A706A10E5F4BB9004B295E /* GTMLogger.m */; };
 		F9A708940E5F4EF6004B295E /* GTMLoggerRingBufferWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = F9A706A30E5F4BB9004B295E /* GTMLoggerRingBufferWriter.m */; };
 		F9A708950E5F4EF6004B295E /* GTMPath.m in Sources */ = {isa = PBXBuildFile; fileRef = F9A706D00E5F4BB9004B295E /* GTMPath.m */; };
@@ -506,6 +512,13 @@
 		38AF830D0E87EB230060B504 /* ERRunUpdateTicketCommand.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ERRunUpdateTicketCommand.m; path = Samples/EngineRunner/ERRunUpdateTicketCommand.m; sourceTree = SOURCE_ROOT; };
 		38AF830F0E87EEAD0060B504 /* ERDryRunTicketCommand.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ERDryRunTicketCommand.m; path = Samples/EngineRunner/ERDryRunTicketCommand.m; sourceTree = SOURCE_ROOT; };
 		38AF83100E87EEAD0060B504 /* ERDryRunTicketCommand.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ERDryRunTicketCommand.h; path = Samples/EngineRunner/ERDryRunTicketCommand.h; sourceTree = SOURCE_ROOT; };
+		F42CD48A0F58C37F00C15DA3 /* GDataDefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GDataDefines.h; sourceTree = "<group>"; };
+		F42CD48B0F58C39300C15DA3 /* GDataHTTPFetcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GDataHTTPFetcher.h; sourceTree = "<group>"; };
+		F42CD48C0F58C39300C15DA3 /* GDataHTTPFetcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GDataHTTPFetcher.m; sourceTree = "<group>"; };
+		F42CD48D0F58C39300C15DA3 /* GDataHTTPFetcherLogging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GDataHTTPFetcherLogging.h; sourceTree = "<group>"; };
+		F42CD48E0F58C39300C15DA3 /* GDataHTTPFetcherLogging.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GDataHTTPFetcherLogging.m; sourceTree = "<group>"; };
+		F42CD48F0F58C39300C15DA3 /* GDataProgressMonitorInputStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GDataProgressMonitorInputStream.h; sourceTree = "<group>"; };
+		F42CD4900F58C39300C15DA3 /* GDataProgressMonitorInputStream.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GDataProgressMonitorInputStream.m; sourceTree = "<group>"; };
 		F94F33A30E70612E002EE743 /* ServerFailure.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = ServerFailure.plist; sourceTree = "<group>"; };
 		F94F33A40E70612E002EE743 /* ServerSuccess.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = ServerSuccess.plist; sourceTree = "<group>"; };
 		F95BAA570E5F59C200C4AA72 /* Test-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Test-Info.plist"; sourceTree = "<group>"; };
@@ -550,10 +563,6 @@
 		F9A706930E5F4BB9004B295E /* GTMGeometryUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTMGeometryUtils.h; sourceTree = "<group>"; };
 		F9A706940E5F4BB9004B295E /* GTMGeometryUtils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTMGeometryUtils.m; sourceTree = "<group>"; };
 		F9A706950E5F4BB9004B295E /* GTMGeometryUtilsTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTMGeometryUtilsTest.m; sourceTree = "<group>"; };
-		F9A706960E5F4BB9004B295E /* GTMGetURLHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTMGetURLHandler.m; sourceTree = "<group>"; };
-		F9A706970E5F4BB9004B295E /* GTMHTTPFetcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTMHTTPFetcher.h; sourceTree = "<group>"; };
-		F9A706980E5F4BB9004B295E /* GTMHTTPFetcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTMHTTPFetcher.m; sourceTree = "<group>"; };
-		F9A706990E5F4BB9004B295E /* GTMHTTPFetcherTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTMHTTPFetcherTest.m; sourceTree = "<group>"; };
 		F9A7069A0E5F4BB9004B295E /* GTMHTTPServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTMHTTPServer.h; sourceTree = "<group>"; };
 		F9A7069B0E5F4BB9004B295E /* GTMHTTPServer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTMHTTPServer.m; sourceTree = "<group>"; };
 		F9A7069C0E5F4BB9004B295E /* GTMHTTPServerTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTMHTTPServerTest.m; sourceTree = "<group>"; };
@@ -611,8 +620,6 @@
 		F9A706D00E5F4BB9004B295E /* GTMPath.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTMPath.m; sourceTree = "<group>"; };
 		F9A706D10E5F4BB9004B295E /* GTMPathTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTMPathTest.m; sourceTree = "<group>"; };
 		F9A706D20E5F4BB9004B295E /* GTMProgressMonitorInputStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTMProgressMonitorInputStream.h; sourceTree = "<group>"; };
-		F9A706D30E5F4BB9004B295E /* GTMProgressMonitorInputStream.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTMProgressMonitorInputStream.m; sourceTree = "<group>"; };
-		F9A706D40E5F4BB9004B295E /* GTMProgressMonitorInputStreamTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTMProgressMonitorInputStreamTest.m; sourceTree = "<group>"; };
 		F9A706D50E5F4BB9004B295E /* GTMRegex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTMRegex.h; sourceTree = "<group>"; };
 		F9A706D60E5F4BB9004B295E /* GTMRegex.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTMRegex.m; sourceTree = "<group>"; };
 		F9A706D70E5F4BB9004B295E /* GTMRegexTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTMRegexTest.m; sourceTree = "<group>"; };
@@ -631,7 +638,6 @@
 		F9A706E40E5F4BB9004B295E /* GTMValidatingContainers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTMValidatingContainers.h; sourceTree = "<group>"; };
 		F9A706E50E5F4BB9004B295E /* GTMValidatingContainers.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTMValidatingContainers.m; sourceTree = "<group>"; };
 		F9A706E60E5F4BB9004B295E /* GTMValidatingContainersTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTMValidatingContainersTest.m; sourceTree = "<group>"; };
-		F9A706E80E5F4BB9004B295E /* GTMHTTPFetcherTestPage.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = GTMHTTPFetcherTestPage.html; sourceTree = "<group>"; };
 		F9A706E90E5F4BB9004B295E /* GTM-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GTM-Info.plist"; path = "../google-toolbox-for-mac/GTM-Info.plist"; sourceTree = "<group>"; };
 		F9A706EE0E5F4BB9004B295E /* GTMDefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GTMDefines.h; path = "../google-toolbox-for-mac/GTMDefines.h"; sourceTree = "<group>"; };
 		F9A707B30E5F4BCF004B295E /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -896,6 +902,36 @@
 			name = EngineRunner;
 			sourceTree = "<group>";
 		};
+		F42CD4820F58C2F300C15DA3 /* gdata-objectivec-client */ = {
+			isa = PBXGroup;
+			children = (
+				F42CD4880F58C34900C15DA3 /* Source */,
+			);
+			path = "gdata-objectivec-client";
+			sourceTree = "<group>";
+		};
+		F42CD4880F58C34900C15DA3 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				F42CD48A0F58C37F00C15DA3 /* GDataDefines.h */,
+				F42CD4890F58C35200C15DA3 /* Networking */,
+			);
+			path = Source;
+			sourceTree = "<group>";
+		};
+		F42CD4890F58C35200C15DA3 /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				F42CD48B0F58C39300C15DA3 /* GDataHTTPFetcher.h */,
+				F42CD48C0F58C39300C15DA3 /* GDataHTTPFetcher.m */,
+				F42CD48D0F58C39300C15DA3 /* GDataHTTPFetcherLogging.h */,
+				F42CD48E0F58C39300C15DA3 /* GDataHTTPFetcherLogging.m */,
+				F42CD48F0F58C39300C15DA3 /* GDataProgressMonitorInputStream.h */,
+				F42CD4900F58C39300C15DA3 /* GDataProgressMonitorInputStream.m */,
+			);
+			path = Networking;
+			sourceTree = "<group>";
+		};
 		F966F2CD0E81688C009FCD64 /* XcodeConfigs */ = {
 			isa = PBXGroup;
 			children = (
@@ -993,10 +1029,6 @@
 				F9A706930E5F4BB9004B295E /* GTMGeometryUtils.h */,
 				F9A706940E5F4BB9004B295E /* GTMGeometryUtils.m */,
 				F9A706950E5F4BB9004B295E /* GTMGeometryUtilsTest.m */,
-				F9A706960E5F4BB9004B295E /* GTMGetURLHandler.m */,
-				F9A706970E5F4BB9004B295E /* GTMHTTPFetcher.h */,
-				F9A706980E5F4BB9004B295E /* GTMHTTPFetcher.m */,
-				F9A706990E5F4BB9004B295E /* GTMHTTPFetcherTest.m */,
 				F9A7069A0E5F4BB9004B295E /* GTMHTTPServer.h */,
 				F9A7069B0E5F4BB9004B295E /* GTMHTTPServer.m */,
 				F9A7069C0E5F4BB9004B295E /* GTMHTTPServerTest.m */,
@@ -1054,8 +1086,6 @@
 				F9A706D00E5F4BB9004B295E /* GTMPath.m */,
 				F9A706D10E5F4BB9004B295E /* GTMPathTest.m */,
 				F9A706D20E5F4BB9004B295E /* GTMProgressMonitorInputStream.h */,
-				F9A706D30E5F4BB9004B295E /* GTMProgressMonitorInputStream.m */,
-				F9A706D40E5F4BB9004B295E /* GTMProgressMonitorInputStreamTest.m */,
 				F9A706D50E5F4BB9004B295E /* GTMRegex.h */,
 				F9A706D60E5F4BB9004B295E /* GTMRegex.m */,
 				F9A706D70E5F4BB9004B295E /* GTMRegexTest.m */,
@@ -1074,18 +1104,9 @@
 				F9A706E40E5F4BB9004B295E /* GTMValidatingContainers.h */,
 				F9A706E50E5F4BB9004B295E /* GTMValidatingContainers.m */,
 				F9A706E60E5F4BB9004B295E /* GTMValidatingContainersTest.m */,
-				F9A706E70E5F4BB9004B295E /* TestData */,
 			);
 			name = Foundation;
 			path = "../google-toolbox-for-mac/Foundation";
-			sourceTree = "<group>";
-		};
-		F9A706E70E5F4BB9004B295E /* TestData */ = {
-			isa = PBXGroup;
-			children = (
-				F9A706E80E5F4BB9004B295E /* GTMHTTPFetcherTestPage.html */,
-			);
-			path = TestData;
 			sourceTree = "<group>";
 		};
 		F9A707B20E5F4BCF004B295E /* Common */ = {
@@ -1272,6 +1293,7 @@
 		F9DF26EA0E5F658A009BB9FE /* externals */ = {
 			isa = PBXGroup;
 			children = (
+				F42CD4820F58C2F300C15DA3 /* gdata-objectivec-client */,
 				F9A7065C0E5F4B87004B295E /* google-toolbox-for-mac */,
 			);
 			path = externals;
@@ -1672,11 +1694,13 @@
 				38AF7FF70E799EAA0060B504 /* GTMScriptRunner.m in Sources */,
 				38AF7FF80E799EAA0060B504 /* GTMBase64.m in Sources */,
 				38AF7FF90E799EAA0060B504 /* GTMLogger.m in Sources */,
-				38AF7FFA0E799EAA0060B504 /* GTMHTTPFetcher.m in Sources */,
 				38AF7FFB0E799EAA0060B504 /* GTMPath.m in Sources */,
 				38AF7FFD0E799EAA0060B504 /* GTMNSString+FindFolder.m in Sources */,
 				38AF80110E799EE50060B504 /* HelloEngine.m in Sources */,
 				F9FBC9BC0E883E94006E0CD1 /* KSURLData.m.xxd in Sources */,
+				F42CD4A80F58C4D300C15DA3 /* GDataHTTPFetcher.m in Sources */,
+				F42CD4A90F58C4D300C15DA3 /* GDataHTTPFetcherLogging.m in Sources */,
+				F42CD4AA0F58C4D300C15DA3 /* GDataProgressMonitorInputStream.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1718,7 +1742,6 @@
 				38AF82640E81A5FA0060B504 /* GTMScriptRunner.m in Sources */,
 				38AF82650E81A5FA0060B504 /* GTMBase64.m in Sources */,
 				38AF82660E81A5FA0060B504 /* GTMLogger.m in Sources */,
-				38AF82670E81A5FA0060B504 /* GTMHTTPFetcher.m in Sources */,
 				38AF82680E81A5FA0060B504 /* GTMPath.m in Sources */,
 				38AF82690E81A5FA0060B504 /* GTMNSString+FindFolder.m in Sources */,
 				38AF82960E81A7180060B504 /* ERAddTicketCommand.m in Sources */,
@@ -1735,6 +1758,9 @@
 				38AF83110E87EEAD0060B504 /* ERDryRunTicketCommand.m in Sources */,
 				F9FBC9BE0E883E97006E0CD1 /* KSURLData.m.xxd in Sources */,
 				3830F7350EA8FA9700A8D0D3 /* ERSelfUpdateCommand.m in Sources */,
+				F42CD4AE0F58C4F700C15DA3 /* GDataHTTPFetcher.m in Sources */,
+				F42CD4AF0F58C4F700C15DA3 /* GDataHTTPFetcherLogging.m in Sources */,
+				F42CD4B00F58C4F700C15DA3 /* GDataProgressMonitorInputStream.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1764,6 +1790,9 @@
 				F95BAAC90E5F5C5000C4AA72 /* KSUpdateEngine.m in Sources */,
 				F95BAACB0E5F5C5000C4AA72 /* KSUpdateInfo.m in Sources */,
 				F9634E640E78557C00ED7AA3 /* KSURLData.m.xxd in Sources */,
+				F42CD4B20F58C50300C15DA3 /* GDataHTTPFetcher.m in Sources */,
+				F42CD4B30F58C50300C15DA3 /* GDataHTTPFetcherLogging.m in Sources */,
+				F42CD4B40F58C50300C15DA3 /* GDataProgressMonitorInputStream.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1815,7 +1844,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				F95BAA7A0E5F5A5500C4AA72 /* GTMBase64.m in Sources */,
-				F9A708920E5F4EF6004B295E /* GTMHTTPFetcher.m in Sources */,
 				F9A708930E5F4EF6004B295E /* GTMLogger.m in Sources */,
 				F9A708940E5F4EF6004B295E /* GTMLoggerRingBufferWriter.m in Sources */,
 				F9A708950E5F4EF6004B295E /* GTMPath.m in Sources */,

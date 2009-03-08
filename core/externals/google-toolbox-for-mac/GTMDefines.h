@@ -19,6 +19,7 @@
 // ============================================================================
 
 #include <AvailabilityMacros.h>
+#include <TargetConditionals.h>
 
 // Not all MAC_OS_X_VERSION_10_X macros defined in past SDKs
 #ifndef MAC_OS_X_VERSION_10_5
@@ -33,17 +34,6 @@
 // is compiled.
 // ----------------------------------------------------------------------------
 
-
-// GTMHTTPFetcher will support logging by default but only hook its input
-// stream support for logging when requested.  You can control the inclusion of
-// the code by providing your own definitions for these w/in a prefix header.
-//
-#ifndef GTM_HTTPFETCHER_ENABLE_LOGGING
-  #define GTM_HTTPFETCHER_ENABLE_LOGGING 1
-#endif // GTM_HTTPFETCHER_ENABLE_LOGGING
-#ifndef GTM_HTTPFETCHER_ENABLE_INPUTSTREAM_LOGGING
-  #define GTM_HTTPFETCHER_ENABLE_INPUTSTREAM_LOGGING 0
-#endif // GTM_HTTPFETCHER_ENABLE_INPUTSTREAM_LOGGING
 
 // By setting the GTM_CONTAINERS_VALIDATION_FAILED_LOG and 
 // GTM_CONTAINERS_VALIDATION_FAILED_ASSERT macros you can control what happens
@@ -119,15 +109,15 @@ GTM_EXTERN void _GTMUnitTestDevLog(NSString *format, ...);
 // we directly invoke the NSAssert handler so we can pass on the varargs
 // (NSAssert doesn't have a macro we can use that takes varargs)
 #if !defined(NS_BLOCK_ASSERTIONS)
-  #define _GTMDevAssert(condition, ...)                                    \
-    do {                                                                   \
-      if (!(condition)) {                                                  \
-        [[NSAssertionHandler currentHandler]                               \
-            handleFailureInFunction:[NSString stringWithCString:__PRETTY_FUNCTION__] \
-                               file:[NSString stringWithCString:__FILE__]  \
-                         lineNumber:__LINE__                               \
-                        description:__VA_ARGS__];                          \
-      }                                                                    \
+  #define _GTMDevAssert(condition, ...)                                       \
+    do {                                                                      \
+      if (!(condition)) {                                                     \
+        [[NSAssertionHandler currentHandler]                                  \
+            handleFailureInFunction:[NSString stringWithUTF8String:__PRETTY_FUNCTION__] \
+                               file:[NSString stringWithUTF8String:__FILE__]  \
+                         lineNumber:__LINE__                                  \
+                        description:__VA_ARGS__];                             \
+      }                                                                       \
     } while(0)
 #else // !defined(NS_BLOCK_ASSERTIONS)
   #define _GTMDevAssert(condition, ...) do { } while (0)
@@ -160,7 +150,7 @@ GTM_EXTERN void _GTMUnitTestDevLog(NSString *format, ...);
 // does keys, so pick the right thing, nothing is done on the FastEnumeration
 // side to be sure you're getting what you wanted.
 #ifndef GTM_FOREACH_OBJECT
-  #if defined(TARGET_OS_IPHONE) || (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5)
+  #if TARGET_OS_IPHONE || (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5)
     #define GTM_FOREACH_OBJECT(element, collection) \
       for (element in collection)
     #define GTM_FOREACH_KEY(element, collection) \
@@ -185,7 +175,6 @@ GTM_EXTERN void _GTMUnitTestDevLog(NSString *format, ...);
 
 // Provide a single constant CPP symbol that all of GTM uses for ifdefing
 // iPhone code.
-#include <TargetConditionals.h>
 #if TARGET_OS_IPHONE // iPhone SDK
   // For iPhone specific stuff
   #define GTM_IPHONE_SDK 1

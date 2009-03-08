@@ -201,7 +201,7 @@
   STAssertNil(action, nil);
 }
 
-// Uses a real GTMHTTPFetcher and a KSPlistServer to fetch a canned server
+// Uses a real GDataHTTPFetcher and a KSPlistServer to fetch a canned server
 // response, and ensures that the returned "result" dictionary from the
 // KSUpdateCheckAction matches what we're expecting.
 - (void)testServerResultDictionary {
@@ -399,13 +399,13 @@
   STAssertTrue([delegatedError_ isEqual:err], nil);
 }
 
-- (void)fetcher:(GTMHTTPFetcher *)fetcher failedWithStatus:(int)status
+- (void)fetcher:(GDataHTTPFetcher *)fetcher failedWithStatus:(int)status
            data:(NSData *)data {
   delegatedStatus_ = status;
   delegatedData_ = [data retain];
 }
 
-- (void)fetcher:(GTMHTTPFetcher *)fetcher failedWithError:(NSError *)error {
+- (void)fetcher:(GDataHTTPFetcher *)fetcher failedWithError:(NSError *)error {
   delegatedError_ = [error retain];
 }
 

@@ -14,19 +14,19 @@
 
 #import <Foundation/Foundation.h>
 
-@class GTMHTTPFetcher;
+@class GDataHTTPFetcher;
 
-// A factory class that creates GTMHTTPFetcher objects.  We pass this
+// A factory class that creates GDataHTTPFetcher objects.  We pass this
 // to a KSUpdateChecker.  Since a KSUpdateChecker may need more than
-// one GTMHTTPFetcher (depending on the KSServer implementation), we
-// must pass in a factory instead of just a GTMHTTPFetcher.
+// one GDataHTTPFetcher (depending on the KSServer implementation), we
+// must pass in a factory instead of just a GDataHTTPFetcher.
 @interface KSFetcherFactory : NSObject
 
 // Returns an autoreleased instance of KSFetcherFactory
 + (KSFetcherFactory *)factory;
 
-// Returns an autoreleased object compatible with GTMHTTPFetcher,
+// Returns an autoreleased object compatible with GDataHTTPFetcher,
 // initialized with the given NSURLRequest.
-- (GTMHTTPFetcher *)createFetcherForRequest:(NSURLRequest *)request;
+- (GDataHTTPFetcher *)createFetcherForRequest:(NSURLRequest *)request;
 
 @end
