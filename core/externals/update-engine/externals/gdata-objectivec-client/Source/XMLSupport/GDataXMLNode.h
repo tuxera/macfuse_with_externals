@@ -125,13 +125,19 @@ typedef NSUInteger GDataXMLNodeKind;
 + (NSString *)localNameForName:(NSString *)name;
 + (NSString *)prefixForName:(NSString *)name;
 
+// This implementation of nodesForXPath registers namespaces only from the
+// current node
 - (NSArray *)nodesForXPath:(NSString *)xpath error:(NSError **)error;
+
+// access to the underlying libxml node; be sure to release the cached values
+// if you change the underlying tree at all
+- (xmlNodePtr)XMLNode;
+- (void)releaseCachedValues;
 
 @end
 
 
-@interface GDataXMLElement : GDataXMLNode {
-}
+@interface GDataXMLElement : GDataXMLNode
 
 - (id)initWithXMLString:(NSString *)str error:(NSError **)error;
 
@@ -140,6 +146,7 @@ typedef NSUInteger GDataXMLNodeKind;
 - (void)addNamespace:(GDataXMLNode *)aNamespace;
 
 - (void)addChild:(GDataXMLNode *)child;
+- (void)removeChild:(GDataXMLNode *)child;
 
 - (NSArray *)elementsForName:(NSString *)name;
 - (NSArray *)elementsForLocalName:(NSString *)localName URI:(NSString *)URI;
@@ -168,6 +175,10 @@ typedef NSUInteger GDataXMLNodeKind;
 
 - (void)setVersion:(NSString *)version;
 - (void)setCharacterEncoding:(NSString *)encoding;
+
+// This implementation of nodesForXPath registers namespaces only from the
+// document's root node
+- (NSArray *)nodesForXPath:(NSString *)xpath error:(NSError **)error;
 
 - (NSString *)description;
 @end

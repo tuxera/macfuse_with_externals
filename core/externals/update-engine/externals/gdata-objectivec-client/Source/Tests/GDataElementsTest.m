@@ -80,9 +80,9 @@
 // For XML needing but lacking namespace information, it will
 // be allocated by being temporarily wrapped in a parent which
 // has the full set of GData namespaces.
-- (GDataObject *)GDataObjectForClassName:(Class)gdataClass
-                               XMLString:(NSString *)xmlString
-         shouldWrapWithNamespaceAndEntry:(BOOL)shouldWrap {
+- (id)GDataObjectForClassName:(Class)gdataClass
+                    XMLString:(NSString *)xmlString
+shouldWrapWithNamespaceAndEntry:(BOOL)shouldWrap {
   
   
   NSString *wrappedXMLString = xmlString;
@@ -111,7 +111,7 @@
   } while (element != nil && ![element isKindOfClass:[NSXMLElement class]]);
   
   STAssertNotNil(element, @"Cannot get child element of %@", entryXML);
-  
+
   // allocate our GData object from the inner element
   GDataObject *obj = [[[gdataClass alloc] initWithXMLElement:element
                                                       parent:nil] autorelease];
@@ -719,6 +719,14 @@
     { @"GDataAtomPubControl", @"<app:control><app:draft>Yes</app:draft></app:control>" },
     { @"isDraft", @"1" },
     { @"", @"" },
+
+    { @"GDataAtomPubControl", @"<app:control></app:control>" },
+    { @"isDraft", @"0" },
+    { @"", @"" },
+
+    { @"GDataAtomPubControl1_0", @"<app:control><app:draft>Yes</app:draft></app:control>" },
+    { @"isDraft", @"1" },
+    { @"", @"" },
     
     // Batch elements
     { @"GDataBatchOperation", @"<batch:operation type='insert'/>" },
@@ -1209,6 +1217,7 @@
         "<geo:long>12.552</geo:long></geo:Point>" },
     { @"latitude", @"55.701" },
     { @"longitude", @"12.552" },
+    { @"coordinateString", @"55.701 12.552" },
     { @"isPoint", @"1" },
     { @"", @"" },
       
@@ -1308,6 +1317,87 @@
 #endif
 }
 
+- (void)testEntryInputStreams {
+
+  GDataEntryPhoto *entry = [GDataEntryPhoto photoEntry];
+
+  //
+  // test multi-part MIME stream with entry data and XML, and headers
+  //
+
+  const char *dataChars = "abcdefg";
+
+  NSData *data = [NSData dataWithBytes:dataChars length:strlen(dataChars)];
+  [entry setPhotoData:data];
+  [entry setPhotoMIMEType:@"image/jpeg"];
+  [entry setPhotoDescriptionWithString:@"cloud burst"];
+  [entry setUploadSlug:@"testfile.jpg"];
+
+  NSInputStream *inputStream = nil;
+  unsigned long long streamLength = 0;
+  NSDictionary *streamHeaders = nil;
+  BOOL gotStream = [entry generateContentInputStream:&inputStream
+                                              length:&streamLength
+                                             headers:&streamHeaders];
+  STAssertTrue(gotStream, @"generating multipart stream");
+
+  NSMutableData *streamData = [NSMutableData dataWithLength:streamLength];
+  [inputStream open];
+  [inputStream read:[streamData mutableBytes] maxLength:streamLength];
+  [inputStream close];
+
+  NSString *streamDataStr = [[[NSString alloc] initWithData:streamData
+                                                   encoding:NSUTF8StringEncoding] autorelease];
+
+  NSString *expectedXmlStr = [[entry XMLElement] XMLString];
+  NSString *expectedStr = [NSString stringWithFormat:
+       @"\r\n--END_OF_PART\r\nContent-Type: application/atom+xml; charset=UTF-8"
+       "\r\n\r\n%@\r\n"
+       "--END_OF_PART\r\nContent-Transfer-Encoding: binary\r\n"
+       "Content-Type: image/jpeg\r\n\r\n%s\r\n--END_OF_PART--\r\n",
+       expectedXmlStr, dataChars];
+
+  STAssertEqualObjects(streamDataStr, expectedStr, @"unexpected stream data");
+
+  NSDictionary *expectedHeaders = [NSDictionary dictionaryWithObjectsAndKeys:
+               @"multipart/related; boundary=\"END_OF_PART\"", @"Content-Type",
+               @"1.0", @"MIME-Version",
+               @"testfile.jpg", @"Slug", nil];
+  STAssertEqualObjects(streamHeaders, expectedHeaders, @"unexpected headers");
+
+  //
+  // try again emitting only the data and headers, not the XML
+  //
+  [entry setShouldUploadDataOnly:YES];
+
+  inputStream = nil;
+  streamLength = 0;
+  streamHeaders = nil;
+  gotStream = [entry generateContentInputStream:&inputStream
+                                         length:&streamLength
+                                        headers:&streamHeaders];
+  STAssertTrue(gotStream, @"generating multipart stream");
+
+  streamData = [NSMutableData dataWithLength:streamLength];
+  [inputStream open];
+  [inputStream read:[streamData mutableBytes] maxLength:streamLength];
+  [inputStream close];
+
+  streamDataStr = [[[NSString alloc] initWithData:streamData
+                                         encoding:NSUTF8StringEncoding] autorelease];
+
+  expectedStr = [NSString stringWithUTF8String:dataChars];
+
+  STAssertEqualObjects(streamDataStr, expectedStr, @"unexpected stream data 2");
+
+  expectedHeaders = [NSDictionary dictionaryWithObjectsAndKeys:
+                     @"image/jpeg", @"Content-Type",
+                     @"1.0", @"MIME-Version",
+                     @"testfile.jpg", @"Slug", nil];
+
+  STAssertEqualObjects(streamHeaders, expectedHeaders, @"unexpected headers 2");
+}
+
 - (void)testChangedNamespace {
   
   // We'll allocate three objects which are equivalent except for 
@@ -1353,6 +1443,39 @@
                        [obj0 XMLElement], [obj1 XMLElement]);
   STAssertEqualObjects(obj1, obj2, @"namespace interpretations should have made matching objects\n  %@\n!=\n  %@",
                        [obj1 XMLElement], [obj2 XMLElement]);
+}
+
+- (void)testNamespacePruning {
+  NSString * const xml1 = @"<entry xmlns='http://schemas.google.com/g/2005'>"
+  " <comments xmlns:atom='http://www.w3.org/2005/Atom'"
+  "           rel='http://schemas.google.com/g/2005#reviews'> "
+  "<feedLink xmlns:atom='http://www.w3.org/2005/Atom' xmlns:foo='bar'"
+  "href=\"http://example.com/restaurants/SanFrancisco/432432/reviews\" > "
+  "</feedLink> <unkElement foo=\"bar\" /> <unkElement2 /> </comments> </entry>";
+
+  // the entry element's namespaces are stripped off when the object is
+  // generated by the unit test's routine, so they won't show up in the
+  // dictionary of complete namespaces
+  //
+  // atom is defined in the comments and in the feedlink
+  GDataComment *obj1 = [self GDataObjectForClassName:[GDataComment class]
+                                          XMLString:xml1
+                    shouldWrapWithNamespaceAndEntry:NO];
+
+  GDataFeedLink *feedLink = [obj1 feedLink];
+
+  NSDictionary *namespaces = [feedLink namespaces];
+  NSDictionary *completeNamespaces = [feedLink completeNamespaces];
+  STAssertEquals((int) [namespaces count], 2, @"%@", namespaces);
+  STAssertEquals((int) [completeNamespaces count], 2, @"%@", completeNamespaces);
+
+  // prune the duplicate atom namespace
+  [feedLink pruneInheritedNamespaces];
+
+  namespaces = [feedLink namespaces];
+  completeNamespaces = [feedLink completeNamespaces];
+  STAssertEquals((int) [namespaces count], 1, @"%@", namespaces);
+  STAssertEquals((int) [completeNamespaces count], 2, @"%@", completeNamespaces);
 }
 
 - (void)testVersionedNamespaces {

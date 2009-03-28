@@ -38,6 +38,11 @@
 #   Please feel free to add other symbols as you find them but make sure to 
 #   reference Radars or other bug systems so we can track them.
 #
+# GTM_REMOVE_GCOV_DATA
+#   Before starting the test, remove any *.gcda files for the current run so
+#   you won't get errors when the source file has changed and the data can't
+#   be merged.
+#
 
 ScriptDir=$(dirname $(echo $0 | sed -e "s,^\([^/]\),$(pwd)/\1,"))
 ScriptName=$(basename "$0")
@@ -54,6 +59,16 @@ if [ "$PLATFORM_NAME" == "iphonesimulator" ]; then
   # time.
   /usr/bin/killall "iPhone Simulator"
 
+  if [ $GTM_REMOVE_GCOV_DATA ]; then
+    if [ "${OBJECT_FILE_DIR}-${CURRENT_VARIANT}" != "-" ]; then
+      if [ -d "${OBJECT_FILE_DIR}-${CURRENT_VARIANT}" ]; then
+        GTMXcodeNote ${LINENO} "Removing any .gcda files"
+        (cd "${OBJECT_FILE_DIR}-${CURRENT_VARIANT}" && \
+            find . -type f -name "*.gcda" -print0 | xargs -0 rm -f )
+      fi
+    fi
+  fi
+
   export DYLD_ROOT_PATH="$SDKROOT"
   export DYLD_FRAMEWORK_PATH="$CONFIGURATION_BUILD_DIR"
   export IPHONE_SIMULATOR_ROOT="$SDKROOT"
@@ -67,8 +82,14 @@ if [ "$PLATFORM_NAME" == "iphonesimulator" ]; then
   export MallocGuardEdges=YES
   export MallocStackLogging=YES
   export NSAutoreleaseFreedObjectCheckEnabled=YES
+
+  # Turn on the mostly undocumented OBJC_DEBUG stuff.
   export OBJC_DEBUG_FRAGILE_SUPERCLASSES=YES
-  
+  export OBJC_DEBUG_UNLOAD=YES
+  # Turned off due to the amount of false positives from NS classes.
+  # export OBJC_DEBUG_FINALIZERS=YES  
+  export OBJC_DEBUG_NIL_SYNC=YES
+
   if [ ! $GTM_DISABLE_ZOMBIES ]; then
     GTMXcodeNote ${LINENO} "Enabling zombies"
     export CFZombieLevel=3

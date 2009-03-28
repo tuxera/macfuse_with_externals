@@ -50,7 +50,7 @@
   return namespaces;
 }
 
-+ (GDataEntryBase *)entry {
++ (id)entry {
   GDataEntryBase *entry = [[[GDataEntryBase alloc] init] autorelease];
   
   [entry setNamespaces:[GDataEntryBase baseGDataNamespaces]];
@@ -675,8 +675,7 @@ forCategoryWithScheme:scheme
 }
 
 - (GDataLink *)postLink {
-  return [GDataLink linkWithRelAttributeValue:kGDataLinkRelPost
-                                    fromLinks:[self links]]; 
+  return [self linkWithRelAttributeValue:kGDataLinkRelPost];
 }
 
 - (GDataLink *)selfLink {

@@ -131,7 +131,7 @@ static xmlChar *SplitQNameReverse(const xmlChar *qname, xmlChar **prefix) {
 - (NSString *)stringFromXMLString:(const xmlChar *)chars;
 
 // setter/getter of the dealloc flag for the underlying node
-- (BOOL)shoudFreeXMLNode;
+- (BOOL)shouldFreeXMLNode;
 - (void)setShouldFreeXMLNode:(BOOL)flag;
 
 @end
@@ -715,7 +715,34 @@ static xmlChar *SplitQNameReverse(const xmlChar *qname, xmlChar **prefix) {
       
       // anchor at our current node
       xpathCtx->node = xmlNode_;
-      
+
+      // register the namespaces of this node, if it's an element, or of
+      // this node's root element, if it's a document
+      xmlNodePtr nsNodePtr = xmlNode_;
+      if (xmlNode_->type == XML_DOCUMENT_NODE) {
+        nsNodePtr = xmlDocGetRootElement((xmlDocPtr) xmlNode_);
+      }
+
+      // step through the namespaces, if any, and register each with the
+      // xpath context
+      if (nsNodePtr != NULL) {
+        for (xmlNsPtr nsPtr = nsNodePtr->ns; nsPtr != NULL; nsPtr = nsPtr->next) {
+
+          // default namespace is nil in the tree but an empty string when
+          // registering
+          const xmlChar* prefix = nsPtr->prefix;
+          if (prefix == NULL) prefix = (xmlChar*) "";
+
+          int result = xmlXPathRegisterNs(xpathCtx, prefix, nsPtr->href);
+          if (result != 0) {
+#if DEBUG
+            NSCAssert(result == 0, @"GDataXMLNode XPath namespace problem");
+#endif
+          }
+        }
+      }
+
+      // now evaluate the path
       xmlXPathObjectPtr xpathObj;
       xpathObj = xmlXPathEval(GDataGetXMLString(xpath), xpathCtx);
       if (xpathObj) {
@@ -822,7 +849,7 @@ static xmlChar *SplitQNameReverse(const xmlChar *qname, xmlChar **prefix) {
   return xmlNode_;
 }
 
-- (BOOL)shoudFreeXMLNode {
+- (BOOL)shouldFreeXMLNode {
   return shouldFreeXMLNode_; 
 }
 
@@ -972,6 +999,25 @@ static xmlChar *SplitQNameReverse(const xmlChar *qname, xmlChar **prefix) {
         [[self class] fixUpNamespacesForNode:childNodeCopy 
                           graftingToTreeNode:xmlNode_];
       }
+    }
+  }
+}
+
+- (void)removeChild:(GDataXMLNode *)child {
+  // this is safe for attributes too
+  if (xmlNode_ != NULL) {
+
+    [self releaseCachedValues];
+
+    xmlNodePtr node = [child XMLNode];
+
+    xmlUnlinkNode(node);
+
+    // if the child node was borrowing its xmlNodePtr, then we need to
+    // explicitly free it, since there is probably no owning object that will
+    // free it on dealloc
+    if (![child shouldFreeXMLNode]) {
+      xmlFreeNode(node);
     }
   }
 }
@@ -1525,30 +1571,32 @@ static xmlChar *SplitQNameReverse(const xmlChar *qname, xmlChar **prefix) {
 }
 
 - (id)initWithData:(NSData *)data options:(unsigned int)mask error:(NSError **)error {
-  
+
   self = [super init];
-  if (self) {   
-    
+  if (self) {
+
     const char *baseURL = NULL;
     const char *encoding = NULL;
-    
+
     // NOTE: We are assuming [data length] fits into an int.
     xmlDoc_ = xmlReadMemory([data bytes], (int)[data length], baseURL, encoding,
                             kGDataXMLParseOptions); // TODO(grobbins) map option values
     if (xmlDoc_ == NULL) {
       if (error) {
        *error = [NSError errorWithDomain:@"com.google.GDataXML"
-                                    code:-1 
+                                    code:-1
                                 userInfo:nil];
         // TODO(grobbins) use xmlSetGenericErrorFunc to capture error
         [self release];
       }
       return nil;
     } else {
+      if (error) *error = NULL;
+
       [self addStringsCacheToDoc];
     }
   }
-  
+
   return self;
 }
 
@@ -1677,6 +1725,15 @@ static xmlChar *SplitQNameReverse(const xmlChar *qname, xmlChar **prefix) {
       xmlDoc_->encoding = xmlStrdup(GDataGetXMLString(encoding));
     }
   }
+}
+
+- (NSArray *)nodesForXPath:(NSString *)xpath error:(NSError **)error {
+  if (xmlDoc_ != NULL) {
+    NSXMLNode *docNode = [GDataXMLElement nodeBorrowingXMLNode:(xmlNodePtr)xmlDoc_];
+    NSArray *array = [docNode nodesForXPath:xpath error:error];
+    return array;
+  }
+  return nil;
 }
 
 @end

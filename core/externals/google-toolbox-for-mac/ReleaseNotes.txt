@@ -232,11 +232,12 @@ Changes since 1.5.1
 - Fixed up GTMSenTestCase on iPhone so that it has a description that matches
   that of OCUnit.
 
-- Added GTMAbstractDOListener, GTMTransientRootProxy, and
-  GTMTransientRootSocketProxy.  These classes can be used to simplify the
+- Added GTMAbstractDOListener, GTMTransientRootProxy, and 
+  GTMTransientRootPortProxy.  These classes can be used to simplify the
   use of distributed objects.  GTMAbstractDOListener can be used to handle
   connections from any type of port.  GTMTransientRootProxy is designed for
-  NSMachPorts while GTMTransientRootSocketProxy is for NSSocketPorts.
+  using named connections while GTMTransientRootPortProxy is for connections 
+  with supplied NSPorts.
 
 - Finally dropped GTMHTTPFetcher and GTMProgressMonitorInputStream, GData
   versions now pretty much line up w/ these, so rather then both projects
@@ -257,6 +258,14 @@ Changes since 1.5.1
 
 - Added GTMTheme for doing product wide theme modifications.
 
+- The Run*UnitTest.sh script now delete the current projects *.gcda files to 
+  avoid coverage data warning when you edit source. If you do not want this to
+  occur, you can set GTM_DO_NOT_REMOVE_GCOV_DATA to a non-zero value.
+
+- Added OBJC_DEBUG_UNLOAD=YES, and OBJC_DEBUG_NIL_SYNC=YES to our unittest shell 
+  scripts to try and flush out some more bugs. We have intentionally NOT turned
+  on OBJC_DEBUG_FINALIZERS beacuse it spits out a lot of unnecessary false 
+  positives.
 
 Release 1.5.1
 Changes since 1.5.0
