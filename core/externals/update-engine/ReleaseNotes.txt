@@ -4,6 +4,37 @@ Project site:     http://code.google.com/p/update-engine
 Discussion group: http://groups.google.com/group/update-engine
 
 
+Release 7
+23-Sep-2009
+
+- Added mechanism for getting product active statistics from the delegate into
+  the server class.
+- Updated Actions sample UI: now empties the table when starting a new
+  download
+- Prettied up the project a little.
+- Added creationDate as a settable attribute of KSTicket.  If you preserve
+  the creationDate, you can see when the user first started using your
+  product.
+- Added Tag as a settable attribute of KSTicket.  One use of the tag is to
+  provide an extra piece of data that gets sent during an update check (assuming
+  your server class passes the tag along.)  This is for Chrome's release channel
+  support.
+- Added "user initiated" parameter to the engine parameters.  This parameter
+  is then passed to the install action, and eventually makes its way to
+  the KS_USER_INITIATED environment variable for the update scripts.
+- Added KS_SUPPORTS_TAG to the update script environment.
+- Added KS_INTERACTIVE environment variable so update scripts know that they
+  can interact with the user.
+
+
+Release 6
+30-March-2009
+
+- Updated Xcode project to 3.1
+- Removed HTTPFetcher logging code to reduce code size
+- Added Actions sample
+
+
 Release 5
 5-March-2009
 

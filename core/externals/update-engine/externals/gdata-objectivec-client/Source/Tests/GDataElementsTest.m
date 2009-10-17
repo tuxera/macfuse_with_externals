@@ -396,7 +396,15 @@ shouldWrapWithNamespaceAndEntry:(BOOL)shouldWrap {
     { @"unknownChildren.1.XMLString", @"<unkElement2></unkElement2>" },
     { @"unknownChildren.@count", @"2" },
     { @"", @"" },
-    
+
+    { @"GDataCustomProperty", @"<gd:customProperty name='milk' type='integer' "
+      "unit='gallons' >5</gd:customProperty>" },
+    { @"name", @"milk" },
+    { @"type", @"integer" },
+    { @"unit", @"gallons" },
+    { @"value", @"5" },
+    { @"", @"" },
+
     { @"GDataDeleted", @"<gd:deleted/>" },
     { @"unknownAttributes.@count", @"0" },
     { @"unknownChildren.@count", @"0" },
@@ -525,6 +533,20 @@ shouldWrapWithNamespaceAndEntry:(BOOL)shouldWrap {
     { @"currencyCode", @"USD" },
     { @"", @"" },
     
+    { @"GDataName", @"<gd:name><gd:givenName>Fred</gd:givenName>"
+      "<gd:additionalName>Old</gd:additionalName>"
+      "<gd:familyName>Flintstone</gd:familyName>"
+      "<gd:namePrefix>Mr</gd:namePrefix>"
+      "<gd:nameSuffix>Jr</gd:nameSuffix>"
+      "<gd:fullName>Mr Fred Old Flintstone Jr</gd:fullName></gd:name>" },
+    { @"fullName", @"Mr Fred Old Flintstone Jr" },
+    { @"namePrefix", @"Mr" },
+    { @"nameSuffix", @"Jr" },
+    { @"familyName", @"Flintstone" },
+    { @"additionalName", @"Old" },
+    { @"givenName", @"Fred" },
+    { @"", @"" },
+
     { @"GDataOriginalEvent", @"<gd:originalEvent id=\"i8fl1nrv2bl57c1qgr3f0onmgg\" "
       "href=\"http://www.google.com/calendar/feeds/userID/private-magicCookie/full/eventID\" >"
       "<gd:when startTime=\"2006-03-17T22:00:00.000Z\"/>  </gd:originalEvent>" },
@@ -536,13 +558,23 @@ shouldWrapWithNamespaceAndEntry:(BOOL)shouldWrap {
     { @"", @"" },
     
     { @"GDataOrganization", @"<gd:organization rel='http://schemas.google.com/g/2005#work' "
-      "label='greensleeves' primary='true' ><gd:orgName>Acme Corp</gd:orgName>"
-      "<gd:orgTitle>Prezident</gd:orgTitle></gd:organization>" },
+      "label='greensleeves' primary='true' >"
+      "<gd:orgName yomi='ak me'>Acme Corp</gd:orgName>"
+      "<gd:orgTitle>Prezident</gd:orgTitle>"
+      "<gd:orgDepartment>Cheese Factory</gd:orgDepartment>"
+      "<gd:orgJobDescription>Sniffer</gd:orgJobDescription>"
+      "<gd:orgSymbol>GSLV</gd:orgSymbol>"
+      "<gd:where valueString='Downtown' /></gd:organization>" },
     { @"rel", @"http://schemas.google.com/g/2005#work" },
     { @"label", @"greensleeves" },
     { @"isPrimary", @"1" },
     { @"orgName", @"Acme Corp", },
+    { @"orgNameYomi", @"ak me", },
     { @"orgTitle", @"Prezident" },
+    { @"orgDepartment", @"Cheese Factory" },
+    { @"orgJobDescription", @"Sniffer" },
+    { @"orgSymbol", @"GSLV" },
+    { @"where.stringValue", @"Downtown" },
     { @"", @"" },
 
     { @"GDataPerson", @"<GDataPerson xml:lang='en'> <name>Fred Flintstone</name> <email>test@froo.net</email> "
@@ -565,6 +597,41 @@ shouldWrapWithNamespaceAndEntry:(BOOL)shouldWrap {
     { @"label", @"work" },
     { @"primary", @"1" },
     { @"stringValue", @"500 West 45th Street\nNew York, NY 10036" },
+    { @"", @"" },
+
+    { @"GDataStructuredPostalAddress", @"<gd:structuredPostalAddress "
+      "mailClass='http://schemas.google.com/g/2005#both' label='Madame Duval' "
+      "rel='http://schemas.google.com/g/2005#other' "
+      "usage='http://schemas.google.com/g/2005#general' primary='true' >"
+      "<gd:agent>c/o Milkville</gd:agent>"
+      "<gd:housename>Big Ville</gd:housename>"
+      "<gd:street>27, rue Pasteur</gd:street>"
+      "<gd:pobox>P.O. Box 7-a</gd:pobox>"
+      "<gd:neighborhood>Uptown</gd:neighborhood>"
+      "<gd:city>CABOURG</gd:city>"
+      "<gd:region>Caen</gd:region>"
+      "<gd:subregion>County Fin</gd:subregion>"
+      "<gd:postcode>14390</gd:postcode>"
+      "<gd:country code='fr'>FRANCE</gd:country>"
+      "<gd:formattedAddress>Madame Duval\n27, rue Pasteur\n14390 CABOURG\n"
+      "FRANCE</gd:formattedAddress></gd:structuredPostalAddress>" },
+    { @"label", @"Madame Duval" },
+    { @"mailClass", kGDataPostalAddressBoth },
+    { @"isPrimary", @"1" },
+    { @"rel", kGDataPostalAddressOther },
+    { @"usage", kGDataPostalAddressGeneral },
+    { @"agent", @"c/o Milkville" },
+    { @"city", @"CABOURG" },
+    { @"countryName", @"FRANCE" },
+    { @"countryCode", @"fr" },
+    { @"formattedAddress", @"Madame Duval\n27, rue Pasteur\n14390 CABOURG\nFRANCE" },
+    { @"houseName", @"Big Ville" },
+    { @"neighborhood", @"Uptown" },
+    { @"POBox", @"P.O. Box 7-a" },
+    { @"postCode", @"14390" },
+    { @"region", @"Caen" },
+    { @"street", @"27, rue Pasteur" },
+    { @"subregion", @"County Fin" },
     { @"", @"" },
     
     { @"GDataRating", @"<gd:rating rel='http://schemas.google.com/g/2005#price' value='5' min='1' max='5' average='2.3' numRaters='132' />" },
@@ -639,6 +706,11 @@ shouldWrapWithNamespaceAndEntry:(BOOL)shouldWrap {
     { @"boolValue", @"1" },
     { @"", @"" },
     
+    { @"GDataNameValueConstruct", @"<namevalue name='fred' value='flintstone' />" },
+    { @"stringValue", @"flintstone" },
+    { @"name", @"fred" },
+    { @"", @"" },
+
     { @"GDataEntryContent", @"<content src='http://lh.google.com/image/Car.jpg' type='image/jpeg'/>" },
     { @"sourceURI", @"http://lh.google.com/image/Car.jpg" },
     { @"type", @"image/jpeg" },
@@ -1262,6 +1334,31 @@ shouldWrapWithNamespaceAndEntry:(BOOL)shouldWrap {
   
 }
 
+
+- (void)testHealthElements {
+  NSString *str = @"<ContinuityOfCareRecord xmlns='urn:astm-org:CCR'>"
+    "<CCRDocumentObjectID>AgJ5uTnC3A</CCRDocumentObjectID>"
+    "<etc>Frogfoot</etc></ContinuityOfCareRecord>";
+
+  NSError *error = nil;
+  NSXMLElement *element;
+  element = [[[NSXMLElement alloc] initWithXMLString:str
+                                               error:&error] autorelease];
+  GDataContinuityOfCareRecord *ccr;
+  ccr = [GDataContinuityOfCareRecord objectWithXMLElement:element];
+
+  NSDictionary *expectedNS;
+  expectedNS = [NSDictionary dictionaryWithObject:kGDataNamespaceCCR
+                                           forKey:@""];
+  STAssertEqualObjects([ccr namespaces], expectedNS, @"namespaces error");
+
+  NSArray *children = [ccr childXMLElements];
+  NSXMLNode *objid = [children objectAtIndex:0];
+  STAssertEqualObjects([objid stringValue], @"AgJ5uTnC3A",
+                       @"child value error");
+}
+
+
 - (void)testGDataExtendedProperty {
   
   // test the XMLValue key/value APIs
@@ -1493,7 +1590,7 @@ shouldWrapWithNamespaceAndEntry:(BOOL)shouldWrap {
   // to the new entry
   GDataEntryContact *entry = [[[GDataEntryContact alloc] initWithServiceVersion:@"1.0"] autorelease];
   
-  [entry setNamespaces:[GDataEntryContact contactNamespaces]];
+  [entry setNamespaces:[GDataContactConstants contactNamespaces]];
   [entry setTitleWithString:@"Joe Smith"];
   
   NSXMLElement *element = [entry XMLElement];
@@ -1505,7 +1602,7 @@ shouldWrapWithNamespaceAndEntry:(BOOL)shouldWrap {
   
   GDataEntryContact *entry2 = [[[GDataEntryContact alloc] initWithServiceVersion:@"2.0"] autorelease];
   
-  [entry2 setNamespaces:[GDataEntryContact contactNamespaces]];
+  [entry2 setNamespaces:[GDataContactConstants contactNamespaces]];
   [entry2 setTitleWithString:@"Joe Smith"];
   
   element = [entry2 XMLElement];
@@ -1544,14 +1641,20 @@ shouldWrapWithNamespaceAndEntry:(BOOL)shouldWrap {
   //   uploadDataOnly is type kGDataDescBooleanPresent
   //   uploadData     is type kGDataDescNonZeroLength
 
-  GDataEntryContact *entry = [GDataEntryContact contactEntryWithTitle:@"Fred Flintstone"];
+  GDataEntryContact *entry = [[[GDataEntryContact alloc] initWithServiceVersion:@"2.0"] autorelease];
+  [entry setTitleWithString:@"Fred Flintstone"];
   [entry addLink:[GDataLink linkWithRel:@"rel" type:nil href:@"href"]];
   [entry setShouldUploadDataOnly:YES];
   [entry setUploadData:[NSData dataWithBytes:"  " length:2]];
 
   NSString *desc = [entry description];
+
+#if GDATA_SIMPLE_DESCRIPTIONS
+  NSString *expectedBody = @": {extensions:(category,link,title)}";
+#else
   NSString *expectedBody = @": {v:2.0 title:Fred Flintstone categories:1"
-                            " links:rel uploadDataOnly:YES UploadData:#2}";
+  " links:rel uploadDataOnly:YES UploadData:#2}";
+#endif
 
   NSScanner *scanner = [NSScanner scannerWithString:desc];
   NSString *className = nil;

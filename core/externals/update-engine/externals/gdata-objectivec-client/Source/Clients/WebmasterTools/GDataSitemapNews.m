@@ -17,9 +17,11 @@
 //  GDataSitemapNews.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_WEBMASTERTOOLS_SERVICE
+
 #import "GDataSitemapNews.h"
 
-#import "GDataEntrySite.h" // for namespaces
+#import "GDataWebmasterToolsConstants.h"
 #import "GDataEntrySitemap.h" // for GDataSitemapPublicationLabel
 
 // News elements, like
@@ -74,3 +76,5 @@
 }
 
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_WEBMASTERTOOLS_SERVICE

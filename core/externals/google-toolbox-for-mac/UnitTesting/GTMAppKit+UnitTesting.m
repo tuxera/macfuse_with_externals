@@ -77,6 +77,9 @@ GTM_METHOD_CHECK(NSObject, gtm_unitTestEncodeState:);
   // [inCoder encodeBool:[self isKeyWindow] forKey:@"WindowIsKey"];
   [inCoder encodeBool:[self isMainWindow] forKey:@"WindowIsMain"];
   [inCoder encodeObject:[self contentView] forKey:@"WindowContent"];
+  if ([self toolbar]) {
+    [inCoder encodeObject:[self toolbar] forKey:@"WindowToolbar"];
+  }
 }
 
 @end
@@ -96,6 +99,24 @@ GTM_METHOD_CHECK(NSObject, gtm_unitTestEncodeState:);
   [inCoder encodeObject:[self selectedCell] forKey:@"ControlSelectedCell"];
   ENCODE_NSINTEGER(inCoder, [self tag], @"ControlTag");
   [inCoder encodeBool:[self isEnabled] forKey:@"ControlIsEnabled"];
+}
+
+@end
+
+@implementation NSButton (GTMUnitTestingAdditions) 
+
+//  Encodes the state of an object in a manner suitable for comparing
+//  against a master state file so we can determine whether the
+//  object is in a suitable state.
+//
+//  Arguments:
+//    inCoder - the coder to encode our state into
+- (void)gtm_unitTestEncodeState:(NSCoder*)inCoder {
+  [super gtm_unitTestEncodeState:inCoder];
+  NSString *alternateTitle = [self alternateTitle];
+  if (alternateTitle) {
+    [inCoder encodeObject:alternateTitle forKey:@"ButtonAlternateTitle"];
+  }
 }
 
 @end
@@ -234,6 +255,119 @@ GTM_METHOD_CHECK(NSObject, gtm_unitTestEncodeState:);
 
 @end
 
+@implementation NSTabView (GTMUnitTestingAdditions) 
+
+//  Encodes the state of an object in a manner suitable for comparing
+//  against a master state file so we can determine whether the
+//  object is in a suitable state.
+//
+//  Arguments:
+//    inCoder - the coder to encode our state into
+- (void)gtm_unitTestEncodeState:(NSCoder*)inCoder {
+  [super gtm_unitTestEncodeState:inCoder];
+  NSTabViewItem *tab = nil;
+  int i = 0;
+  GTM_FOREACH_OBJECT(tab, [self tabViewItems]) {
+    NSString *key = [NSString stringWithFormat:@"TabItem %d", i];
+    [inCoder encodeObject:tab forKey:key];
+    i = i + 1;
+  }
+}
+
+@end
+
+@implementation NSTabViewItem (GTMUnitTestingAdditions) 
+
+//  Encodes the state of an object in a manner suitable for comparing
+//  against a master state file so we can determine whether the
+//  object is in a suitable state.
+//
+//  Arguments:
+//    inCoder - the coder to encode our state into
+- (void)gtm_unitTestEncodeState:(NSCoder*)inCoder {
+  [super gtm_unitTestEncodeState:inCoder];
+  [inCoder encodeObject:[self label] forKey:@"TabLabel"];
+  [inCoder encodeObject:[self view] forKey:@"TabView"];
+}
+
+@end
+
+@implementation NSToolbar (GTMUnitTestingAdditions) 
+
+//  Encodes the state of an object in a manner suitable for comparing
+//  against a master state file so we can determine whether the
+//  object is in a suitable state.
+//
+//  Arguments:
+//    inCoder - the coder to encode our state into
+- (void)gtm_unitTestEncodeState:(NSCoder*)inCoder {
+  [super gtm_unitTestEncodeState:inCoder];
+  NSToolbarItem *item = nil;
+  NSUInteger i = 0;
+  GTM_FOREACH_OBJECT(item, [self items]) {
+    NSString *key = [NSString stringWithFormat:@"ToolbarItem %d", i];
+    [inCoder encodeObject:item forKey:key];
+    i = i + 1;
+  }
+}
+
+@end
+
+@implementation NSToolbarItem (GTMUnitTestingAdditions) 
+
+//  Encodes the state of an object in a manner suitable for comparing
+//  against a master state file so we can determine whether the
+//  object is in a suitable state.
+//
+//  Arguments:
+//    inCoder - the coder to encode our state into
+- (void)gtm_unitTestEncodeState:(NSCoder*)inCoder {
+  [super gtm_unitTestEncodeState:inCoder];
+  [inCoder encodeObject:[self label] forKey:@"Label"];
+  [inCoder encodeObject:[self paletteLabel] forKey:@"PaletteLabel"];
+  [inCoder encodeObject:[self toolTip] forKey:@"ToolTip"];
+  NSView *view = [self view];
+  if (view) {
+    [inCoder encodeObject:view forKey:@"View"];
+  }
+}
+
+@end
+
+@implementation NSMatrix (GTMUnitTestingAdditions) 
+
+//  Encodes the state of an object in a manner suitable for comparing
+//  against a master state file so we can determine whether the
+//  object is in a suitable state.
+//
+//  Arguments:
+//    inCoder - the coder to encode our state into
+- (void)gtm_unitTestEncodeState:(NSCoder*)inCoder {
+  [super gtm_unitTestEncodeState:inCoder];
+
+  ENCODE_NSINTEGER(inCoder, [self mode], @"MatrixMode");
+  ENCODE_NSINTEGER(inCoder, [self numberOfRows], @"MatrixRowCount");
+  ENCODE_NSINTEGER(inCoder, [self numberOfColumns], @"MatrixColumnCount");
+  [inCoder encodeBool:[self allowsEmptySelection]
+               forKey:@"MatrixAllowEmptySelection"];
+  [inCoder encodeBool:[self isSelectionByRect] forKey:@"MatrixSelectionByRect"];
+  [inCoder encodeBool:[self autosizesCells] forKey:@"MatrixAutosizesCells"];
+  [inCoder encodeSize:[self intercellSpacing] forKey:@"MatrixIntercellSpacing"];
+
+  [inCoder encodeObject:[self prototype] forKey:@"MatrixCellPrototype"];
+  
+  // Dump the list of cells
+  NSCell *cell;
+  long i = 0;
+  GTM_FOREACH_OBJECT(cell, [self cells]) {
+    [inCoder encodeObject:cell
+                   forKey:[NSString stringWithFormat:@"MatrixCell %ld", i]];
+    ++i;
+  }
+}
+
+@end
+
 //  A view that allows you to delegate out drawing using the formal
 //  GTMUnitTestViewDelegate protocol above. This is useful when writing up unit
 //  tests for visual elements.
@@ -268,6 +402,26 @@ GTM_METHOD_CHECK(NSObject, gtm_unitTestEncodeState:);
   [drawer_ gtm_unitTestViewDrawRect:rect contextInfo:contextInfo_];
 }
 
+
+@end
+
+@implementation NSBox (GTMUnitTestingAdditions)
+
+//  Encodes the state of an object in a manner suitable for comparing
+//  against a master state file so we can determine whether the
+//  object is in a suitable state.
+//
+//  Arguments:
+//    inCoder - the coder to encode our state into
+- (void)gtm_unitTestEncodeState:(NSCoder*)inCoder {
+  [super gtm_unitTestEncodeState:inCoder];
+
+  [inCoder encodeObject:[self title] forKey:@"BoxTitle"];
+  ENCODE_NSINTEGER(inCoder, [self titlePosition], @"BoxTitlePosition");
+  ENCODE_NSINTEGER(inCoder, [self boxType], @"BoxType");
+  ENCODE_NSINTEGER(inCoder, [self borderType], @"BoxBorderType");
+  // 10.5+ [inCoder encodeBool:[self isTransparent] forKey:@"BoxIsTransparent"];
+}
 
 @end
 
@@ -327,6 +481,22 @@ GTM_METHOD_CHECK(NSObject, gtm_unitTestEncodeState:);
 - (void)gtm_unitTestEncodeState:(NSCoder*)inCoder {
   [super gtm_unitTestEncodeState:inCoder];
   [inCoder encodeBool:[self isHidden] forKey:@"ViewIsHidden"];
+  [inCoder encodeObject:[self toolTip] forKey:@"ViewToolTip"];
+  NSArray *supportedAttrs = [self accessibilityAttributeNames];
+  if ([supportedAttrs containsObject:NSAccessibilityHelpAttribute]) {
+    NSString *help 
+      = [self accessibilityAttributeValue:NSAccessibilityHelpAttribute];
+    [inCoder encodeObject:help forKey:@"ViewAccessibilityHelp"];
+  }
+  if ([supportedAttrs containsObject:NSAccessibilityDescriptionAttribute]) {
+    NSString *description 
+      = [self accessibilityAttributeValue:NSAccessibilityDescriptionAttribute];
+    [inCoder encodeObject:description forKey:@"ViewAccessibilityDescription"];
+  }
+  NSMenu *menu = [self menu];
+  if (menu) {
+    [inCoder encodeObject:menu forKey:@"ViewMenu"];
+  }
   if ([self gtm_shouldEncodeStateForSubviews]) {
     NSView *subview = nil;
     int i = 0;

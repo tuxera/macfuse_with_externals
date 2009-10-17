@@ -13,12 +13,13 @@
 * limitations under the License.
 */
 
-// 
+//
 // GDataDefines.h
 //
 
 // Ensure Apple's conditionals we depend on are defined.
 #import <TargetConditionals.h>
+#import <AvailabilityMacros.h>
 
 //
 // The developer may choose to define these in the project:
@@ -33,11 +34,13 @@
 //
 
 // Define later OS versions when building on earlier versions
-#ifndef MAC_OS_X_VERSION_10_5
-  #define MAC_OS_X_VERSION_10_5 1050
-#endif
-#ifndef MAC_OS_X_VERSION_10_6
-  #define MAC_OS_X_VERSION_10_6 1060
+#ifdef MAC_OS_X_VERSION_10_0
+  #ifndef MAC_OS_X_VERSION_10_5
+    #define MAC_OS_X_VERSION_10_5 1050
+  #endif
+  #ifndef MAC_OS_X_VERSION_10_6
+    #define MAC_OS_X_VERSION_10_6 1060
+  #endif
 #endif
 
 

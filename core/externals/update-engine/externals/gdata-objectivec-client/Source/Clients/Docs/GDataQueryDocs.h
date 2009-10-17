@@ -17,6 +17,8 @@
 //  GDataQueryDocument.h
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_DOCS_SERVICE
+
 #import "GDataQuery.h"
 
 // Document-specific query params, per 
@@ -73,5 +75,12 @@ _EXTERN NSString* const kGDataQueryDocsStarred      _INITIALIZE_AS(@"starred");
 
 - (void)setOpenedMaxDateTime:(GDataDateTime *)dateTime;
 - (GDataDateTime *)openedMaxDateTime;
+
+- (void)setEditedMinDateTime:(GDataDateTime *)dateTime;
+- (GDataDateTime *)editedMinDateTime;
+
+- (void)setEditedMaxDateTime:(GDataDateTime *)dateTime;
+- (GDataDateTime *)editedMaxDateTime;
 @end
 
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_DOCS_SERVICE

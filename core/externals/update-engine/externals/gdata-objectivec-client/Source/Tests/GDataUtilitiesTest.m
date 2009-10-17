@@ -106,6 +106,64 @@
   STAssertEqualObjects(output, @"photo%E5%8F%83.jpg", @"cjk failure");
 }
 
+- (void)testURLEncodingForURI {
+  NSString *input;
+  NSString *output;
+  NSString *expected;
+
+  input = nil;
+  output = [GDataUtilities stringByURLEncodingForURI:input];
+  STAssertNil(output, @"nil test");
+
+  input = @"";
+  output = [GDataUtilities stringByURLEncodingForURI:input];
+  STAssertEqualObjects(output, input, @"empty string");
+
+  input = @"abcdef";
+  output = [GDataUtilities stringByURLEncodingForURI:input];
+  expected = @"abcdef";
+  STAssertEqualObjects(output, expected, @"plain string");
+
+  input = @"abc def";
+  output = [GDataUtilities stringByURLEncodingForURI:input];
+  expected = @"abc%20def";
+  STAssertEqualObjects(output, expected, @"plain string with space");
+
+  input = @"abc!*'();:@&=+$,/?%#[]def";
+  output = [GDataUtilities stringByURLEncodingForURI:input];
+  expected = @"abc%21%2A%27%28%29%3B%3A%40%26%3D%2B%24%2C%2F%3F%25%23%5B%5Ddef";
+  STAssertEqualObjects(output, expected, @"all chars to escape");
+}
+
+- (void)testURLEncodingForStringParameter {
+  NSString *input;
+  NSString *output;
+  NSString *expected;
+
+  input = nil;
+  output = [GDataUtilities stringByURLEncodingStringParameter:input];
+  STAssertNil(output, @"nil test");
+
+  input = @"";
+  output = [GDataUtilities stringByURLEncodingStringParameter:input];
+  STAssertEqualObjects(output, input, @"empty string");
+
+  input = @"abcdef";
+  output = [GDataUtilities stringByURLEncodingStringParameter:input];
+  expected = @"abcdef";
+  STAssertEqualObjects(output, expected, @"plain string");
+
+  input = @"abc def";
+  output = [GDataUtilities stringByURLEncodingStringParameter:input];
+  expected = @"abc+def";
+  STAssertEqualObjects(output, expected, @"plain string with space");
+
+  input = @"abc!*'();:@&=+$,/?%#[]def";
+  output = [GDataUtilities stringByURLEncodingStringParameter:input];
+  expected = @"abc%21%2A%27%28%29%3B%3A%40%26%3D%2B%24%2C%2F%3F%25%23%5B%5Ddef";
+  STAssertEqualObjects(output, expected, @"all chars to escape");
+}
+
 #pragma mark -
 
 - (void)doTestEqualAndDistinctElementsInArray:(NSArray *)testArray
@@ -115,7 +173,8 @@
 
   // test that we got an equal copy
   STAssertEqualObjects(copyArray, testArray,
-                       @"Array copy failed (%d items)", numItems);
+                       @"Array copy failed (%lu items)",
+                       (unsigned long) numItems);
 
   // check that the objects in the copy are actual copies, not retains
   // of the original objects
@@ -127,7 +186,8 @@
 
   while (objTest) {
     STAssertTrue(objTest != objCopy,
-                  @"array copy is reusing original object (%d items)", numItems);
+                  @"array copy is reusing original object (%lu items)",
+                 (unsigned long) numItems);
 
     objTest = [enumTest nextObject];
     objCopy = [enumCopy nextObject];
@@ -156,7 +216,8 @@
     [copyArray addObject:@"foo"];
   }
   @catch(NSException *exc) {
-    STFail(@"Array mutableCopy not mutable (%d items)", numItems);
+    STFail(@"Array mutableCopy not mutable (%lu items)",
+           (unsigned long) numItems);
   }
 }
 
@@ -167,7 +228,8 @@
 
   // test that we got an equal copy
   STAssertEqualObjects(copyDict, testDict,
-                       @"Dict copy failed (%d items)", numItems);
+                       @"Dict copy failed (%lu items)",
+                       (unsigned long) numItems);
 
   // check that the objects in the copy are actual copies, not retains
   // of the original objects
@@ -179,7 +241,8 @@
     id objCopy = [copyDict objectForKey:testKey];
 
     STAssertTrue(objTest != objCopy,
-                  @"dict copy is reusing original object (%d items)", numItems);
+                  @"dict copy is reusing original object (%lu items)",
+                 (unsigned long) numItems);
 
     // if the elements are arrays, apply the array comparison too
     if ([objTest isKindOfClass:[NSArray class]]) {
@@ -215,7 +278,7 @@
      [copyDict setObject:@"foo" forKey:@"bar"];
   }
   @catch(NSException *exc) {
-    STFail(@"Dict mutableCopy not mutable (%d items)", numItems);
+    STFail(@"Dict mutableCopy not mutable (%lu items)", (unsigned long) numItems);
   }
 }
 
@@ -241,7 +304,8 @@
     [copyDict setObject:@"foo" forKey:@"bar"];
   }
   @catch(NSException *exc) {
-    STFail(@"Dict of arrays mutableCopy not mutable (%d items)", numItems);
+    STFail(@"Dict of arrays mutableCopy not mutable (%lu items)",
+           (unsigned long) numItems);
   }
 }
 

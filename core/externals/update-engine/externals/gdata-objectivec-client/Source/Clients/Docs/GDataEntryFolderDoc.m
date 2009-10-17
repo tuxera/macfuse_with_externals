@@ -17,7 +17,8 @@
 //  GDataEntryFolderDoc.m
 //
 
-#define GDATAENTRYFOLDERDOC_DEFINE_GLOBALS 1
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_DOCS_SERVICE
+
 #import "GDataEntryFolderDoc.h"
 
 @implementation GDataEntryFolderDoc
@@ -31,3 +32,5 @@
 }
 
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_DOCS_SERVICE

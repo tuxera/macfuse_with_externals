@@ -55,6 +55,7 @@
 OBJC_EXPORT Class object_getClass(id obj);
 OBJC_EXPORT const char *class_getName(Class cls);
 OBJC_EXPORT BOOL class_conformsToProtocol(Class cls, Protocol *protocol);
+OBJC_EXPORT BOOL class_respondsToSelector(Class cls, SEL sel);
 OBJC_EXPORT Class class_getSuperclass(Class cls);
 OBJC_EXPORT Method *class_copyMethodList(Class cls, unsigned int *outCount);
 OBJC_EXPORT SEL method_getName(Method m);
@@ -75,7 +76,7 @@ OBJC_EXPORT struct objc_method_description protocol_getMethodDescription(Protoco
 // barrier versions.
 GTM_INLINE bool OSAtomicCompareAndSwapPtrBarrier(void *predicate,
                                                  void *replacement,
-                                                 volatile void *theValue) {
+                                                 void * volatile *theValue) {
 #if defined(__LP64__) && __LP64__
   return OSAtomicCompareAndSwap64Barrier((int64_t)predicate,
                                          (int64_t)replacement,
@@ -86,21 +87,24 @@ GTM_INLINE bool OSAtomicCompareAndSwapPtrBarrier(void *predicate,
                                          (int32_t *)theValue);
 #endif  // defined(__LP64__) && __LP64__
 }
-  
+
+#endif  // MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_5
+#endif  // MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
+
+#if (MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5) || (GTM_IPHONE_DEVICE)
+
 GTM_INLINE BOOL objc_atomicCompareAndSwapGlobalBarrier(id predicate, 
                                                        id replacement, 
                                                        volatile id *objectLocation) {
   return OSAtomicCompareAndSwapPtrBarrier(predicate, 
                                           replacement, 
-                                          objectLocation);
+                                          (void * volatile *)objectLocation);
 }
 GTM_INLINE BOOL objc_atomicCompareAndSwapInstanceVariableBarrier(id predicate, 
                                                                  id replacement, 
                                                                  volatile id *objectLocation) {
   return OSAtomicCompareAndSwapPtrBarrier(predicate, 
                                           replacement, 
-                                          objectLocation);
+                                          (void * volatile *)objectLocation);
 }
-#endif
-
-#endif  // OBJC2_UNAVAILABLE
+#endif  // (MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5) || (GTM_IPHONE_DEVICE)

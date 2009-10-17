@@ -17,6 +17,8 @@
 //  GDataQueryCalendar.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_CALENDAR_SERVICE
+
 #import "GDataQueryCalendar.h"
 
 // query params per
@@ -30,6 +32,7 @@ static NSString *const kFutureEventsParamName  = @"futureevents";
 static NSString *const kSingleEventsParamName = @"singleevents";
 static NSString *const kCurrentTimeZoneParamName = @"ctz";
 static NSString *const kShowInlineCommentsParamName = @"showinlinecomments";
+static NSString *const kShowHiddenParamName = @"showhidden";
 
 @implementation GDataQueryCalendar
 
@@ -118,6 +121,17 @@ static NSString *const kShowInlineCommentsParamName = @"showinlinecomments";
                       defaultValue:YES];
 }
 
+- (BOOL)shouldShowHiddenEvents {
+  return [self boolValueForParameterWithName:kShowHiddenParamName
+                                defaultValue:NO];
+}
+
+- (void)setShouldShowHiddenEvents:(BOOL)flag {
+  [self addCustomParameterWithName:kShowHiddenParamName
+                         boolValue:flag
+                      defaultValue:NO];
+}
+
 - (NSString *)currentTimeZoneName {
   NSString *str = [self valueForParameterWithName:kCurrentTimeZoneParamName];
   return str;
@@ -138,3 +152,5 @@ static NSString *const kShowInlineCommentsParamName = @"showinlinecomments";
 }
 
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_CALENDAR_SERVICE

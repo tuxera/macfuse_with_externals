@@ -17,8 +17,10 @@
 //  GDataGroupMembershipInfo.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_CONTACTS_SERVICE
+
 #import "GDataGroupMembershipInfo.h" 
-#import "GDataEntryContact.h"         // for namespace
+#import "GDataContactConstants.h"
 
 static NSString* const kHrefAttr = @"href";
 static NSString* const kDeletedAttr = @"deleted";
@@ -37,7 +39,7 @@ static NSString* const kDeletedAttr = @"deleted";
 
 + (GDataGroupMembershipInfo *)groupMembershipInfoWithHref:(NSString *)str {
   
-  GDataGroupMembershipInfo *obj = [[[GDataGroupMembershipInfo alloc] init] autorelease];
+  GDataGroupMembershipInfo *obj = [[[self alloc] init] autorelease];
   [obj setHref:str];
   return obj;
 }
@@ -67,3 +69,5 @@ static NSString* const kDeletedAttr = @"deleted";
 }
 
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_CONTACTS_SERVICE

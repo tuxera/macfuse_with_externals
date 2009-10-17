@@ -36,13 +36,15 @@
 // and downloaded data.
 //
 // A symlink is created in the logs folder to simplify finding the html file
-// for the latest run of the application; the symlink is called 
+// for the latest run of the application; the symlink is called
 //
 //   AppName_http_log_newest.html
 //
 // For better viewing of XML logs, use Camino or Firefox rather than Safari.
 //
 // Projects may define STRIP_GDATA_FETCH_LOGGING to remove logging code.
+
+#if !STRIP_GDATA_FETCH_LOGGING
 
 @interface GDataHTTPFetcher (GDataHTTPFetcherLogging)
 
@@ -66,5 +68,7 @@
 
 // internal; called by fetcher
 - (void)logFetchWithError:(NSError *)error;
-- (void)logCapturePostStream;
+- (BOOL)logCapturePostStream;
 @end
+
+#endif

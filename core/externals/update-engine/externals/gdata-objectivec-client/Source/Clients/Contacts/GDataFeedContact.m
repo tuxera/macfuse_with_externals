@@ -17,14 +17,20 @@
 //  GDataFeedContact.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_CONTACTS_SERVICE
 
 #import "GDataFeedContact.h"
 
 #import "GDataEntryContact.h"
 #import "GDataWhere.h"
 #import "GDataCategory.h"
+#import "GDataContactConstants.h"
 
 @implementation GDataFeedContact
+
++ (NSString *)coreProtocolVersionForServiceVersion:(NSString *)serviceVersion {
+  return [GDataContactConstants coreProtocolVersionForServiceVersion:serviceVersion];
+}
 
 + (NSString *)standardFeedKind {
   return kGDataCategoryContact;
@@ -37,7 +43,7 @@
 + (GDataFeedContact *)contactFeed {
   GDataFeedContact *obj = [[[self alloc] init] autorelease];
 
-  [obj setNamespaces:[GDataEntryContact contactNamespaces]];
+  [obj setNamespaces:[GDataContactConstants contactNamespaces]];
 
   return obj;
 }
@@ -78,3 +84,5 @@
 }
 
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_CONTACTS_SERVICE

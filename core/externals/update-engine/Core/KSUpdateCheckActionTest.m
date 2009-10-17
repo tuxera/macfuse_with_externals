@@ -125,7 +125,7 @@
 @implementation KSUpdateCheckActionTest
 
 - (NSArray *)createTickets:(int)count forServer:(KSServer *)server {
-  NSMutableArray *tickets = [[NSMutableArray alloc] init];
+  NSMutableArray *tickets = [[[NSMutableArray alloc] init] autorelease];
   for (int x = 0; x < count; x++) {
     NSString *productid = [NSString stringWithFormat:@"{guid-%d}", x];
     KSExistenceChecker *xc = [KSExistenceChecker falseChecker];
@@ -143,8 +143,8 @@
   url_ = [NSURL URLWithString:@"file://foo"];  
   splitServer_ = [[KSSplitMockServer alloc] initWithURL:url_];
   singleServer_ = [[KSSingleMockServer alloc] initWithURL:url_];
-  twoTickets_ = [self createTickets:2 forServer:splitServer_];
-  lottaTickets_ = [self createTickets:8 forServer:singleServer_];
+  twoTickets_ = [[self createTickets:2 forServer:splitServer_] retain];
+  lottaTickets_ = [[self createTickets:8 forServer:singleServer_] retain];
 }
 
 - (void)tearDown {

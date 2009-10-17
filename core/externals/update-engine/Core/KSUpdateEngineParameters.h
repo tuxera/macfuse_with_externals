@@ -18,8 +18,13 @@
 // acquirer.  All values for these keys should be NSStrings unless otherwise
 // specified.  GUIDs (also as NSStrings) should be wrapped in curly braces, for
 // example {27A29829-BDBD-4AB5-AC67-C00010B9AC4C}.
-#define kUpdateEngineMachineID              @"MachineID"
-#define kUpdateEngineUserGUID               @"UserGUID"
-#define kUpdateEngineOSVersion              @"OSVersion"    // e.g. "10.5.2_x86"
-#define kUpdateEngineUpdateCheckTag         @"UpdateCheckTag"
-#define kUpdateEngineIsMachine              @"IsMachine"
+#define kUpdateEngineMachineID           @"MachineID"
+#define kUpdateEngineUserGUID            @"UserGUID"
+#define kUpdateEngineOSVersion           @"OSVersion"      // e.g. "10.5.2_x86"
+#define kUpdateEngineUpdateCheckTag      @"UpdateCheckTag"
+#define kUpdateEngineIsMachine           @"IsMachine"
+#define kUpdateEngineProductStats        @"ProductStats"   // productID -> dict
+#define kUpdateEngineUserInitiated       @"UserInitiated"  // BOOL in NSNumber
+
+// Product stat dictionary keys.
+#define kUpdateEngineProductStatsActive  @"Active"  // BOOL in NSNumber

@@ -37,6 +37,7 @@
   STAssertNil([update requireReboot], nil);
   STAssertNil([update localizationBundle], nil);
   STAssertNil([update displayVersion], nil);
+  STAssertNil([update version], nil);
   STAssertNil([update ticket], nil);
 
   KSTicket *ticket =
@@ -56,6 +57,7 @@
             [NSNumber numberWithBool:YES], kServerRequireReboot,
             @"/Hassel/Hoff", kServerLocalizationBundle,
             @"1.3.2 (with pudding)", kServerDisplayVersion,
+            @"1.3.2", kServerVersion,
             ticket, kTicket,
             nil];
   
@@ -68,6 +70,7 @@
   STAssertEqualObjects([NSNumber numberWithBool:YES], [update requireReboot], nil);
   STAssertEqualObjects(@"/Hassel/Hoff", [update localizationBundle], nil);
   STAssertEqualObjects(@"1.3.2 (with pudding)", [update displayVersion], nil);
+  STAssertEqualObjects(@"1.3.2", [update version], nil);
   STAssertEqualObjects(ticket, [update ticket], nil);
 }
 

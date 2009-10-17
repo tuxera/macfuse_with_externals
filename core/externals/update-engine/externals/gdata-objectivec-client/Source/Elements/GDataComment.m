@@ -17,6 +17,9 @@
 //  GDataComment.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_BOOKS_SERVICE \
+  || GDATA_INCLUDE_CALENDAR_SERVICE || GDATA_INCLUDE_YOUTUBE_SERVICE
+
 #import "GDataComment.h"
 
 #import "GDataFeedLink.h"
@@ -42,25 +45,25 @@ static NSString* const kRelAttr = @"rel";
 }
 
 - (void)addExtensionDeclarations {
-  
+
   [super addExtensionDeclarations];
 
   [self addExtensionDeclarationForParentClass:[self class]
-                                   childClass:[GDataFeedLink class]];  
+                                   childClass:[GDataFeedLink class]];
 }
 
 - (void)addParseDeclarations {
-  NSArray *attrs = [NSArray arrayWithObject:kRelAttr]; 
-  
+  NSArray *attrs = [NSArray arrayWithObject:kRelAttr];
+
   [self addLocalAttributeDeclarations:attrs];
 }
 
 #if !GDATA_SIMPLE_DESCRIPTIONS
 - (NSMutableArray *)itemsForDescription {
   NSMutableArray *items = [super itemsForDescription];
-  
+
   [self addToArray:items objectDescriptionIfNonNil:[self feedLink] withName:@"feedLink"];
-  
+
   return items;
 }
 #endif
@@ -68,7 +71,7 @@ static NSString* const kRelAttr = @"rel";
 #pragma mark -
 
 - (NSString *)rel {
-  return [self stringValueForAttribute:kRelAttr]; 
+  return [self stringValueForAttribute:kRelAttr];
 }
 
 - (void)setRel:(NSString *)str {
@@ -76,7 +79,7 @@ static NSString* const kRelAttr = @"rel";
 }
 
 - (GDataFeedLink *)feedLink {
-  return [self objectForExtensionClass:[GDataFeedLink class]]; 
+  return [self objectForExtensionClass:[GDataFeedLink class]];
 }
 
 - (void)setFeedLink:(GDataFeedLink *)feedLink {
@@ -84,3 +87,5 @@ static NSString* const kRelAttr = @"rel";
 }
 
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_*_SERVICE

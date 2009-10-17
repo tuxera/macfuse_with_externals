@@ -17,10 +17,13 @@
 //  GDataQueryBooks.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_BOOKS_SERVICE
+
 #define GDATAQUERYBOOKS_DEFINE_GLOBALS 1
 #import "GDataQueryBooks.h"
 
 static NSString *const kMinViewabilityParamName = @"min-viewability";
+static NSString *const kEBookParamName = @"ebook";
 
 @implementation GDataQueryBooks
 
@@ -40,4 +43,16 @@ static NSString *const kMinViewabilityParamName = @"min-viewability";
   return str;
 }
 
+- (void)setEBook:(NSString *)str {
+  [self addCustomParameterWithName:kEBookParamName
+                             value:str];  
+}
+
+- (NSString *)EBook {
+  NSString *str = [self valueForParameterWithName:kEBookParamName];
+  return str;
+}
+
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_BOOKS_SERVICE

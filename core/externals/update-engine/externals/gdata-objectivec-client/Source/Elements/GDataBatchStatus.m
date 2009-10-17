@@ -40,20 +40,20 @@ static NSString *const kContentTypeAttr = @"content-type";
 + (NSString *)extensionElementLocalName { return @"status"; }
 
 - (void)addParseDeclarations {
-  
+
   NSArray *attrs = [NSArray arrayWithObjects:
                     kCodeAttr, kReasonAttr, kContentTypeAttr, nil];
-  
-  [self addLocalAttributeDeclarations:attrs];  
-  
+
+  [self addLocalAttributeDeclarations:attrs];
+
   [self addContentValueDeclaration];
 }
 
-+ (GDataBatchStatus *)batchStatusWithCode:(int)code
++ (GDataBatchStatus *)batchStatusWithCode:(NSInteger)code
                                    reason:(NSString *)reason {
   GDataBatchStatus* obj = [[[GDataBatchStatus alloc] init] autorelease];
   [obj setReason:reason];
-  [obj setCode:[NSNumber numberWithInt:code]];
+  [obj setCode:[NSNumber numberWithInt:(int)code]];
   return obj;
 }
 

@@ -17,6 +17,8 @@
 //  GDataEntryCalendarEvent.h
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_CALENDAR_SERVICE
+
 #import "GDataEntryEvent.h"
 #import "GDataWho.h"
 #import "GDataLink.h"
@@ -33,82 +35,14 @@
 #define _INITIALIZE_AS(x)
 #endif
 
-_EXTERN NSString* const kGDataNamespaceGCal _INITIALIZE_AS(@"http://schemas.google.com/gCal/2005");
+_EXTERN NSString* const kGDataNamespaceGCal       _INITIALIZE_AS(@"http://schemas.google.com/gCal/2005");
 _EXTERN NSString* const kGDataNamespaceGCalPrefix _INITIALIZE_AS(@"gCal");
 
+_EXTERN NSString* const kGDataCategoryCalendar         _INITIALIZE_AS(@"http://schemas.google.com/gCal/2005#calendarmeta");
+_EXTERN NSString* const kGDataCategoryCalendarSettings _INITIALIZE_AS(@"http://schemas.google.com/gCal/2005#settings");
 
 // CalendarEventEntry extensions
-@interface GDataPrivateCopyProperty : GDataBoolValueConstruct <GDataExtension>
-+ (NSString *)extensionElementURI;
-+ (NSString *)extensionElementPrefix;
-+ (NSString *)extensionElementLocalName;
-@end
-
-@interface GDataQuickAddProperty : GDataBoolValueConstruct <GDataExtension>
-+ (NSString *)extensionElementURI;
-+ (NSString *)extensionElementPrefix;
-+ (NSString *)extensionElementLocalName;
-@end
-
-@interface GDataSendEventNotifications : GDataBoolValueConstruct <GDataExtension>
-+ (NSString *)extensionElementURI;
-+ (NSString *)extensionElementPrefix;
-+ (NSString *)extensionElementLocalName;
-@end
-
 @interface GDataResourceProperty : GDataBoolValueConstruct <GDataExtension>
-+ (NSString *)extensionElementURI;
-+ (NSString *)extensionElementPrefix;
-+ (NSString *)extensionElementLocalName;
-@end
-
-@interface GDataSyncEventProperty : GDataBoolValueConstruct <GDataExtension>
-// sync scenario, where iCal UID and sequence number are honored during
-// insert and update
-+ (NSString *)extensionElementURI;
-+ (NSString *)extensionElementPrefix;
-+ (NSString *)extensionElementLocalName;
-@end
-
-@interface GDataSequenceProperty : GDataValueConstruct <GDataExtension>
-// GData schema extension describing sequence number of an event.
-// The sequence number is a non-negative integer and is described in
-// section 4.8.7.4 of RFC 2445.
-// Currently this is only a read-only entry.
-+ (NSString *)extensionElementURI;
-+ (NSString *)extensionElementPrefix;
-+ (NSString *)extensionElementLocalName;
-@end
-
-@interface GDataICalUIDProperty : GDataValueConstruct <GDataExtension>
-// GData schema extension describing the UID in the ical export of the event.
-// The value can be an arbitrary string and is described in section 4.8.4.7
-// of RFC 2445. This value is different from the value of the event ID.
-// Currently a read-only entry.
-+ (NSString *)extensionElementURI;
-+ (NSString *)extensionElementPrefix;
-+ (NSString *)extensionElementLocalName;
-@end
-
-@interface GDataGuestsCanModifyProperty : GDataBoolValueConstruct <GDataExtension>
-+ (NSString *)extensionElementURI;
-+ (NSString *)extensionElementPrefix;
-+ (NSString *)extensionElementLocalName;
-@end
-
-@interface GDataGuestsCanInviteOthersProperty : GDataBoolValueConstruct <GDataExtension>
-+ (NSString *)extensionElementURI;
-+ (NSString *)extensionElementPrefix;
-+ (NSString *)extensionElementLocalName;
-@end
-
-@interface GDataGuestsCanSeeGuestsProperty : GDataBoolValueConstruct <GDataExtension>
-+ (NSString *)extensionElementURI;
-+ (NSString *)extensionElementPrefix;
-+ (NSString *)extensionElementLocalName;
-@end
-
-@interface GDataAnyoneCanAddSelfProperty : GDataBoolValueConstruct <GDataExtension>
 + (NSString *)extensionElementURI;
 + (NSString *)extensionElementPrefix;
 + (NSString *)extensionElementLocalName;
@@ -144,6 +78,9 @@ _EXTERN NSString* const kGDataNamespaceGCalPrefix _INITIALIZE_AS(@"gCal");
 - (BOOL)isQuickAdd;
 - (void)setIsQuickAdd:(BOOL)flag;
 
+- (NSString *)suppressReplyNotificationTypes;
+- (void)setSuppressReplyNotificationTypes:(NSString *)str;
+
 // for sync events, the iCal UID and sequence number need to be honored
 - (BOOL)isSyncEvent;
 - (void)setIsSyncEvent:(BOOL)flag;  
@@ -176,3 +113,5 @@ _EXTERN NSString* const kGDataNamespaceGCalPrefix _INITIALIZE_AS(@"gCal");
 - (GDataLink *)webContentLink;
 - (GDataWebContent *)webContent;
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_CALENDAR_SERVICE

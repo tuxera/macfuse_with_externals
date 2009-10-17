@@ -231,8 +231,7 @@
 
 // Return a good file URL download with good hash, size
 - (KSDownloadAction *)goodDownloadActionWithFile:(NSString *)file {
-  NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"file://%@",
-                                              file]];
+  NSURL *url = [NSURL fileURLWithPath:file];
   NSData *data = [NSData dataWithContentsOfFile:file];
   NSData *dhash = [data SHA1Hash];
   NSString *hash = [GTMBase64 stringByEncodingData:dhash];
@@ -482,8 +481,12 @@
 }
 
 - (void)testProgress {
-  // To avoid network issues screwing up the tests, we'll use file: URLs
-  KSDownloadAction *download = [self goodDownloadActionWithFile:@"/bin/sh"];
+  // To avoid network issues screwing up the tests, we'll use file: URLs.
+  // Find a file we know we can read without issue.  Some continuous build
+  // systems throw errors when trying to read from system files.
+  NSBundle *me = [NSBundle bundleForClass:[self class]];
+  NSString *file = [me executablePath];
+  KSDownloadAction *download = [self goodDownloadActionWithFile:file];
 
   // keep track of status
   KSDownloadProgressCounter *progressCounter = [KSDownloadProgressCounter counter];

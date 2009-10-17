@@ -25,6 +25,8 @@
 #import "GDataEntryCalendarEvent.h"
 #import "GDataEntryYouTubeVideo.h"
 #import "GDataEntryHealthProfile.h"
+#import "GDataMapConstants.h"
+
 
 @implementation GDataFeedTest
 
@@ -389,7 +391,7 @@
     //
     // Contact Feed
     //
-    { @"GDataFeedContact", @"Tests/FeedContactTest1.xml" },
+    { @"GDataFeedContact/2.0", @"Tests/FeedContactTest1.xml" },
       
     // GDataFeedContact paths 
     { @"title", @"Contacts" },
@@ -496,13 +498,151 @@
       
     { @"", @"" }, // end of feed
     
+    //
+    // Contact Feed with V3 elements
+    //
+    { @"GDataFeedContact/3.0", @"Tests/FeedContactTest2.xml" },
+
+    // GDataFeedContact paths
+    { @"title", @"Fred Flintstone's Contacts" },
+    { @"categories.0.term", kGDataCategoryContact },
+    { @"ETag", @"W/\"DkYHQHgzfCt7ImA9WxJREEU.\"" },
+
+    { @"unknownAttributes.@count.stringValue", @"0" },
+    { @"unknownChildren.@count.stringValue", @"0" },
+
+    // GDataEntryContact paths
+    { @"entries.0.identifier", @"contains:754fdf0c0db53ab3" },
+    { @"entries.0.categories.0.term", kGDataCategoryContact },
+    { @"entries.0.isDeleted", @"0" },
+    { @"entries.0.ETag", @"\"Rno_eTVSLyt7ImA9WxJREEUORwc.\"" },
+    { @"entries.0.editedDate.RFC3339String", @"2009-05-11T23:20:37Z" },
+
+    { @"entries.0.primaryOrganization.orgName", @"Acme Corp." },
+
+    { @"entries.0.organizations.0.orgName", @"Acme Corp." },
+    { @"entries.0.organizations.0.orgTitle", nil },
+    { @"entries.0.organizations.0.label", nil },
+    { @"entries.0.organizations.0.rel", kGDataContactWork },
+    { @"entries.0.organizations.0.isPrimary", @"1" },
+
+    { @"entries.0.primaryIMAddress.address", nil },
+
+    { @"entries.0.IMAddresses.0.protocol", kGDataIMProtocolGoogleTalk },
+    { @"entries.0.IMAddresses.0.address", @"fredsim@example.com" },
+    { @"entries.0.IMAddresses.0.label", @"main messaging addr" },
+    { @"entries.0.IMAddresses.0.rel", nil },
+    { @"entries.0.IMAddresses.0.isPrimary", @"0" },
+
+    { @"entries.0.primaryPhoneNumber.stringValue", @"425-555-1234" },
+
+    { @"entries.0.phoneNumbers.0.stringValue", @"425-555-1234" },
+    { @"entries.0.phoneNumbers.0.label", @"Grand Central" },
+    { @"entries.0.phoneNumbers.0.rel", nil },
+    { @"entries.0.phoneNumbers.0.isPrimary", @"1" },
+
+    { @"entries.0.phoneNumbers.1.stringValue", @"425-555-0000" },
+    { @"entries.0.phoneNumbers.1.label", nil },
+    { @"entries.0.phoneNumbers.1.rel", kGDataPhoneNumberCar },
+    { @"entries.0.phoneNumbers.1.isPrimary", @"0" },
+
+    { @"entries.0.primaryStructuredPostalAddress.street", @"301 Cobblestone Way" },
+
+    { @"entries.0.structuredPostalAddresses.0.street", @"301 Cobblestone Way" },
+    { @"entries.0.structuredPostalAddresses.0.postCode", @"12345" },
+    { @"entries.0.structuredPostalAddresses.0.formattedAddress", @"301 Cobblestone Way\nBedrock, CA 12345\nUnited States" },
+    { @"entries.0.structuredPostalAddresses.0.region", @"CA" },
+    { @"entries.0.structuredPostalAddresses.0.countryName", @"United States" },
+    { @"entries.0.structuredPostalAddresses.0.label", nil },
+    { @"entries.0.structuredPostalAddresses.0.rel", kGDataContactHome },
+    { @"entries.0.structuredPostalAddresses.0.isPrimary", @"1" },
+
+    { @"entries.0.primaryEmailAddress.address", @"fred@example.com" },
+
+    { @"entries.0.emailAddresses.0.address", @"fred@example.com" },
+    { @"entries.0.emailAddresses.0.label", nil },
+    { @"entries.0.emailAddresses.0.rel", kGDataContactHome },
+    { @"entries.0.emailAddresses.0.isPrimary", @"1" },
+
+    { @"entries.0.groupMembershipInfos.0.href", @"http://www.google.com/m8/feeds/groups/fredflintstone%40example.com/base/6" },
+    { @"entries.0.groupMembershipInfos.0.isDeleted", @"0" },
+
+    { @"entries.0.extendedProperties.0.name", @"fredprop" },
+    { @"entries.0.extendedProperties.0.value", @"12345" },
+    { @"entries.0.extendedProperties.0.XMLValues", nil },
+
+    { @"entries.0.billingInformation", @"account overdue" },
+
+    { @"entries.0.birthday", @"1990-12-01" },
+
+    { @"entries.0.calendarLinks.0.rel", nil },
+    { @"entries.0.calendarLinks.0.label", @"full calendar" },
+    { @"entries.0.calendarLinks.0.href", @"http://www.google.com/calendar/render" },
+    { @"entries.0.primaryCalendarLink.label", @"full calendar" },
+
+    { @"entries.0.directoryServer", @"dir server" },
+
+    // { @"entries.0.events.0", @"" },
+
+    { @"entries.0.externalIDs.0.label", @"ext id" },
+    { @"entries.0.externalIDs.0.rel", nil },
+    { @"entries.0.externalIDs.0.stringValue", @"54321" },
+
+    { @"entries.0.gender", @"male" },
+
+    { @"entries.0.hobbies.0.stringValue", @"gurgling" },
+
+    { @"entries.0.initials", @"F.F." },
+
+    { @"entries.0.jots.0.rel", kGDataContactJotHome },
+    { @"entries.0.jots.0.stringValue", @"1248" },
+
+    // { @"entries.0.languages.0", @"" },
+
+    { @"entries.0.maidenName", @"Marshovitzky" },
+
+    { @"entries.0.mileage", @"42 miles" },
+
+    { @"entries.0.name.fullName", @"Fred Flintstone" },
+    { @"entries.0.name.givenName", @"Fred" },
+    { @"entries.0.name.familyName", @"Flintstone" },
+
+    { @"entries.0.nickname", @"Rocks" },
+
+    { @"entries.0.occupation", @"TV Personality" },
+
+    { @"entries.0.priority", kGDataContactPriorityLow },
+
+    { @"entries.0.relations.0.rel", kGDataContactRelationPartner },
+    { @"entries.0.relations.0.label", nil },
+    { @"entries.0.relations.0.stringValue", @"Wilma" },
+
+    { @"entries.0.sensitivity", kGDataContactSensitivityNormal },
+
+    { @"entries.0.shortName", @"Freddy" },
+
+    { @"entries.0.subject", @"subject val" },
+
+    { @"entries.0.userDefinedFields.0.key", @"Cat" },
+    { @"entries.0.userDefinedFields.0.stringValue", @"Cheezeburger" },
+
+    { @"entries.0.websiteLinks.0.href", @"http://example.com/site.html" },
+    { @"entries.0.websiteLinks.0.rel", kGDataContactWebsiteLinkHomePage },
+    { @"entries.0.websiteLinks.0.label", nil },
+    { @"entries.0.websiteLinks.0.isPrimary", @"0" },
+
+    { @"entries.0.where", @"The Quarry" },
+
+    { @"entries.0.unknownAttributes.@count.stringValue", @"0" },
+    { @"entries.0.unknownChildren.@count.stringValue", @"0" },
+
+    { @"", @"" }, // end of feed
+
     { nil, nil } // end of test array
   };
-  
+
   [self runTests:tests];
 }
-
-
 
 - (void)testGoogleBaseFeed {
   
@@ -787,10 +927,131 @@
     { @"entries.0.unknownChildren.@count", @"0" },
 
     { @"", @"" }, // end of feed
-    
+
+    //
+    // Table feed
+    //
+
+    // feed paths
+    { @"GDataFeedSpreadsheetTable", @"Tests/FeedSpreadsheetTableTest1.xml" },
+    { @"identifier", @"http://spreadsheets.google.com/feeds/RRHuSwAKiaEGw526z3DVYw/tables" },
+    { @"categories.0.scheme", kGDataCategoryScheme },
+    { @"categories.0.term", kGDataCategorySpreadsheetTable },
+    { @"title", @"Table of Doom" },
+    { @"authors.0.email", @"fredflintstone@example.com" },
+
+    { @"unknownAttributes.@count", @"0" },
+    { @"unknownChildren.@count", @"0" },
+
+    // entry paths
+    { @"entries.0.content.sourceURI", @"http://spreadsheets.google.com/feeds/RRHuSwAKiaEGw526z3DVYw/records/1" },
+    { @"entries.0.spreadsheetData.startIndex", @"4" },
+    { @"entries.0.spreadsheetData.numberOfRows", @"3" },
+    { @"entries.0.spreadsheetData.insertionMode", kGDataSpreadsheetModeInsert },
+    { @"entries.0.spreadsheetData.columns.0.name", @"Column Beta" },
+    { @"entries.0.spreadsheetData.columns.0.indexString", @"B" },
+    { @"entries.0.spreadsheetHeader.row", @"3" },
+    { @"entries.0.worksheetName", @"Sheet 1" },
+
+    { @"entries.0.unknownAttributes.@count", @"0" },
+    { @"entries.0.unknownChildren.@count", @"0" },
+
+    { @"", @"" }, // end of feed
+
+    //
+    // Record feed
+    //
+
+    // feed paths
+    { @"GDataFeedSpreadsheetRecord", @"Tests/FeedSpreadsheetRecordTest1.xml" },
+    { @"identifier", @"http://spreadsheets.google.com/feeds/RRHuSwAKiaEGw526z3DVYw/records/1" },
+    { @"categories.0.scheme", kGDataCategoryScheme },
+    { @"categories.0.term", kGDataCategorySpreadsheetRecord },
+    { @"title", @"Records of Doom" },
+    { @"authors.0.email", @"fredflintstone@example.com" },
+
+    { @"unknownAttributes.@count", @"0" },
+    { @"unknownChildren.@count", @"0" },
+
+    // entry paths
+    { @"entries.0.content", @"Column Beta: clouds, Column Alpha: mars" },
+    { @"entries.0.editLink.href", @"http://spreadsheets.google.com/feeds/RRHuSwAKiaEGw526z3DVYw/records/1/cn6ca" },
+    { @"entries.0.fields.0.name", @"Column Beta" },
+    { @"entries.0.fields.0.indexString", @"B" },
+    { @"entries.0.fields.0.value", @"clouds" },
+    { @"entries.0.fields.0.formula", @"3+something" },
+
+    { @"entries.0.unknownAttributes.@count", @"0" },
+    { @"entries.0.unknownChildren.@count", @"0" },
+
+    { @"", @"" }, // end of feed
+
     { nil, nil } // end of test array
   };
-  
+
+  [self runTests:tests];
+}
+
+- (void)testAnalyticsFeeds {
+
+  TestKeyPathValues tests[] =
+  {
+    //
+    // Account feed
+    //
+    { @"GDataFeedAnalyticsAccount/2.0", @"Tests/FeedAnalyticsAccountTest1.xml" },
+
+    // GDataFeedAnalyticsAccount paths
+    { @"authors.0.name", @"Google Analytics" },
+    { @"title", @"Profile list for fredflintstone@example.com" },
+
+    // GDataEntryAnalyticsAccount paths
+    { @"entries.0.tableID", @"ga:7966084" },
+    { @"entries.0.analyticsProperties.0.name", @"ga:accountId" },
+    { @"entries.0.analyticsProperties.0.stringValue", @"8925159" },
+    { @"entries.0.analyticsProperties.1.name", @"ga:accountName" },
+    { @"entries.0.analyticsProperties.1.stringValue", @"example" },
+
+    { @"", @"" }, // end of feed
+
+    //
+    // Data feed
+    //
+    { @"GDataFeedAnalyticsData/2.0", @"Tests/FeedAnalyticsDataTest1.xml" },
+
+    // GDataFeedAnalyticsData paths
+    { @"authors.0.name", @"Google Analytics" },
+    { @"title", @"Google Analytics Data for Profile 7966084" },
+    { @"startDateString", @"2009-05-18" },
+    { @"endDateString", @"2009-05-20" },
+    { @"aggregateGroup.metrics.0.confidenceInterval", @"0" },
+    { @"aggregateGroup.metrics.0.name", @"ga:pageviews" },
+    { @"aggregateGroup.metrics.0.type", kGDataMetricTypeInteger },
+    { @"aggregateGroup.metrics.0.stringValue", @"12" },
+    { @"aggregateGroup.metrics.0.doubleValue", @"12" },
+    { @"dataSources.0.tableID", @"ga:7966084" },
+    { @"dataSources.0.tableName", @"www.example.net" },
+    { @"dataSources.0.analyticsProperties.0.name", @"ga:profileId" },
+    { @"dataSources.0.analyticsProperties.0.stringValue", @"7966084" },
+    { @"dataSources.0.analyticsPropertyWithNameAccountName.stringValue", @"example" },
+
+    // GDataEntryAnalyticsData paths
+    { @"entries.0.title", @"ga:country=United States" },
+    { @"entries.0.dimensions.0.name", @"ga:country" },
+    { @"entries.0.dimensions.0.stringValue", @"United States" },
+    { @"entries.0.dimensionWithNameCountry.stringValue", @"United States" },
+    { @"entries.0.metrics.0.confidenceInterval", @"5.1" },
+    { @"entries.0.metrics.0.name", @"ga:pageviews" },
+    { @"entries.0.metrics.0.type", kGDataMetricTypeInteger },
+    { @"entries.0.metrics.0.stringValue", @"37" },
+    { @"entries.0.metrics.0.doubleValue", @"37" },
+    { @"entries.0.metricWithNamePageviews.stringValue", @"37" },
+
+    { @"", @"" }, // end of feed
+
+    { nil, nil } // end of test array
+  };
+
   [self runTests:tests];
 }
 
@@ -900,7 +1161,7 @@
     //
     // Feed of an album's photos
     //
-    { @"GDataFeedPhotoAlbum", @"Tests/FeedPhotosAlbumPhoto1.xml" },
+    { @"GDataFeedPhotoAlbum/1.0", @"Tests/FeedPhotosAlbumPhoto1.xml" },
 
     // GDataFeedPhotoAlbum - feed paths
     { @"GPhotoID", @"5067143575034336993" },
@@ -973,12 +1234,12 @@
     { @"entries.0.editMediaLink.href", @"contains:5067143579329304306" },
     { @"entries.0.editMediaLink.type", @"image/jpeg" },
     { @"entries.0.alternateLink.href", @"contains:photo#5067143579329304306" },
-    { @"entries.0.alternateLink.type", @"text/html" },
+    { @"entries.0.alternateLink.type", kGDataLinkTypeHTML },
     { @"entries.0.HTMLLink.href", @"contains:photo#5067143579329304306" },
     { @"entries.0.selfLink.href", @"contains:photoid/5067143579329304306" },
-    { @"entries.0.selfLink.type", @"application/atom+xml" },
+    { @"entries.0.selfLink.type", kGDataLinkTypeAtom },
     { @"entries.0.feedLink.href", @"contains:photoid/5067143579329304306" },
-    { @"entries.0.feedLink.type", @"application/atom+xml" },
+    { @"entries.0.feedLink.type", kGDataLinkTypeAtom },
 
     { @"entries.0.unknownAttributes.@count", @"0" },
     { @"entries.0.unknownChildren.@count", @"0" },
@@ -988,7 +1249,7 @@
     //
     // Feed of a photo's comments
     //
-    { @"GDataFeedPhoto", @"Tests/FeedPhotosPhotoComment1.xml" },
+    { @"GDataFeedPhoto/1.0", @"Tests/FeedPhotosPhotoComment1.xml" },
 
     // GDataFeedPhoto - feed paths
     { @"generator.URI", @"http://photos.google.com/" },
@@ -1085,7 +1346,27 @@
     { @"entries.0.unknownChildren.@count", @"0" },
     
     { @"", @"" }, // end of feed
-      
+
+    //
+    // Feed of search results
+    //
+
+    // feed paths
+    { @"GDataFeedPhoto/2.0", @"Tests/FeedPhotosSearch1.xml" },
+    { @"title", @"Search Results" },
+
+    // entry paths
+    { @"entries.0.title", @"Leangi_Pima_Shetland_Sheepdog_puppies_f2_3d_4.jpg" },
+    { @"entries.0.GPhotoID", @"5310251879415742162" },
+    { @"entries.0.albumID", @"5310242183362606433" },
+    { @"entries.0.albumTitle", @"Shetland Sheepdog - B-litter - Belinda Mali Zmaj & Marvithall Sherwood" },
+    { @"entries.0.albumDescription", @"Leangi Pima Shetland Sheepdog puppies" },
+    { @"entries.0.location", @"Belgrade, Serbia, Leangi Pima kennel" },
+    { @"entries.0.snippet", @"... <b>puppies</b> ..." },
+    { @"entries.0.snippetType", kGDataPhotoSnippetTypePhotoTags },
+    { @"entries.0.truncated", @"0" },
+    { @"", @"" }, // end of feed
+
     { nil, nil } // end of test array
   };
   
@@ -1095,16 +1376,16 @@
 - (void)testWebmasterToolsFeeds {
   
   TestKeyPathValues tests[] =
-  { 
+  {
     //
     // Feed of a user's sites
     //
     { @"GDataFeedSite", @"Tests/FeedWebmasterToolsSite1.xml" },
-    
+
     { @"identifier", @"http://www.google.com/webmasters/tools/feeds/sites" },
-    
+
     // GDataEntrySite methods
-    
+
     { @"entries.0.categories.0.term", kGDataCategorySiteInfo },
     { @"entries.0.isIndexed", @"1" },
     { @"entries.0.crawledDate.date.timeIntervalSince1970", @"1206358560" },
@@ -1118,25 +1399,29 @@
     { @"entries.0.verificationMethodInUse.value", @"google28a5eb30440fabf0.html" },
     { @"entries.0.verificationEntryLink.href", @"contains:/http%3A%2F%2Fwww.domain.com%2F/verification" },
     { @"entries.0.sitemapsEntryLink.href", @"contains:/http%3A%2F%2Fwww.domain.com%2F/sitemaps" },
+    { @"entries.0.geoLocation", @"US" },
+    { @"entries.0.preferredDomain", kGDataSiteCrawlPreferredDomainNone },
+    { @"entries.0.crawlRate", kGDataSiteCrawlRateNormal },
+    { @"entries.0.hasEnhancedImageSearch", @"1" },
     { @"entries.0.entryLinks.@count", @"2" },
-    
+
     { @"", @"" }, // end of feed
-    
+
     //
     // Feed of a site's sitemaps
     //
     { @"GDataFeedSitemap", @"Tests/FeedWebmasterToolsSitemap1.xml" },
-    
+
     { @"identifier", @"contains:http%3A%2F%2Fwww.domain.com%2F/sitemaps" },
-    
+
     { @"sitemapNews.publicationLabels.@count", @"3" },
     { @"sitemapNews.publicationLabels.2.stringValue", @"a third publabel" },
-    
+
     { @"sitemapMobile.markupLanguages.@count", @"3" },
     { @"sitemapMobile.markupLanguages.2.stringValue", @"cHTML" },
-    
+
     // GDataEntrySitemap methods
-    
+
     { @"entries.0.categories.0.term", kGDataCategorySitemapRegular },
     { @"entries.0.sitemapType", @"WEB" },
     { @"entries.0.sitemapStatus", @"Pending" },
@@ -1148,15 +1433,68 @@
     { @"entries.1.sitemapStatus", @"StatusValue" },
     { @"entries.1.lastDownloadDate.date.timeIntervalSince1970", @"1163878052" },
     { @"entries.1.sitemapURLCount", @"102" },
-    
+
     { @"entries.2.categories.0.term", kGDataCategorySitemapNews },
     { @"entries.2.publicationLabel", @"pubLabelValue" },
     { @"entries.2.sitemapStatus", @"AnotherStatusValue" },
     { @"entries.2.lastDownloadDate.date.timeIntervalSince1970", @"1163878052" },
     { @"entries.2.sitemapURLCount", @"102" },
-    
+
     { @"", @"" }, // end of feed
-    
+
+    //
+    // Feed of a site's crawl issues
+    //
+    { @"GDataFeedSiteCrawlIssue", @"Tests/FeedWebmasterToolsCrawlIssues1.xml" },
+
+    { @"identifier", @"contains:http%3A%2F%2Fwww.example.net%2F/crawlissues" },
+    { @"title", @"Crawl Issues" },
+
+    // GDataEntrySiteCrawlIssue methods
+    { @"entries.0.crawlType", kGDataSiteCrawlTypeWeb },
+    { @"entries.0.detectedDate.RFC3339String", @"2008-11-17T01:06:10Z" },
+    { @"entries.0.detail", @"4xx Error" },
+    { @"entries.0.issueType", @"http-error" },
+    { @"entries.0.issueURLString", @"http://example.com/dir/" },
+    { @"entries.0.issueLinkedFromURLStrings.0", @"http://example.com" },
+    { @"entries.0.issueLinkedFromURLStrings.0.className", @"NSCFString" },
+
+    { @"", @"" }, // end of feed
+
+    //
+    // Feed of a site's messages
+    //
+    { @"GDataFeedSiteMessage", @"Tests/FeedWebmasterToolsMessages1.xml" },
+    { @"title", @"Messages" },
+
+    // GDataEntrySiteNessage methods
+    { @"entries.0.body", @"Crawl rate change has been requested." },
+    { @"entries.0.messageDate.RFC3339String", @"2008-09-18T20:49:57Z" },
+    { @"entries.0.language", @"en" },
+    { @"entries.0.read", @"1" },
+    { @"entries.0.subject", @"hasPrefix:Crawl rate change request" },
+
+    { @"", @"" }, // end of feed
+
+    //
+    // Feed of a site's keywords
+    //
+    { @"GDataFeedSiteKeyword", @"Tests/FeedWebmasterToolsKeywords1.xml" },
+
+    { @"identifier", @"contains:http%3A%2F%2Fwww.example.net%2F/keywords" },
+
+    { @"keywords.@count", @"4" },
+    { @"keywordsWithInternalSource.@count", @"1" },
+    { @"keywords.0.stringValue", @"example net" },
+    { @"keywords.0.source", kGDataSiteKeywordExternal },
+    { @"keywordsWithInternalSource.0.stringValue", @"example" },
+    { @"keywordsWithInternalSource.0.source", kGDataSiteKeywordInternal },
+
+    // the keywords feed has no entries
+    { @"entries", nil },
+
+    { @"", @"" }, // end of feed
+
     { nil, nil } // end of test array
   };
   
@@ -1407,6 +1745,8 @@
     { @"entries.0.publicationState.reasonCode", @"32" },
     { @"entries.0.publicationState.helpURLString", @"http://www.youtube.com/" },
     { @"entries.0.publicationState.errorDescription", @"incorrect format" },
+    { @"entries.0.captionTracksLink.href", @"contains:GppRTi2JGQ8/captions" },
+    { @"entries.0.videoResponsesLink.href", @"contains:Dl643JFJWig/responses" },
 
     { @"unknownAttributes.@count", @"0" },
     { @"unknownChildren.@count", @"0" },
@@ -1517,6 +1857,25 @@
     { @"", @"" }, // end of feed
 
     //
+    // caption track feed
+    //
+    { @"GDataFeedYouTubeCaptionTrack", @"Tests/FeedYouTubeCaptionTracks1.xml" },
+
+    { @"categories.0.term", kGDataCategoryYouTubeCaptionTrack },
+
+    { @"entries.0.className", @"GDataEntryYouTubeCaptionTrack" },
+    { @"entries.0.title", @"captrack name" },
+    { @"entries.0.categories.0.term", kGDataCategoryYouTubeCaptionTrack },
+
+    { @"entries.0.publicationState.state", @"failed" },
+    { @"entries.0.publicationState.reasonCode", @"invalidFormat" },
+
+    { @"entries.0.unknownAttributes.@count", @"0" },
+    { @"entries.0.unknownChildren.@count", @"0" },
+
+    { @"", @"" }, // end of feed
+
+    //
     // subscription feed
     //
     { @"GDataFeedYouTubeSubscription/2.0", @"Tests/FeedYouTubeSubscriptions1.xml" },
@@ -1565,6 +1924,7 @@
     { @"entries.0.mediaGroup.mediaTitle", @"Authors@Google: Michael Pollan" },
     { @"entries.0.mediaGroup.mediaDescription", @"Michael Pollan visits Google" },
     { @"entries.0.mediaGroup.videoID", @"I-t-7lTw6mA" },
+    { @"entries.0.mediaGroup.aspectRatio", @"widescreen" },
     { @"entries.0.mediaGroup.uploadedDate.date.timeIntervalSince1970", @"1204847352" },
     { @"entries.0.mediaGroup.mediaCredits.0.role", @"uploader" },
     { @"entries.0.mediaGroup.mediaCredits.0.scheme", @"urn:youtube" },
@@ -1575,6 +1935,8 @@
     { @"entries.0.mediaGroup.mediaContents.0.type", @"application/x-shockwave-flash" },
     { @"entries.0.mediaGroup.mediaContents.0.URLString", @"http://www.youtube.com/v/I-t-7lTw6mA&f=gdata_user_favorites" },
     { @"entries.0.mediaGroup.mediaContents.0.youTubeFormatNumber", @"5" },
+    { @"entries.0.mediaGroup.highQualityThumbnail.URLString", @"http://i.ytimg.com/vi/I-t-7lTw6mA/0.jpg" },
+    { @"entries.0.mediaGroup.mediaContentWithFormatNumber1.type", @"video/3gpp" },
 
     { @"entries.0.unknownAttributes.@count", @"0" },
     { @"entries.0.unknownChildren.@count", @"0" },
@@ -1644,6 +2006,131 @@
     { @"entries.0.identifier", @"https://www.google.com/h9/feeds/profile/ui/wwYexvc_W.Q/wXQ4TZbjHAE" },
     { @"entries.0.continuityOfCareRecord.childXMLElements.0.XMLString", @"<CCRDocumentObjectID>wXQ4TZbjHAE</CCRDocumentObjectID>" },
     { @"entries.0.profileMetaData.childXMLElements.0.XMLString", @"<UserComment src=\"IRI\" type=\"text\"></UserComment>" },
+    { @"entries.0.CCRCategory.term", @"MEDICATION" },
+    { @"entries.0.healthItemCategory.term", @"A-200 Lice Treatment" },
+
+    { @"entries.0.unknownAttributes.@count", @"0" },
+    { @"entries.0.unknownChildren.@count", @"0" },
+
+    { @"", @"" }, // end of feed
+
+    { nil, nil } // end of test array
+  };
+
+  [self runTests:tests];
+}
+
+- (void)testMapsFeed {
+
+  TestKeyPathValues tests[] =
+  {
+    //
+    // Map Feature Feed
+    //
+
+    { @"GDataFeedMapFeature/2.0", @"Tests/FeedMapFeaturesTest1.xml" },
+
+    // feature feed elements
+    { @"title", @"Kirkland Office" },
+    { @"identifier", @"http://maps.google.com/maps/feeds/features/2063624404192119555/0046a899354a8585d4d" },
+
+    { @"unknownAttributes.@count", @"0" },
+    { @"unknownChildren.@count", @"0" },
+
+    // feature entry elements
+    { @"entries.0.editedDate.RFC3339String", @"2009-05-23T02:10:51Z" },
+    { @"entries.0.categories.0.term", kGDataCategoryMapFeature },
+
+    { @"entries.0.KMLValues.@count", @"1" },
+    { @"entries.0.KMLValues.0.name", @"Placemark" },
+
+    { @"entries.0.postalAddress.city", @"Anytown" },
+
+    { @"entries.0.customProperties.@count", @"2" },
+    { @"entries.0.customProperties.0.name", @"distance" },
+    { @"entries.0.customProperties.0.unit", @"meters" },
+    { @"entries.0.customProperties.0.value", @"36" },
+    { @"entries.0.customPropertyWithHeightName.value", @"10.2" },
+
+    { @"entries.0.unknownAttributes.@count", @"0" },
+    { @"entries.0.unknownChildren.@count", @"0" },
+
+    { @"", @"" }, // end of feed
+
+    { nil, nil } // end of test array
+  };
+
+  [self runTests:tests];
+}
+
+- (void)testBlogFeeds {
+
+  TestKeyPathValues tests[] =
+  {
+    //
+    // Blog feed
+    //
+
+    { @"GDataFeedBlog/2.0", @"Tests/FeedBlogTest1.xml" },
+
+    // feed elements
+    { @"title", @"TestAccount's Blogs" },
+
+    { @"unknownAttributes.@count", @"0" },
+    { @"unknownChildren.@count", @"0" },
+
+    // entry elements - no extensions, so just test convenience accessors
+    { @"entries.0.templateLink.href", @"http://www.blogger.com/feeds/145278007186576769/template" },
+    { @"entries.0.settingsLink.href", @"http://www.blogger.com/feeds/145278007186576769/settings" },
+
+    { @"entries.0.unknownAttributes.@count", @"0" },
+    { @"entries.0.unknownChildren.@count", @"0" },
+
+    { @"", @"" }, // end of feed
+
+    //
+    // Blog post feed
+    //
+
+    { @"GDataFeedBlogPost/2.0", @"Tests/FeedBlogPostTest1.xml" },
+
+    // feed elements
+    { @"title", @"Test Posts" },
+
+    { @"unknownAttributes.@count", @"0" },
+    { @"unknownChildren.@count", @"0" },
+
+    // entry elements
+    { @"entries.0.atomPubControl.isDraft", @"1" },
+    { @"entries.0.identifier", @"tag:blogger.com,1999:blog-1452780071865767697.post-6317479243618470383" },
+    { @"entries.0.total", @"3" },
+    { @"entries.0.thumbnail.URLString", @"contains:Hippo.jpg" },
+    { @"entries.0.repliesHTMLLink.href", @"https://www.blogger.com/comment.g?blogID=1452780071865767697&postID=6317479243618470383" },
+    { @"entries.0.repliesAtomLink.href", @"http://testaccount.blogspot.com/feeds/6317479243618470383/comments/default" },
+    { @"entries.0.enclosureLink.href", @"http://example.net/file.txt" },
+
+    { @"entries.0.unknownAttributes.@count", @"0" },
+    { @"entries.0.unknownChildren.@count", @"0" },
+
+    { @"", @"" }, // end of feed
+
+    //
+    // Blog comments feed
+    //
+
+    { @"GDataFeedBlogComment/2.0", @"Tests/FeedBlogCommentsTest1.xml" },
+
+    // feed elements
+    { @"title", @"Comments on Post" },
+
+    { @"unknownAttributes.@count", @"0" },
+    { @"unknownChildren.@count", @"0" },
+
+    // entry elements
+    { @"entries.0.inReplyTo.href", @"http://testaccount.blogspot.com/2009/06/post-created-2009-06-02-161600-0700.html" },
+    { @"entries.0.inReplyTo.ref", @"tag:blogger.com,1999:blog-1452780071865767697.post-1015986829942539734" },
+    { @"entries.0.inReplyTo.source", @"http://testaccount.blogspot.com/feeds/posts/default/1015986829942539734" },
+    { @"entries.0.inReplyTo.type", kGDataLinkTypeHTML },
 
     { @"entries.0.unknownAttributes.@count", @"0" },
     { @"entries.0.unknownChildren.@count", @"0" },
@@ -1766,7 +2253,6 @@
     { @"", @"" }, // end of feed
 
     { nil, nil } // end of test array
-
   };
 
   [self runTests:tests];
@@ -1799,4 +2285,80 @@
   STAssertEqualObjects(titleType, @"text", @"testing an attribute in a detached entry");
 }
 
+@end
+
+///////////////////////////////////////////////////////////////////////////
+//
+// categories to test helper methods that require arguments
+//
+
+//
+// YouTube
+//
+
+@interface GDataYouTubeMediaGroup (TestHelperMethods)
+@end
+
+@implementation GDataYouTubeMediaGroup (TestHelperMethods)
+- (GDataMediaContent *)mediaContentWithFormatNumber1 {
+  return [self mediaContentWithFormatNumber:kGDataYouTubeMediaContentFormatRTSPStream];
+}
+@end
+
+//
+// analytics
+//
+
+@interface GDataAnalyticsDataSource (TestHelperMethods)
+- (GDataAnalyticsProperty *)analyticsPropertyWithNameAccountName;
+@end
+
+@implementation GDataAnalyticsDataSource (TestHelperMethods)
+- (GDataAnalyticsProperty *)analyticsPropertyWithNameAccountName {
+  return [self analyticsPropertyWithName:@"ga:accountName"];
+}
+@end
+
+
+@interface GDataEntryAnalyticsData (TestHelperMethods)
+- (GDataAnalyticsDimension *)dimensionWithNameCountry;
+- (GDataAnalyticsMetric *)metricWithNamePageviews;
+@end
+
+@implementation GDataEntryAnalyticsData (TestHelperMethods)
+- (GDataAnalyticsDimension *)dimensionWithNameCountry {
+  return [self dimensionWithName:@"ga:country"];
+}
+
+- (GDataAnalyticsMetric *)metricWithNamePageviews {
+  return [self metricWithName:@"ga:pageviews"];
+}
+@end
+
+//
+// maps
+//
+
+@interface GDataEntryMapFeature (TestHelperMethods)
+- (GDataCustomProperty *)customPropertyWithHeightName;
+@end
+
+@implementation GDataEntryMapFeature (TestHelperMethods)
+- (GDataCustomProperty *)customPropertyWithHeightName {
+  return [self customPropertyWithName:@"height"];
+}
+@end
+
+//
+// webmaster tools
+//
+
+@interface GDataFeedSiteKeyword (TestHelperMethods)
+- (NSArray *)keywordsWithInternalSource;
+@end
+
+@implementation GDataFeedSiteKeyword (TestHelperMethods)
+- (NSArray *)keywordsWithInternalSource {
+  return [self keywordsWithSource:kGDataSiteKeywordInternal];
+}
 @end

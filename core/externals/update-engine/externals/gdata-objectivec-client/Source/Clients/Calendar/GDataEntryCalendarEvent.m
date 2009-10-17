@@ -17,6 +17,8 @@
 //  GDataEntryCalendarEvent.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_CALENDAR_SERVICE
+
 #define GDATACALENDAREVENT_DEFINE_GLOBALS 1
 
 #import "GDataWebContent.h"
@@ -28,16 +30,25 @@
 // extensions
 
 // CalendarEventEntry extensions
+@interface GDataSendEventNotifications : GDataBoolValueConstruct <GDataExtension>
+@end
+
 @implementation GDataSendEventNotifications 
 + (NSString *)extensionElementURI       { return kGDataNamespaceGCal; }
 + (NSString *)extensionElementPrefix    { return kGDataNamespaceGCalPrefix; }
 + (NSString *)extensionElementLocalName { return @"sendEventNotifications"; }
 @end
 
+@interface GDataPrivateCopyProperty : GDataBoolValueConstruct <GDataExtension>
+@end
+
 @implementation GDataPrivateCopyProperty 
 + (NSString *)extensionElementURI       { return kGDataNamespaceGCal; }
 + (NSString *)extensionElementPrefix    { return kGDataNamespaceGCalPrefix; }
 + (NSString *)extensionElementLocalName { return @"privateCopy"; }
+@end
+
+@interface GDataQuickAddProperty : GDataBoolValueConstruct <GDataExtension>
 @end
 
 @implementation GDataQuickAddProperty
@@ -52,10 +63,22 @@
 + (NSString *)extensionElementLocalName { return @"resource"; }
 @end
 
+@interface GDataSyncEventProperty : GDataBoolValueConstruct <GDataExtension>
+// sync scenario, where iCal UID and sequence number are honored during
+// insert and update
+@end
+
 @implementation GDataSyncEventProperty 
 + (NSString *)extensionElementURI       { return kGDataNamespaceGCal; }
 + (NSString *)extensionElementPrefix    { return kGDataNamespaceGCalPrefix; }
 + (NSString *)extensionElementLocalName { return @"syncEvent"; }
+@end
+
+@interface GDataSequenceProperty : GDataValueConstruct <GDataExtension>
+// GData schema extension describing sequence number of an event.
+// The sequence number is a non-negative integer and is described in
+// section 4.8.7.4 of RFC 2445.
+// Currently this is only a read-only entry.
 @end
 
 @implementation GDataSequenceProperty 
@@ -64,10 +87,20 @@
 + (NSString *)extensionElementLocalName { return @"sequence"; }
 @end
 
+@interface GDataICalUIDProperty : GDataValueConstruct <GDataExtension>
+// GData schema extension describing the UID in the ical export of the event.
+// The value can be an arbitrary string and is described in section 4.8.4.7
+// of RFC 2445. This value is different from the value of the event ID.
+// Currently a read-only entry.
+@end
+
 @implementation GDataICalUIDProperty 
 + (NSString *)extensionElementURI       { return kGDataNamespaceGCal; }
 + (NSString *)extensionElementPrefix    { return kGDataNamespaceGCalPrefix; }
 + (NSString *)extensionElementLocalName { return @"uid"; }
+@end
+
+@interface GDataGuestsCanModifyProperty : GDataBoolValueConstruct <GDataExtension>
 @end
 
 @implementation GDataGuestsCanModifyProperty
@@ -76,10 +109,16 @@
 + (NSString *)extensionElementLocalName { return @"guestsCanModify"; }
 @end
 
+@interface GDataGuestsCanInviteOthersProperty : GDataBoolValueConstruct <GDataExtension>
+@end
+
 @implementation GDataGuestsCanInviteOthersProperty
 + (NSString *)extensionElementURI       { return kGDataNamespaceGCal; }
 + (NSString *)extensionElementPrefix    { return kGDataNamespaceGCalPrefix; }
 + (NSString *)extensionElementLocalName { return @"guestsCanInviteOthers"; }
+@end
+
+@interface GDataGuestsCanSeeGuestsProperty : GDataBoolValueConstruct <GDataExtension>
 @end
 
 @implementation GDataGuestsCanSeeGuestsProperty
@@ -88,10 +127,26 @@
 + (NSString *)extensionElementLocalName { return @"guestsCanSeeGuests"; }
 @end
 
+@interface GDataAnyoneCanAddSelfProperty : GDataBoolValueConstruct <GDataExtension>
+@end
+
 @implementation GDataAnyoneCanAddSelfProperty
 + (NSString *)extensionElementURI       { return kGDataNamespaceGCal; }
 + (NSString *)extensionElementPrefix    { return kGDataNamespaceGCalPrefix; }
 + (NSString *)extensionElementLocalName { return @"anyoneCanAddSelf"; }
+@end
+
+@interface GDataSuppressReplyNotificationsProperty : GDataValueConstruct <GDataExtension>
+@end
+
+@implementation GDataSuppressReplyNotificationsProperty
++ (NSString *)extensionElementURI       { return kGDataNamespaceGCal; }
++ (NSString *)extensionElementPrefix    { return kGDataNamespaceGCalPrefix; }
++ (NSString *)extensionElementLocalName { return @"suppressReplyNotifications"; }
+
+- (NSString *)attributeName {
+  return @"methods";
+}
 @end
 
 // CalendarEventEntry categories for extensions
@@ -171,6 +226,7 @@
    [GDataGuestsCanInviteOthersProperty class],
    [GDataGuestsCanSeeGuestsProperty class],
    [GDataAnyoneCanAddSelfProperty class],
+   [GDataSuppressReplyNotificationsProperty class],
    nil];
   
   [self addExtensionDeclarationForParentClass:[GDataWho class]
@@ -186,18 +242,19 @@
 - (NSMutableArray *)itemsForDescription {
   
   static struct GDataDescriptionRecord descRecs[] = {
-    { @"sendEventNotifications", @"shouldSendEventNotifications", kGDataDescBooleanPresent },
-    { @"privateCopy",            @"isPrivateCopy",                kGDataDescBooleanPresent },
-    { @"quickAdd",               @"isQuickAdd",                   kGDataDescBooleanPresent },
-    { @"syncEvent",              @"isSyncEvent",                  kGDataDescBooleanPresent },
-    { @"iCalUID",                @"iCalUID",                      kGDataDescValueLabeled   },
-    { @"sequenceNumber",         @"sequenceNumber",               kGDataDescValueLabeled   },
-    { @"webContent",             @"webContent.URLString",         kGDataDescValueLabeled   },
-    { @"guestsCanModify",        @"canGuestsModify",              kGDataDescBooleanPresent },
-    { @"guestsCanInvite",        @"canGuestsInviteOthers",        kGDataDescBooleanPresent },
-    { @"guestsCanSeeGuests",     @"canGuestsSeeGuests",           kGDataDescBooleanPresent },
-    { @"anyoneCanAddSelf",       @"canAnyoneAddSelf",             kGDataDescBooleanPresent },
-    { @"geo",                    @"geoLocation.coordinateString", kGDataDescValueLabeled   },
+    { @"sendEventNotifications", @"shouldSendEventNotifications",   kGDataDescBooleanPresent },
+    { @"privateCopy",            @"isPrivateCopy",                  kGDataDescBooleanPresent },
+    { @"quickAdd",               @"isQuickAdd",                     kGDataDescBooleanPresent },
+    { @"syncEvent",              @"isSyncEvent",                    kGDataDescBooleanPresent },
+    { @"iCalUID",                @"iCalUID",                        kGDataDescValueLabeled   },
+    { @"sequenceNumber",         @"sequenceNumber",                 kGDataDescValueLabeled   },
+    { @"webContent",             @"webContent.URLString",           kGDataDescValueLabeled   },
+    { @"guestsCanModify",        @"canGuestsModify",                kGDataDescBooleanPresent },
+    { @"guestsCanInvite",        @"canGuestsInviteOthers",          kGDataDescBooleanPresent },
+    { @"guestsCanSeeGuests",     @"canGuestsSeeGuests",             kGDataDescBooleanPresent },
+    { @"anyoneCanAddSelf",       @"canAnyoneAddSelf",               kGDataDescBooleanPresent },
+    { @"suppressReplyTypes",     @"suppressReplyNotificationTypes", kGDataDescValueLabeled   },
+    { @"geo",                    @"geoLocation.coordinateString",   kGDataDescValueLabeled   },
     { nil, nil, 0 }
   };
   
@@ -239,6 +296,20 @@
     obj = nil; // removes the extension
   }
   [self setObject:obj forExtensionClass:[GDataPrivateCopyProperty class]];
+}
+
+- (NSString *)suppressReplyNotificationTypes {
+  GDataSuppressReplyNotificationsProperty *obj;
+
+  obj = [self objectForExtensionClass:[GDataSuppressReplyNotificationsProperty class]];
+  return [obj stringValue];
+}
+
+- (void)setSuppressReplyNotificationTypes:(NSString *)str {
+  GDataSuppressReplyNotificationsProperty *obj;
+
+  obj = [GDataSuppressReplyNotificationsProperty valueWithString:str];
+  [self setObject:obj forExtensionClass:[GDataSuppressReplyNotificationsProperty class]];
 }
 
 - (BOOL)isQuickAdd {
@@ -395,13 +466,8 @@
 }
 
 - (GDataLink *)webContentLink {
-  NSArray *links = [self links];
-
-  GDataLink *webContentLink;
-  webContentLink = [GDataLink linkWithRelAttributeValue:kGDataLinkRelWebContent
-                                              fromLinks:links];
-
-  return webContentLink;
+  GDataLink *link = [self linkWithRelAttributeValue:kGDataLinkRelWebContent];
+  return link;
 }
 
 - (GDataWebContent *)webContent {
@@ -412,3 +478,5 @@
 
 // to set web content, create a GDataLink and call addWebContent on it
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_CALENDAR_SERVICE

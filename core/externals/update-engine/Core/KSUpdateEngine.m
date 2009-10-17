@@ -38,6 +38,11 @@
 // do the real work.
 - (void)triggerUpdateForTickets:(NSArray *)tickets;
 
+// Builds a new |stats_| dictionary, which has a mapping between a productID
+// and the dictionary of stats provided by the delegate (assuming the delegate
+// has implemented -engine:statsForProductID:).
+- (void)updateStatsForTickets:(NSArray *)tickets;
+
 @end
 
 // The user-defined default ticket store path. If this value is nil, then the
@@ -83,8 +88,8 @@ static NSString *gDefaultTicketStorePath = nil;
       [self release];
       return nil;
     }
+    params_ = [[NSDictionary alloc] init];
   }
-  params_ = [[NSDictionary alloc] init];
   return self;
 }
 
@@ -93,6 +98,7 @@ static NSString *gDefaultTicketStorePath = nil;
   [store_ release];
   [processor_ setDelegate:nil];
   [processor_ release];
+  [stats_ release];
   [super dealloc];
 }
 
@@ -155,6 +161,10 @@ static NSString *gDefaultTicketStorePath = nil;
 - (void)setParams:(NSDictionary *)params {
   [params_ autorelease];
   params_ = [params retain];
+}
+
+- (NSDictionary *)params {
+  return params_;
 }
 
 - (KSStatsCollection *)statsCollection {
@@ -323,18 +333,47 @@ static NSString *gDefaultTicketStorePath = nil;
 
 @implementation KSUpdateEngine (PrivateMethods)
 
+- (void)updateStatsForTickets:(NSArray *)tickets {
+  // Start over with a fresh stats directory for this update.
+  [stats_ release];
+  stats_ = [[NSMutableDictionary alloc] init];
+
+  @try {
+    if ([delegate_ respondsToSelector:@selector(engine:statsForProductID:)]) {
+      NSEnumerator *ticketEnumerator = [tickets objectEnumerator];
+      KSTicket *ticket;
+      while ((ticket = [ticketEnumerator nextObject])) {
+        NSDictionary *stats =
+          [delegate_ engine:self statsForProductID:[ticket productID]];
+        if (stats) {
+          [stats_ setObject:stats forKey:[ticket productID]];
+        }
+      }
+    }
+  }
+  @catch (id ex) {
+    GTMLoggerError(@"Caught exception talking to delegate: %@", ex);
+  }
+}
+
 - (void)triggerUpdateForTickets:(NSArray *)tickets {
   _GTMDevAssert(processor_ != nil, @"processor must not be nil");
+
+  [self updateStatsForTickets:tickets];
 
   // Will be set to NO if any of the KSActions fail. But note that the only
   // one of these KSActions that can ever fail is the KSCheckAction.
   wasSuccessful_ = YES;
 
+  // Add the product stats to the server parameters.
+  NSMutableDictionary *params = [[params_ mutableCopy] autorelease];
+  if (stats_) [params setObject:stats_ forKey:kUpdateEngineProductStats];
+
   // Build a KSMultiAction pipeline with output flowing as indicated:
   //
   // KSCheckAction -> KSPrefetchAction -> KSSilentUpdateAction -> KSPromptAction
 
-  KSAction *check    = [KSCheckAction actionWithTickets:tickets params:params_];
+  KSAction *check    = [KSCheckAction actionWithTickets:tickets params:params];
   KSAction *prefetch = [KSPrefetchAction actionWithEngine:self];
   KSAction *silent   = [KSSilentUpdateAction actionWithEngine:self];
   KSAction *prompt   = [KSPromptAction actionWithEngine:self];

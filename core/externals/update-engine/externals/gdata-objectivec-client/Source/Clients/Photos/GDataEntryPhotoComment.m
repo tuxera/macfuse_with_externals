@@ -17,10 +17,11 @@
 //  GDataEntryPhotoComment.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_PHOTOS_SERVICE
+
 #import "GDataEntryPhotoComment.h"
 #import "GDataPhotoElements.h"
-
-// extensions
+#import "GDataPhotoConstants.h"
 
 @implementation GDataEntryPhotoComment
 
@@ -28,7 +29,7 @@
   
   GDataEntryPhotoComment *entry = [[[GDataEntryPhotoComment alloc] init] autorelease];
 
-  [entry setNamespaces:[GDataEntryPhotoComment photoNamespaces]];
+  [entry setNamespaces:[GDataPhotoConstants photoNamespaces]];
   
   [entry setContent:[GDataEntryContent contentWithString:commentStr]];
   
@@ -95,3 +96,5 @@
 
 
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_PHOTOS_SERVICE

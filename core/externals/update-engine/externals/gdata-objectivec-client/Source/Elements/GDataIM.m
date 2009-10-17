@@ -17,6 +17,8 @@
 //  GDataIM.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_CONTACTS_SERVICE
+
 #define GDATAIM_DEFINE_GLOBALS 1
 #import "GDataIM.h"
 
@@ -28,7 +30,7 @@ static NSString* const kPrimaryAttr = @"primary";
 
 @implementation GDataIM
 // IM element, as in
-//   <gd:im protocol="http://schemas.google.com/g/2005#MSN" 
+//   <gd:im protocol="http://schemas.google.com/g/2005#MSN"
 //      address="foo@bar.example.com" label="Alternate"
 //      rel="http://schemas.google.com/g/2005#other" >
 //
@@ -42,7 +44,7 @@ static NSString* const kPrimaryAttr = @"primary";
                         rel:(NSString *)rel
                       label:(NSString *)label
                     address:(NSString *)address {
-  
+
   GDataIM *obj = [[[GDataIM alloc] init] autorelease];
   [obj setProtocol:protocol];
   [obj setRel:rel];
@@ -52,22 +54,22 @@ static NSString* const kPrimaryAttr = @"primary";
 }
 
 - (void)addParseDeclarations {
-  NSArray *attrs = [NSArray arrayWithObjects: 
-                    kAddressAttr, kProtocolAttr, kLabelAttr, kRelAttr, 
+  NSArray *attrs = [NSArray arrayWithObjects:
+                    kAddressAttr, kProtocolAttr, kLabelAttr, kRelAttr,
                     kPrimaryAttr, nil];
-  
+
   [self addLocalAttributeDeclarations:attrs];
 }
 
 - (NSArray *)attributesIgnoredForEquality {
-  
+
   return [NSArray arrayWithObject:kPrimaryAttr];
 }
 
 #pragma mark -
 
 - (NSString *)label {
-  return [self stringValueForAttribute:kLabelAttr]; 
+  return [self stringValueForAttribute:kLabelAttr];
 }
 
 - (void)setLabel:(NSString *)str {
@@ -75,7 +77,7 @@ static NSString* const kPrimaryAttr = @"primary";
 }
 
 - (NSString *)rel {
-  return [self stringValueForAttribute:kRelAttr]; 
+  return [self stringValueForAttribute:kRelAttr];
 }
 
 - (void)setRel:(NSString *)str {
@@ -83,7 +85,7 @@ static NSString* const kPrimaryAttr = @"primary";
 }
 
 - (NSString *)address {
-  return [self stringValueForAttribute:kAddressAttr]; 
+  return [self stringValueForAttribute:kAddressAttr];
 }
 
 - (void)setAddress:(NSString *)str {
@@ -91,7 +93,7 @@ static NSString* const kPrimaryAttr = @"primary";
 }
 
 - (NSString *)protocol {
-  return [self stringValueForAttribute:kProtocolAttr]; 
+  return [self stringValueForAttribute:kProtocolAttr];
 }
 
 - (void)setProtocol:(NSString *)str {
@@ -99,7 +101,7 @@ static NSString* const kPrimaryAttr = @"primary";
 }
 
 - (BOOL)isPrimary {
-  return [self boolValueForAttribute:kPrimaryAttr defaultValue:NO]; 
+  return [self boolValueForAttribute:kPrimaryAttr defaultValue:NO];
 }
 
 - (void)setIsPrimary:(BOOL)flag {
@@ -107,4 +109,4 @@ static NSString* const kPrimaryAttr = @"primary";
 }
 @end
 
-
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_CONTACTS_SERVICE

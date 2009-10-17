@@ -17,6 +17,9 @@
 //  GDataServiceACL.h
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_ACLS \
+  || GDATA_INCLUDE_CALENDAR_SERVICE
+
 #import "GDataServiceGoogle.h"
 
 @class GDataEntryACL;
@@ -27,23 +30,25 @@
 
 - (GDataServiceTicket *)fetchACLFeedWithURL:(NSURL *)feedURL
                                    delegate:(id)delegate
-                          didFinishSelector:(SEL)finishedSelector
-                            didFailSelector:(SEL)failedSelector;
+                          didFinishSelector:(SEL)finishedSelector;
 
 - (GDataServiceTicket *)fetchACLEntryByInsertingEntry:(GDataEntryACL *)entryToInsert
                                            forFeedURL:(NSURL *)feedURL
                                              delegate:(id)delegate
-                                    didFinishSelector:(SEL)finishedSelector
-                                      didFailSelector:(SEL)failedSelector;
+                                    didFinishSelector:(SEL)finishedSelector;
+
+- (GDataServiceTicket *)fetchACLEntryByUpdatingEntry:(GDataEntryACL *)entryToUpdate
+                                            delegate:(id)delegate
+                                   didFinishSelector:(SEL)finishedSelector;
 
 - (GDataServiceTicket *)fetchACLEntryByUpdatingEntry:(GDataEntryACL *)entryToUpdate
                                          forEntryURL:(NSURL *)entryURL
                                             delegate:(id)delegate
-                                   didFinishSelector:(SEL)finishedSelector
-                                     didFailSelector:(SEL)failedSelector;
+                                   didFinishSelector:(SEL)finishedSelector;
 
 - (GDataServiceTicket *)deleteACLEntry:(GDataEntryACL *)entryToDelete
                               delegate:(id)delegate
-                     didFinishSelector:(SEL)finishedSelector
-                       didFailSelector:(SEL)failedSelector;
+                     didFinishSelector:(SEL)finishedSelector;
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDE || GDATA_INCLUDE_*

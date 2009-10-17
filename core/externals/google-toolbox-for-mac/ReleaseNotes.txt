@@ -7,6 +7,13 @@ Discussion group: http://groups.google.com/group/google-toolbox-for-mac
 Release ?.?.?
 Changes since 1.5.1
 
+- Added GTMNSImage+SearchCache for fetching images based on a variety of
+  specification methods (path, OSTYpe, etc)
+
+- Added GTMFadeTruncatingTextFieldCell, for eliding with a gradient
+
+- Added GTMWindowSheetController for creating and controlling tab-modal sheets.
+
 - Added GTMNSArray+Merge for merging one array into another with or without
   a custom merging function, returning a new array with the merged contents.
 
@@ -214,9 +221,9 @@ Changes since 1.5.1
 - If you are using GTMUnitTestDevLog, it also tries to capture logs from
   NSAssert.
 
-- Added GTM_FOREACH_OBJECT/GTM_FOREACH_KEY that uses NSEnumerator and
-  objectEnumerator/keyEnumerator on 10.4, but on 10.5+/iPhone uses
-  FastEnumeration.
+- Added GTM_FOREACH_OBJECT/GTM_FOREACH_KEY/GTM_FOREACH_ENUMEREE that uses 
+  NSEnumerator and objectEnumerator/keyEnumerator on 10.4, but on 10.5+/iPhone 
+  uses FastEnumeration.
 
 - GTMNSWorkspace+Running gives a variety of ways of determining the attributes
   of running processes.
@@ -266,6 +273,73 @@ Changes since 1.5.1
   scripts to try and flush out some more bugs. We have intentionally NOT turned
   on OBJC_DEBUG_FINALIZERS beacuse it spits out a lot of unnecessary false 
   positives.
+
+- Added GTMUILocalizer.m for automatically localizing nib files with strings.
+
+- Added better support for NSTabViews to GTMAppKit+UnitTesting. Previously we
+  didn't check the tabs, or recurse into the views.
+
+- Adds support for toolTips, accessibilityHelp and accessibilityDescription to
+  GTMAppKit+UnitTesting. This will break your UI tests based on the older
+  state information. 
+
+- Added support for duration to GTMLargeTypeWindow mainly to make the unittests
+  run at a decent speed.
+
+- All calls to GTMNSAppleScript+Handler execute: calls will now actually
+  execute the script on the main thread.
+  
+- Added gtm_launchedApplications to GTMNSWorkspace+Running. It is significantly
+  faster than calling [NSWorkspace launchedApplications]
+  
+- Moved GTMABAddressBook out of iPhone and into the AddressBook directory, 
+  because it now works on both the Desktop and the iPhone giving you a single
+  interface to do AddressBook work on both platforms.
+
+- Added GTMNSScanner+JSON for scanning out JSON objects and arrays. We don't
+  parse JSON as there are several other frameworks out there for doing that.
+
+- Fixed up GTMABAddressBook so that it will compile and run on Tiger as well.
+  This did mean some slight functional differences in terms of the 
+  *WithCompositeNameWithPrefix methods as they can't do diacritic or width
+  insensitive search on Tiger, but this shouldn't affect most users.
+
+- Added GTMGoogleSearch to foundation to make doing google searches easier.
+
+- Added GTMUIImage+Resize for iPhone to conveniently handle generating resized
+  UIImages while preserving aspect ratios.
+
+- Added support for passing in a context object to some of the 
+  GTMNSEnumerator+Filter routines.
+
+- Fixed up bug in GTMFileSystemKQueue where we were passing the kqueue argument
+  in incorrectly. Added appropriate tests.
+
+- Added NSMatrix to the UIState support.
+
+- Added NSMatrix and NSCell to GTMLocalizer support.
+
+- Added gtm_dictionaryWithHttpArgumentsString to NSDictionary+URLArguments.
+
+- Added GTMDebugKeyValueObserving category to NSObject. This makes debugging 
+  KVO a little easier in some cases. To turn it on, set the "GTMDebugKVO"
+  environment variable to "1". It will output a lot of data about adding and
+  removing KVO observers, and when the values are actually changed.
+
+- Added better support for NSBox to GTMAppKit+UnitTesting. Previously we
+  didn't check any box specific attributes.
+
+- Updated how GTMNSObject+UnitTesting searches for files to include the Target
+  SDK from compile time.  Also removed some of the formatting options so
+  try and make it simpler to follow.
+
+- Added GTMNSDictionary+CaseInsensitive, e.g. for use with HTTP headers.
+
+- Added GTMNSData+Hex for conversion to and from hex strings.
+
+- Added GTMNSNumber+64Bit for working with CGFloats, NSIntegers and NSUInters
+  using NSNumber on all supported SDKs.
+
 
 Release 1.5.1
 Changes since 1.5.0

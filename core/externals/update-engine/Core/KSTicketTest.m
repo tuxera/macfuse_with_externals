@@ -32,30 +32,46 @@
   KSExistenceChecker *xc = [KSExistenceChecker falseChecker];
   NSURL *url = [NSURL URLWithString:@"http://www.google.com"];
 
-  t = [KSTicket ticketWithProductID:@"{GUID}"
-                       version:@"1.1"
-              existenceChecker:xc
-                     serverURL:url];
-  STAssertNotNil(t, nil);
+  // Make sure tickets created with the convenience, and the init, are sane.
+  KSTicket *t1 = [KSTicket ticketWithProductID:@"{GUID}"
+                                       version:@"1.1"
+                              existenceChecker:xc
+                                     serverURL:url];
+  STAssertNotNil(t1, nil);
+  KSTicket *t2 = [[KSTicket alloc] initWithProductID:@"{GUID}"
+                                             version:@"1.1"
+                                    existenceChecker:xc
+                                           serverURL:url];
+  STAssertNotNil(t2, nil);
 
-  STAssertEqualObjects([t productID], @"{GUID}", nil);
-  STAssertEqualObjects([t version], @"1.1", nil);
-  STAssertEqualObjects([t existenceChecker], xc, nil);
-  STAssertEqualObjects([t serverURL], url, nil);
-  STAssertNil([t trustedTesterToken], nil);
-  STAssertTrue([[t creationDate] timeIntervalSinceNow] < 0, nil);
-  STAssertTrue(-[[t creationDate] timeIntervalSinceNow] < 0.5, nil);
-  STAssertTrue([[t description] length] > 1, nil);
+  NSArray *tickets = [NSArray arrayWithObjects:t1, t2, nil];
+  NSEnumerator *enumerator = [tickets objectEnumerator];
+  while ((t = [enumerator nextObject])) {
+    STAssertEqualObjects([t productID], @"{GUID}", nil);
+    STAssertEqualObjects([t version], @"1.1", nil);
+    STAssertEqualObjects([t existenceChecker], xc, nil);
+    STAssertEqualObjects([t serverURL], url, nil);
+    STAssertNil([t trustedTesterToken], nil);
+    STAssertNil([t tag], nil);
+    STAssertTrue([[t creationDate] timeIntervalSinceNow] < 0, nil);
+    STAssertTrue(-[[t creationDate] timeIntervalSinceNow] < 0.5, nil);
+    STAssertTrue([[t description] length] > 1, nil);
+  }
 }
 
 - (void)testTicketEquality {
   KSTicket *t1 = nil;
   KSExistenceChecker *xc = [KSExistenceChecker falseChecker];
   NSURL *url = [NSURL URLWithString:@"http://www.google.com"];
+  NSDate *cd = [NSDate dateWithTimeIntervalSinceNow:12345.67];
   t1 = [KSTicket ticketWithProductID:@"{GUID}"
-                       version:@"1.1"
-              existenceChecker:xc
-                     serverURL:url];
+                             version:@"1.1"
+                    existenceChecker:xc
+                           serverURL:url
+                  trustedTesterToken:@"ttoken"
+                        creationDate:cd
+                                 tag:@"ttaggen"];
+
   STAssertNotNil(t1, nil);
   STAssertTrue([t1 isEqual:t1], nil);
   STAssertTrue([t1 isEqualToTicket:t1], nil);
@@ -174,6 +190,79 @@
                            trustedTesterToken:@"hi_mark"];
   STAssertNotNil(v, nil);
   STAssertFalse([u isEqual:v], nil);
+
+  STAssertTrue([[v description] length] > 1, nil);
+  STAssertTrue([[v description] rangeOfString:@"hi_mark"].length > 0,
+               nil);
+}
+
+- (void)testCreateDate {
+  KSTicket *t = nil;
+  KSExistenceChecker *xc = [KSExistenceChecker trueChecker];
+  NSURL *url = [NSURL URLWithString:@"http://www.google.com"];
+  NSDate *pastDate = [NSDate dateWithTimeIntervalSinceNow:-1234567.8];
+  t = [KSTicket ticketWithProductID:@"{GUID}"
+                            version:@"1.3"
+                   existenceChecker:xc
+                          serverURL:url
+                 trustedTesterToken:nil
+                       creationDate:pastDate];
+  STAssertEqualObjects(pastDate, [t creationDate], nil);
+
+  t = [KSTicket ticketWithProductID:@"{GUID}"
+                            version:@"1.3"
+                   existenceChecker:xc
+                          serverURL:url
+                 trustedTesterToken:nil
+                       creationDate:nil];
+  NSDate *now = [NSDate date];
+  // We should get "now".  Allow a minute slop to check.
+  STAssertTrue(fabs([now timeIntervalSinceDate:[t creationDate]]) < 60, nil);
+}
+
+- (void)testTag {
+  NSURL *url = [NSURL URLWithString:@"http://www.google.com"];
+
+  // basics: make sure tag works
+  KSTicket *t = [KSTicket ticketWithProductID:@"{GUID}"
+                                      version:@"1.1"
+                             existenceChecker:[KSExistenceChecker falseChecker]
+                                    serverURL:url
+                           trustedTesterToken:nil
+                                 creationDate:nil
+                                          tag:@"hi_greg"];
+  STAssertNotNil(t, nil);
+  STAssertEqualObjects([t tag], @"hi_greg", nil);
+
+  // basics: make sure different tag works
+  KSTicket *u = [KSTicket ticketWithProductID:@"{GUID}"
+                                      version:@"1.1"
+                             existenceChecker:[KSExistenceChecker falseChecker]
+                                    serverURL:url
+                           trustedTesterToken:nil
+                                 creationDate:nil
+                                          tag:@"snork"];
+  STAssertNotNil(u, nil);
+  STAssertEqualObjects([u tag], @"snork", nil);
+
+  // hash not changed by tag
+  STAssertEquals([t hash], [u hash], nil);
+
+  // Same as 'u' but different version; make sure tag doens't mess
+  // up equality
+  KSTicket *v = [KSTicket ticketWithProductID:@"{GUID}"
+                                      version:@"1.2"
+                             existenceChecker:[KSExistenceChecker falseChecker]
+                                    serverURL:url
+                           trustedTesterToken:nil
+                                 creationDate:nil
+                                          tag:@"hi_mom"];
+  STAssertNotNil(v, nil);
+  STAssertFalse([u isEqual:v], nil);
+
+  STAssertTrue([[v description] length] > 1, nil);
+  STAssertTrue([[v description] rangeOfString:@"hi_mom"].length > 0,
+               nil);
 }
 
 @end

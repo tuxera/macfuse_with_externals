@@ -111,7 +111,6 @@
 #endif
 
   renum = [requests objectEnumerator];
-  req = nil;
   while ((req = [renum nextObject])) {
     GDataHTTPFetcher *fetcher = [fetcherFactory_ createFetcherForRequest:req];
     _GTMDevAssert(fetcher, @"no fetcher");

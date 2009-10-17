@@ -101,11 +101,16 @@
   engineFailed_ = !wasSuccess;
 }
 
+- (NSDictionary *)engine:(KSUpdateEngine *)engine
+       statsForProductID:(NSString *)productID {
+  return [NSDictionary dictionary];
+}
+
 @end  // UpdateEngineDelegate
 
 
-// Helper class to serve as a KSUpdateEngine delegate and record all the delegate
-// methods that it receives.
+// Helper class to serve as a KSUpdateEngine delegate and record all
+// the delegate methods that it receives.
 @interface CallbackTracker : NSObject {
  @private
   NSMutableArray *methods_;
@@ -167,6 +172,12 @@ shouldSilentlyUpdateProducts:(NSArray *)products {
   return products;
 }
 
+- (NSDictionary *)engine:(KSUpdateEngine *)engine
+       statsForProductID:(NSString *)productID {
+  [methods_ addObject:NSStringFromSelector(_cmd)];
+  return nil;  // Make sure a nil stat directory doesn't cause an exception.
+}
+
 @end  // CallbackTracker
 
 
@@ -179,7 +190,7 @@ shouldSilentlyUpdateProducts:(NSArray *)products {
 
 // This delegate is bad because it throws an exception on every call. We throw
 // NSStrings instead of NSExceptions to make sure we don't accidentally assume
-// that NSExceptions are the only objets that can be thrown.
+// that NSExceptions are the only objects that can be thrown.
 @interface BadDelegate : NSObject
 // Nothing
 @end
@@ -187,6 +198,11 @@ shouldSilentlyUpdateProducts:(NSArray *)products {
 @implementation BadDelegate
 
 - (void)engineStarted:(KSUpdateEngine *)engine {
+  @throw @"blah";
+}
+
+- (NSDictionary *)engine:(KSUpdateEngine *)engine
+       statsForProductID:(NSString *)productID {
   @throw @"blah";
 }
 
@@ -222,6 +238,12 @@ shouldSilentlyUpdateProducts:(NSArray *)products {
 
 - (NSArray *)engine:(KSUpdateEngine *)engine
  shouldUpdateProducts:(NSArray *)products {
+  @throw @"blah";
+}
+
+- (void)engine:(KSUpdateEngine *)engine
+       running:(KSUpdateInfo *)updateInfo
+      progress:(NSNumber *)progress {
   @throw @"blah";
 }
 
@@ -558,6 +580,11 @@ shouldSilentlyUpdateProducts:(NSArray *)products {
 
   STAssertFalse([engine isUpdating], nil);
 
+  //
+  // Fourth, try updating a product with no corresponding ticket.
+  //
+  [engine updateProductWithProductID:@"lotus blossom"];
+
   // But UpdateEngine as a whole should have succeeded
   STAssertFalse([delegate engineFailed], nil);  // <-- This is the diff
 }
@@ -565,14 +592,24 @@ shouldSilentlyUpdateProducts:(NSArray *)products {
 - (void)testWithBadDelegate {
   KSTicketStore *store = [KSTicketStore ticketStoreWithPath:storePath_];
   STAssertNotNil(store, nil);
+  KSExistenceChecker *xc = [KSPathExistenceChecker checkerWithPath:@"/"];
+  // Make sure there's at least one ticket, so that the statsForProductID:
+  // delegate will be called.
+  KSTicket *t;
+  t = [KSTicket ticketWithProductID:@"com.google.foo3"
+                            version:@"1.0"
+                   existenceChecker:xc
+                          serverURL:[NSURL URLWithString:@"file:///etc/passwd"]];
+  STAssertTrue([store storeTicket:t], nil);
 
   BadDelegate *delegate = [[[BadDelegate alloc] init] autorelease];
-  KSUpdateEngine *engine = nil;
-    engine = [KSUpdateEngine engineWithTicketStore:store delegate:delegate];
+  KSUpdateEngine *engine =
+    [KSUpdateEngine engineWithTicketStore:store delegate:delegate];
   STAssertNotNil(engine, nil);
 
   [engine processingStarted:nil];
   [engine processingStopped:nil];
+  [engine updateAllProducts];
 
   // Call all the delegate methods.
 
@@ -589,11 +626,25 @@ shouldSilentlyUpdateProducts:(NSArray *)products {
   STAssertEqualObjects([engine action:nil shouldUpdateProducts:nil],
                        nil, nil);
 
-  [engine action:nil starting:nil];  // void return
-  [engine action:nil finished:nil wasSuccess:NO wantsReboot:NO];  // void return
+  // void returns
+  [engine action:nil starting:nil];
+  [engine action:nil finished:nil wasSuccess:NO wantsReboot:NO];
+  [engine action:nil running:nil progress:nil];
 
   // Simply make sure we got this far w/o letting an exception through
   STAssertTrue(YES, nil);
+}
+
+- (void)testParams {
+  KSTicketStore *store = [KSTicketStore ticketStoreWithPath:storePath_];
+  KSUpdateEngine *engine = [KSUpdateEngine engineWithTicketStore:store
+                                                        delegate:nil];
+  NSDictionary *params = [NSDictionary dictionaryWithObjectsAndKeys:
+                                       @"oop", @"ack",
+                                       @"bill th", @"e cat", nil];
+  [engine setParams:params];
+  NSDictionary *engineParams = [engine valueForKey:@"params_"];
+  STAssertTrue([params isEqualToDictionary:engineParams], nil);
 }
 
 @end

@@ -138,7 +138,12 @@ static int RunCommand(NSString *cmd) {
 - (void)testProgress {
   NSString *cmd = nil;
   int rc = -1;
-  NSString *file = @"/bin/sh";
+  // To avoid network issues screwing up the tests, we'll use file: URLs.
+  // Find a file we know we can read without issue.  Some continuous build
+  // systems throw errors when trying to read from system files.
+  NSBundle *me = [NSBundle bundleForClass:[self class]];
+  NSString *file = [me executablePath];
+
   NSDictionary *attr = [[NSFileManager defaultManager]
                          fileAttributesAtPath:file
                                  traverseLink:YES];
@@ -146,8 +151,10 @@ static int RunCommand(NSString *cmd) {
   NSNumber *fileSize = [attr objectForKey:NSFileSize];
   STAssertNotNil(fileSize, nil);
 
-  cmd = [path_ stringByAppendingFormat:@" -url file://%@ -path %@ -size %@",
-               file, dlpath_, fileSize];
+  NSURL *fileURL = [NSURL fileURLWithPath:file];
+
+  cmd = [path_ stringByAppendingFormat:@" -url %@ -path %@ -size %@",
+               fileURL, dlpath_, fileSize];
   [[NSDistributedNotificationCenter defaultCenter]
     addObserver:self
        selector:@selector(progressNotification:)
@@ -167,11 +174,14 @@ static int RunCommand(NSString *cmd) {
   STAssertTrue([progress_ count] >= 1, nil);
 
   // No incremental progress on 10.4 for file:// URLs :-(
-  // 10.4.11: relase is 8.11; 10.5.3: release is 9.3
+  // 10.4.11: release is 8.11; 10.5.3: release is 9.3
   struct utsname name;
   if ((uname(&name) == 0) &&
       (name.release[0] != '8')) {
-    STAssertTrue([progress_ count] > 10, nil);
+    // We can't compare the progress count to a known value, since it
+    // depends on the size of the file, but the last one should be a
+    // one-value indicating completion.
+    STAssertEquals([[progress_ lastObject] intValue], 1, nil);
   }
 
   // confirm it's always increasing and within range

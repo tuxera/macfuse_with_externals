@@ -16,6 +16,9 @@
 //
 //  GDataEntryCalendar.m
 //
+
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_CALENDAR_SERVICE
+
 #define GDATAENTRYCALENDAR_DEFINE_GLOBALS 1
 #import "GDataEntryCalendar.h"
 
@@ -88,6 +91,16 @@
 
   [entry setNamespaces:[GDataEntryCalendar calendarNamespaces]];
   return entry;
+}
+
+#pragma mark -
+
++ (NSString *)standardEntryKind {
+  return kGDataCategoryCalendar;
+}
+
++ (void)load {
+  [self registerEntryClass];
 }
 
 - (void)addExtensionDeclarations {
@@ -244,3 +257,5 @@
 }
 
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_CALENDAR_SERVICE

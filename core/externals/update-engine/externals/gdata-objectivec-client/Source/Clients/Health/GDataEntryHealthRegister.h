@@ -17,13 +17,23 @@
 //  GDataEntryHealthRegister.h
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_HEALTH_SERVICE
+
 #import "GDataEntryBase.h"
+
+@class GDataContinuityOfCareRecord;
 
 @interface GDataEntryHealthRegister : GDataEntryBase
 
 + (id)registerEntry;
 
+// extensions
+- (GDataContinuityOfCareRecord *)continuityOfCareRecord;
+- (void)setContinuityOfCareRecord:(GDataContinuityOfCareRecord *)obj;
+
 // convenience method
 - (GDataLink *)completeLink;
 
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_HEALTH_SERVICE

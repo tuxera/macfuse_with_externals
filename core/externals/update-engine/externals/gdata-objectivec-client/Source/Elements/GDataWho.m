@@ -17,6 +17,8 @@
 //  GDataWho.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_CALENDAR_SERVICE
+
 #define GDATAWHO_DEFINE_GLOBALS 1
 #import "GDataWho.h"
 
@@ -61,11 +63,11 @@ static NSString* const kEmailAttr = @"email";
 }
 
 - (void)addExtensionDeclarations {
-  
+
   [super addExtensionDeclarations];
-  
+
   Class elementClass = [self class];
-  
+
   [self addExtensionDeclarationForParentClass:elementClass
                                    childClass:[GDataAttendeeType class]];
   [self addExtensionDeclarationForParentClass:elementClass
@@ -75,17 +77,17 @@ static NSString* const kEmailAttr = @"email";
 }
 
 - (void)addParseDeclarations {
-  
-  NSArray *attrs = [NSArray arrayWithObjects: 
+
+  NSArray *attrs = [NSArray arrayWithObjects:
                     kRelAttr, kValueStringAttr, kEmailAttr, nil];
-  
+
   [self addLocalAttributeDeclarations:attrs];
 }
 
 #if !GDATA_SIMPLE_DESCRIPTIONS
 - (NSMutableArray *)itemsForDescription {
   NSMutableArray *items = [super itemsForDescription];
-  
+
   // add extensions to the description
   [self addToArray:items objectDescriptionIfNonNil:[self attendeeType] withName:@"attendeeType"];
   [self addToArray:items objectDescriptionIfNonNil:[self attendeeStatus] withName:@"attendeeStatus"];
@@ -98,7 +100,7 @@ static NSString* const kEmailAttr = @"email";
 #pragma mark -
 
 - (NSString *)rel {
-  return [self stringValueForAttribute:kRelAttr]; 
+  return [self stringValueForAttribute:kRelAttr];
 }
 
 - (void)setRel:(NSString *)str {
@@ -106,7 +108,7 @@ static NSString* const kEmailAttr = @"email";
 }
 
 - (NSString *)email {
-  return [self stringValueForAttribute:kEmailAttr]; 
+  return [self stringValueForAttribute:kEmailAttr];
 }
 
 - (void)setEmail:(NSString *)str {
@@ -114,7 +116,7 @@ static NSString* const kEmailAttr = @"email";
 }
 
 - (NSString *)stringValue {
-  return [self stringValueForAttribute:kValueStringAttr]; 
+  return [self stringValueForAttribute:kValueStringAttr];
 }
 
 - (void)setStringValue:(NSString *)str {
@@ -147,3 +149,4 @@ static NSString* const kEmailAttr = @"email";
 
 @end
 
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_CALENDAR_SERVICE

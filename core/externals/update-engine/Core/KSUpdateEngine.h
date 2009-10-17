@@ -67,6 +67,7 @@
   NSDictionary *params_;
   BOOL wasSuccessful_;
   id delegate_;  // weak
+  NSMutableDictionary *stats_;  // ProductID -> dictionary of stats.
 }
 
 // Returns the path to the default ticket store if one was set. If one was not
@@ -122,6 +123,9 @@
 // by the keys in KSUpdateEngineParameters.h.
 - (void)setParams:(NSDictionary *)params;
 
+// Get the engine's parameters.
+- (NSDictionary *)params;
+
 // Returns the GTMStatsCollection that the UpdateEngine framework is using for
 // recording stats. Will be nil if one was never set.
 - (KSStatsCollection *)statsCollection;
@@ -145,6 +149,19 @@
 //
 // Optional.
 - (void)engineStarted:(KSUpdateEngine *)engine;
+
+// Sent to the delegate for each ticket's |productID| when |engine|
+// wants to know about per-product stats.  The delegate should return
+// a dictionary containing any of the product stat dictionary keys
+// from KSUpdateEngineParameters.h, such as an NSNumber boxed BOOL
+// stored with the key kUpdateEngineProductStatsActive.
+//
+// If the delegate has no stats to report for this product, it can return
+// nil or an empty dictionary.
+//
+// Optional.
+- (NSDictionary *)engine:(KSUpdateEngine *)engine
+       statsForProductID:(NSString *)productID;
 
 // Sent to the UpdateEngine delegate when product updates are available. The
 // |products| array is an array of NSDictionaries, each of with has keys defined

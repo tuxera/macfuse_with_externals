@@ -17,10 +17,11 @@
 //  GDataYouTubeMediaElements.h
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_YOUTUBE_SERVICE
 
 #undef _EXTERN
 #undef _INITIALIZE_AS
-#ifdef GYOUTUBMEDIAEELEMENTS_DEFINE_GLOBALS
+#ifdef GDATAYOUTUBEMEDIAELEMENTS_DEFINE_GLOBALS
 #define _EXTERN 
 #define _INITIALIZE_AS(x) =x
 #else
@@ -38,6 +39,9 @@ _EXTERN const int kGDataYouTubeMediaContentFormatMobileRTSPStream _INITIALIZE_AS
 
 // media content with YouTube's addition of an integer format attribute, 
 // like yt:format="1"
+//
+// Note: iPhone seems to support playback of RTSP streams (formats 1 and 6)
+
 @interface GDataMediaContent (YouTubeExtensions)
 - (NSNumber *)youTubeFormatNumber;
 - (void)setYouTubeFormatNumber:(NSNumber *)num;
@@ -74,4 +78,10 @@ _EXTERN const int kGDataYouTubeMediaContentFormatMobileRTSPStream _INITIALIZE_AS
 // uploadedDate available in v2.0
 - (GDataDateTime *)uploadedDate;
 - (void)setUploadedDate:(GDataDateTime *)dateTime;
+
+// convenience accessors
+- (GDataMediaThumbnail *)highQualityThumbnail;
+- (GDataMediaContent *)mediaContentWithFormatNumber:(NSInteger)formatNumber;
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_YOUTUBE_SERVICE

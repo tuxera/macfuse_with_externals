@@ -17,7 +17,7 @@
 #import "GDataServerError.h"
 
 #import "GDataObject.h"   // for namespace
-#import "GDataUtilities.h" // for AreEqualOrBothNil 
+#import "GDataUtilities.h" // for AreEqualOrBothNil
 
 //
 // GDataServerErrorGroup
@@ -49,7 +49,7 @@
 }
 
 - (NSString *)description {
-  return [NSString stringWithFormat:@"%@ 0x%lX: {errors: %@}",
+  return [NSString stringWithFormat:@"%@ %p: {errors: %@}",
           [self class], self, [self errors]];
 }
 
@@ -225,7 +225,7 @@
   }
   NSString *str = [arr componentsJoinedByString:@" "];
 
-  return [NSString stringWithFormat:@"%@ 0x%lX: {%@}", [self class], self, str];
+  return [NSString stringWithFormat:@"%@ %p: {%@}", [self class], self, str];
 }
 
 - (NSUInteger)hash {

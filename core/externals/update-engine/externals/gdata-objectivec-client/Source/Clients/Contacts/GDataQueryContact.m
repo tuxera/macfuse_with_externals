@@ -17,6 +17,8 @@
 //  GDataQueryContact.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_CONTACTS_SERVICE
+
 #import "GDataQueryContact.h"
 #import "GDataServiceGoogleContact.h"
 
@@ -25,7 +27,7 @@ static NSString *const kGroupParamName = @"group";
 @implementation GDataQueryContact
 
 + (GDataQueryContact *)contactQueryWithFeedURL:(NSURL *)feedURL {
-  return [[[[self class] alloc] initWithFeedURL:feedURL] autorelease];   
+  return [[[self alloc] initWithFeedURL:feedURL] autorelease];   
 }
 
 + (GDataQueryContact *)contactQueryForUserID:(NSString *)userID {  
@@ -47,3 +49,5 @@ static NSString *const kGroupParamName = @"group";
 }
 
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_CONTACTS_SERVICE

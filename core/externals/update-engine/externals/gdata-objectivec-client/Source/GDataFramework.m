@@ -15,8 +15,8 @@
 
 #include "GDataFramework.h"
 
-void GDataFrameworkVersion(long* major, long* minor, long* release) {
-  if (major)   *major = 1; 
-  if (minor)   *minor = 7;
-  if (release) *release = 0; 
+void GDataFrameworkVersion(NSUInteger* major, NSUInteger* minor, NSUInteger* release) {
+  if (major)   *major = 1;
+  if (minor)   *minor = 8;
+  if (release) *release = 0;
 }

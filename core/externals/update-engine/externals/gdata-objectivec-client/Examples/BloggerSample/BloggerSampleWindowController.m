@@ -1,4 +1,4 @@
-/* Copyright (c) 2007 Google Inc.
+/* Copyright (c) 2009 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,38 +23,52 @@
 - (void)updateUI;
 
 - (void)fetchAllBlogs;
-- (void)fetchSelectedBlogEntries;
+- (void)fetchPostsForSelectedBlog;
 - (void)addEntry;
-- (void)updateSelectedEntry;
-- (void)deleteSelectedEntry;
+- (void)updateSelectedPost;
+- (void)deleteSelectedPost;
 
-- (GDataServiceGoogle *)bloggerService;
-- (GDataEntryBase *)selectedBlog;
-- (GDataEntryBase *)selectedEntry;
+- (GDataServiceGoogleBlogger *)bloggerService;
+- (GDataEntryBlog *)selectedBlog;
+- (GDataEntryBlogPost *)selectedPost;
+- (GDataEntryBlogComment *)selectedComment;
 
-- (GDataFeedBase *)blogsFeed;
-- (void)setBlogsFeed:(GDataFeedBase *)feed;
-- (NSError *)blogsFetchError;
-- (void)setBlogsFetchError:(NSError *)error;  
+- (GDataFeedBase *)blogFeed;
+- (void)setBlogFeed:(GDataFeedBase *)feed;
+- (NSError *)blogFetchError;
+- (void)setBlogFetchError:(NSError *)error;
+- (GDataServiceTicket *)blogFeedTicket;
+- (void)setBlogFeedTicket:(GDataServiceTicket *)ticket;
 
-- (GDataFeedBase *)entriesFeed;
-- (void)setEntriesFeed:(GDataFeedBase *)feed;
-- (NSError *)entriesFetchError;
-- (void)setEntriesFetchError:(NSError *)error;
-  
+- (GDataFeedBase *)postFeed;
+- (void)setPostFeed:(GDataFeedBase *)feed;
+- (NSError *)postFetchError;
+- (void)setPostFetchError:(NSError *)error;
+- (GDataServiceTicket *)postFeedTicket;
+- (void)setPostFeedTicket:(GDataServiceTicket *)ticket;
+
+- (GDataServiceTicket *)editPostTicket;
+- (void)setEditPostTicket:(GDataServiceTicket *)ticket;
+
+- (GDataFeedBase *)commentFeed;
+- (void)setCommentFeed:(GDataFeedBase *)feed;
+- (NSError *)commentFetchError;
+- (void)setCommentFetchError:(NSError *)error;
+- (GDataServiceTicket *)commentFeedTicket;
+- (void)setCommentFeedTicket:(GDataServiceTicket *)ticket;
+
 @end
 
 @implementation BloggerSampleWindowController
 
-static BloggerSampleWindowController* gBloggerSampleWindowController = nil;
-
-
 + (BloggerSampleWindowController *)sharedBloggerSampleWindowController {
-  
-  if (!gBloggerSampleWindowController) {
-    gBloggerSampleWindowController = [[BloggerSampleWindowController alloc] init];
-  }  
-  return gBloggerSampleWindowController;
+
+  static BloggerSampleWindowController* gController = nil;
+
+  if (!gController) {
+    gController = [[BloggerSampleWindowController alloc] init];
+  }
+  return gController;
 }
 
 
@@ -62,113 +76,159 @@ static BloggerSampleWindowController* gBloggerSampleWindowController = nil;
   return [self initWithWindowNibName:@"BloggerSampleWindow"];
 }
 
-- (void)windowDidLoad {
-}
-
 - (void)awakeFromNib {
+  // Set the result text fields to have a distinctive color and mono-spaced font
+  [mBlogsResultTextField setTextColor:[NSColor darkGrayColor]];
+  [mPostsResultTextField setTextColor:[NSColor darkGrayColor]];
+  [mCommentsResultTextField setTextColor:[NSColor darkGrayColor]];
+
+  NSFont *resultTextFont = [NSFont fontWithName:@"Monaco" size:9];
+  [mBlogsResultTextField setFont:resultTextFont];
+  [mPostsResultTextField setFont:resultTextFont];
+  [mCommentsResultTextField setFont:resultTextFont];
+
   [self updateUI];
 }
 
 - (void)dealloc {
-  [mBlogsFeed release];
-  [mBloggerFetchError release];
-  
-  [mEntriesFeed release];
-  [mEntriesFetchError release];
-  
+  [mBlogFeed release];
+  [mBlogFeedTicket release];
+  [mBlogFetchError release];
+
+  [mPostFeed release];
+  [mPostFeedTicket release];
+  [mPostFetchError release];
+
+  [mEditPostTicket release];
+
+  [mCommentFeed release];
+  [mCommentFeedTicket release];
+  [mCommentFetchError release];
+
   [super dealloc];
 }
 
 #pragma mark -
 
 - (void)updateUI {
-  
+
   // blogs list display
-  [mBlogsTable reloadData]; 
-  
-  if (mIsBloggerFetchPending) {
-    [mBlogsProgressIndicator startAnimation:self];  
+  [mBlogsTable reloadData];
+
+  if (mBlogFeedTicket != nil) {
+    [mBlogsProgressIndicator startAnimation:self];
   } else {
-    [mBlogsProgressIndicator stopAnimation:self];  
+    [mBlogsProgressIndicator stopAnimation:self];
   }
-  
+
   // blogs fetch result or selected item
   NSString *blogsResultStr = @"";
-  if (mBloggerFetchError) {
-    blogsResultStr = [mBloggerFetchError description];
+  if (mBlogFetchError) {
+    blogsResultStr = [mBlogFetchError description];
   } else {
-    GDataEntryBase *blog = [self selectedBlog];
+    GDataEntryBlog *blog = [self selectedBlog];
     if (blog) {
       blogsResultStr = [blog description];
-    } else {
-      
     }
   }
-  [mBlogsResultTextField setStringValue:blogsResultStr];
-  [mBlogsResultTextField setToolTip:blogsResultStr];
-  
-  // entry list display
-  [mEntriesTable reloadData]; 
-  
-  if (mIsEntriesFetchPending) {
-    [mEntriesProgressIndicator startAnimation:self];  
+  [mBlogsResultTextField setString:blogsResultStr];
+
+  // post list display
+  [mPostsTable reloadData];
+
+  if (mPostFeedTicket != nil) {
+    [mPostsProgressIndicator startAnimation:self];
   } else {
-    [mEntriesProgressIndicator stopAnimation:self];  
+    [mPostsProgressIndicator stopAnimation:self];
   }
-  
-  // entry fetch result or selected item
-  NSString *entryResultStr = @"";
-  if (mEntriesFetchError) {
-    entryResultStr = [mEntriesFetchError description];
+
+  // post fetch result or selected item
+  NSString *postResultStr = @"";
+  if (mPostFetchError) {
+    postResultStr = [mPostFetchError description];
   } else {
-    if ([self selectedEntry]) {
-      entryResultStr = [[self selectedEntry] description];
+    if ([self selectedPost] != nil) {
+      postResultStr = [[self selectedPost] description];
     }
   }
-  [mEntriesResultTextField setStringValue:entryResultStr];
-  [mEntriesResultTextField setToolTip:entryResultStr];
-  
-  // enable/disable buttons
+  [mPostsResultTextField setString:postResultStr];
+
+  // enable/disable edit buttons
   BOOL isBlogSelected = ([self selectedBlog] != nil);
   [mAddPostButton setEnabled:isBlogSelected];
-  
-  BOOL isEntrySelected = ([self selectedEntry] != nil);
-  [mDeletePostButton setEnabled:isEntrySelected];
-  
-  BOOL canUpdateEntry = NO;
-  
-  if (isEntrySelected) {
-    NSString *entryStr = [[[self selectedEntry] content] stringValue];
-    NSString *editedStr = [mEntryEditField stringValue];
-    
-    canUpdateEntry = ![entryStr isEqual:editedStr];
+
+  BOOL isPostSelected = ([self selectedPost] != nil);
+  [mDeletePostButton setEnabled:isPostSelected];
+  [mPostDraftCheckBox setEnabled:isPostSelected];
+
+  BOOL canUpdatePost = NO;
+
+  if (isPostSelected) {
+    // the post can be updated if either the text or the draft checkbox state
+    // has changed
+    NSString *postStr = [[[self selectedPost] content] stringValue];
+    NSString *editedStr = [mPostEditField stringValue];
+
+    BOOL isPostDraft = [[[self selectedPost] atomPubControl] isDraft];
+    BOOL isEditedDraft = ([mPostDraftCheckBox state] == NSOnState);
+
+    canUpdatePost = ![postStr isEqual:editedStr]
+      || (isPostDraft != isEditedDraft);
   }
-  [mUpdatePostButton setEnabled:canUpdateEntry];
-  
+  [mUpdatePostButton setEnabled:canUpdatePost];
+
+  if (mEditPostTicket != nil) {
+    [mEditProgressIndicator startAnimation:self];
+  } else {
+    [mEditProgressIndicator stopAnimation:self];
+  }
+
+  // comment list display
+  [mCommentsTable reloadData];
+
+  if (mCommentFeedTicket != nil) {
+    [mCommentsProgressIndicator startAnimation:self];
+  } else {
+    [mCommentsProgressIndicator stopAnimation:self];
+  }
+
+  // comment fetch result or selected item
+  NSString *commentResultStr = @"";
+  if (mCommentFetchError) {
+    commentResultStr = [mCommentFetchError description];
+  } else {
+    if ([self selectedComment] != nil) {
+      commentResultStr = [[self selectedComment] description];
+    }
+  }
+  [mCommentsResultTextField setString:commentResultStr];
 }
 
 - (void)reloadEntryEditField {
-  GDataEntryBase *entry = [self selectedEntry];
+  GDataEntryBlogPost *entry = [self selectedPost];
   if (entry) {
-    [mEntryEditField setStringValue:[[entry content] stringValue]];
-  }  
+    [mPostEditField setStringValue:[[entry content] stringValue]];
+
+    BOOL isDraft = [[entry atomPubControl] isDraft];
+    [mPostDraftCheckBox setState:(isDraft ? NSOnState : NSOffState)];
+  }
 }
 
 #pragma mark IBActions
 - (IBAction)getBlogsClicked:(id)sender {
-  
+
   NSCharacterSet *whitespace = [NSCharacterSet whitespaceAndNewlineCharacterSet];
-  
+
   NSString *username = [mUsernameField stringValue];
   username = [username stringByTrimmingCharactersInSet:whitespace];
-  
+
   if ([username rangeOfString:@"@"].location == NSNotFound) {
     // if no domain was supplied, add @gmail.com
     username = [username stringByAppendingString:@"@gmail.com"];
   }
-  
+
   [mUsernameField setStringValue:username];
-  
+
   [self fetchAllBlogs];
 }
 
@@ -177,11 +237,15 @@ static BloggerSampleWindowController* gBloggerSampleWindowController = nil;
 }
 
 - (IBAction)updatePostClicked:(id)sender {
-  [self updateSelectedEntry];
+  [self updateSelectedPost];
 }
 
 - (IBAction)deletePostClicked:(id)sender {
-  [self deleteSelectedEntry];
+  [self deleteSelectedPost];
+}
+
+- (IBAction)draftCheckboxClicked:(id)sender {
+  [self updateUI];
 }
 
 - (IBAction)loggingCheckboxClicked:(id)sender {
@@ -197,24 +261,27 @@ static BloggerSampleWindowController* gBloggerSampleWindowController = nil;
 // state information (such as cookies and the "last modified" date for
 // fetched data.)
 
-- (GDataServiceGoogle *)bloggerService {
-  
-  static GDataServiceGoogle* service = nil;
-  
+- (GDataServiceGoogleBlogger *)bloggerService {
+
+  static GDataServiceGoogleBlogger* service = nil;
+
   if (!service) {
-    service = [[GDataServiceGoogle alloc] init];
-    
+    service = [[GDataServiceGoogleBlogger alloc] init];
+
     [service setUserAgent:@"MyCompany-SampleBloggerApp-1.0"]; // set this to yourName-appName-appVersion
-    
+
     [service setShouldCacheDatedData:YES];
     [service setServiceShouldFollowNextLinks:YES];
-    [service setServiceID:@"blogger"];
+
+    // iPhone apps will typically disable caching dated data or will call
+    // clearLastModifiedDates after done fetching to avoid wasting
+    // memory.
   }
 
   // update the name/password each time the service is requested
   NSString *username = [mUsernameField stringValue];
   NSString *password = [mPasswordField stringValue];
-  
+
   [service setUserCredentialsWithUsername:username
                                  password:password];
 
@@ -222,26 +289,39 @@ static BloggerSampleWindowController* gBloggerSampleWindowController = nil;
 }
 
 // get the blog selected in the top list, or nil if none
-- (GDataEntryBase *)selectedBlog {
-  
-  NSArray *blogs = [mBlogsFeed entries];
+- (GDataEntryBlog *)selectedBlog {
+
+  NSArray *blogs = [mBlogFeed entries];
   int rowIndex = [mBlogsTable selectedRow];
   if ([blogs count] > 0 && rowIndex > -1) {
-    
-    GDataEntryBase *blog = [blogs objectAtIndex:rowIndex];
+
+    GDataEntryBlog *blog = [blogs objectAtIndex:rowIndex];
     return blog;
   }
   return nil;
 }
 
 // get the entry selected in the bottom list, or nil if none
-- (GDataEntryBase *)selectedEntry {
-  
-  NSArray *entries = [mEntriesFeed entries];
-  int rowIndex = [mEntriesTable selectedRow];
+- (GDataEntryBlogPost *)selectedPost {
+
+  NSArray *entries = [mPostFeed entries];
+  int rowIndex = [mPostsTable selectedRow];
   if ([entries count] > 0 && rowIndex > -1) {
-    
-    GDataEntryBase *entry = [entries objectAtIndex:rowIndex];
+
+    GDataEntryBlogPost *entry = [entries objectAtIndex:rowIndex];
+    return entry;
+  }
+  return nil;
+}
+
+// get the entry selected in the bottom list, or nil if none
+- (GDataEntryBlogComment *)selectedComment {
+
+  NSArray *entries = [mCommentFeed entries];
+  int rowIndex = [mCommentsTable selectedRow];
+  if ([entries count] > 0 && rowIndex > -1) {
+
+    GDataEntryBlogComment *entry = [entries objectAtIndex:rowIndex];
     return entry;
   }
   return nil;
@@ -251,312 +331,302 @@ static BloggerSampleWindowController* gBloggerSampleWindowController = nil;
 
 // begin retrieving the list of the user's blogs
 - (void)fetchAllBlogs {
-  
-  [self setBlogsFeed:nil];
-  [self setBlogsFetchError:nil];    
-  
-  [self setEntriesFeed:nil];
-  [self setEntriesFetchError:nil];
-  
-  mIsBloggerFetchPending = YES;
 
-  NSString *username = [mUsernameField stringValue];
-  NSString *password = [mPasswordField stringValue];
-  
-  NSURL* url = [NSURL URLWithString:@"http://www.blogger.com/feeds/default/blogs"];
-  
-  GDataServiceGoogle *service = [self bloggerService];
-  [service setUserCredentialsWithUsername:username
-                                 password:password];
-  
-  [service fetchAuthenticatedFeedWithURL:url
-                               feedClass:kGDataUseRegisteredClass
-                                delegate:self
-                       didFinishSelector:@selector(blogListTicket:finishedWithFeed:)
-                         didFailSelector:@selector(blogListTicket:failedWithError:)];
-  
-  [self updateUI];
+  [self setBlogFeed:nil];
+  [self setBlogFetchError:nil];
 
-}
+  [self setPostFeed:nil];
+  [self setPostFetchError:nil];
 
-//
-// blog list fetch callbacks
-//
+  [self setCommentFeed:nil];
+  [self setCommentFetchError:nil];
 
-// finished blog list successfully
-- (void)blogListTicket:(GDataServiceTicket *)ticket
-      finishedWithFeed:(GDataFeedBase *)feed {
-  
-  [self setBlogsFeed:feed];
-  [self setBlogsFetchError:nil];    
-  
-  mIsBloggerFetchPending = NO;
-  [self updateUI];
-} 
+  NSURL* feedURL = [GDataServiceGoogleBlogger blogFeedURLForUserID:kGDataServiceDefaultUser];
 
-// failed
-- (void)blogListTicket:(GDataServiceTicket *)ticket
-       failedWithError:(NSError *)error {
-  
-  [self setBlogsFeed:nil];
-  [self setBlogsFetchError:error];    
-  
-  mIsBloggerFetchPending = NO;
+  GDataServiceGoogleBlogger *service = [self bloggerService];
+  GDataServiceTicket *ticket;
+
+  ticket = [service fetchFeedWithURL:feedURL
+                           feedClass:[GDataFeedBlog class]
+                            delegate:self
+                   didFinishSelector:@selector(blogListTicket:finishedWithFeed:error:)];
+  [self setBlogFeedTicket:ticket];
+
   [self updateUI];
 }
 
-#pragma mark Fetch a blog's entries 
+// blog feed fetch callback
+- (void)blogListTicket:(GDataServiceTicket *)ticket
+      finishedWithFeed:(GDataFeedBase *)feed
+                 error:(NSError *)error {
+
+  [self setBlogFeed:feed];
+  [self setBlogFetchError:error];
+  [self setBlogFeedTicket:nil];
+
+  [self updateUI];
+}
+
+#pragma mark Fetch a blog's posts
 
 // for the blog selected in the top list, begin retrieving the list of
 // entries
-- (void)fetchSelectedBlogEntries {
-  
-  GDataEntryBase *blog = [self selectedBlog];
-  if (blog) {
-    
-    GDataLink *link = [blog feedLink];
-    NSString *href = [link href];
-    
-    if ([href length] > 0) {
-      
-      [self setEntriesFeed:nil];
-      [self setEntriesFetchError:nil];
-      mIsEntriesFetchPending = YES;
+- (void)fetchPostsForSelectedBlog {
 
-      GDataServiceGoogle *service = [self bloggerService];
-      [service fetchAuthenticatedFeedWithURL:[NSURL URLWithString:href]
-                                   feedClass:kGDataUseRegisteredClass
-                                    delegate:self
-                           didFinishSelector:@selector(blogEntriesTicket:finishedWithFeed:)
-                             didFailSelector:@selector(blogEntriesTicket:failedWithError:)];
-      [self updateUI];  
-    }
+  GDataEntryBlog *blog = [self selectedBlog];
+  if (blog != nil) {
+
+    [self setPostFeed:nil];
+    [self setPostFetchError:nil];
+
+    [self setCommentFeed:nil];
+    [self setCommentFetchError:nil];
+
+    NSURL *feedURL = [[blog feedLink] URL];
+
+    GDataServiceGoogleBlogger *service = [self bloggerService];
+    GDataServiceTicket *ticket;
+    ticket = [service fetchFeedWithURL:feedURL
+                             feedClass:[GDataFeedBlogPost class]
+                              delegate:self
+                     didFinishSelector:@selector(blogPostTicket:finishedWithFeed:error:)];
+    [self setPostFeedTicket:ticket];
+    [self updateUI];
   }
-   
 }
 
-//
-// entries list fetch callbacks
-//
+// post feed fetch callback
+- (void)blogPostTicket:(GDataServiceTicket *)ticket
+         finishedWithFeed:(GDataFeedBase *)feed
+                 error:(NSError *)error {
 
-// fetched entry list successfully
-- (void)blogEntriesTicket:(GDataServiceTicket *)ticket
-         finishedWithFeed:(GDataFeedBase *)feed {
-  
-  [self setEntriesFeed:feed];
-  [self setEntriesFetchError:nil];
-  
-  mIsEntriesFetchPending = NO;
-  
-  [self updateUI];
-} 
+  [self setPostFeed:feed];
+  [self setPostFetchError:error];
+  [self setPostFeedTicket:nil];
 
-// failed
-- (void)blogEntriesTicket:(GDataServiceTicket *)ticket
-          failedWithError:(NSError *)error {
-  
-  [self setEntriesFeed:nil];
-  [self setEntriesFetchError:error];
-  
-  mIsEntriesFetchPending = NO;
-  
   [self updateUI];
-  
+}
+
+#pragma mark Fetch a blog post's comments
+
+// for the post selected in the middle list, begin retrieving the feed of
+// comments
+- (void)fetchCommentsForSelectedPost {
+
+  GDataEntryBlogPost *post = [self selectedPost];
+  if (post != nil) {
+
+    [self setCommentFeed:nil];
+    [self setCommentFetchError:nil];
+
+    NSURL *feedURL = [[post repliesAtomLink] URL];
+    if (feedURL != nil) {
+      GDataServiceGoogleBlogger *service = [self bloggerService];
+      GDataServiceTicket *ticket;
+      ticket = [service fetchFeedWithURL:feedURL
+                               feedClass:[GDataFeedBlogComment class]
+                                delegate:self
+                       didFinishSelector:@selector(blogCommentTicket:finishedWithFeed:error:)];
+      [self setCommentFeedTicket:ticket];
+    }
+  }
+  [self updateUI];
+}
+
+// fetched comment feed callback
+- (void)blogCommentTicket:(GDataServiceTicket *)ticket
+         finishedWithFeed:(GDataFeedBase *)feed
+                    error:(NSError *)error {
+
+  [self setCommentFeed:feed];
+  [self setCommentFetchError:error];
+  [self setCommentFeedTicket:nil];
+
+  [self updateUI];
 }
 
 #pragma mark Add an entry
 
 - (void)addEntry {
-  GDataEntryBase *newEntry = [GDataEntryBase entry];
-  
-  NSString *title = [NSString stringWithFormat:@"Post Created %@", [NSDate date]];
-  NSString *content = [mEntryEditField stringValue];
-  
+  GDataEntryBlogPost *newEntry = [GDataEntryBlogPost postEntry];
+
+  NSString *title = [NSString stringWithFormat:@"Post Created %@",
+                     [NSDate date]];
+  NSString *content = [mPostEditField stringValue];
+  BOOL isDraft = [mPostDraftCheckBox state];
+
   [newEntry setTitleWithString:title];
-  [newEntry setContent:[GDataTextConstruct textConstructWithString:content]];
+  [newEntry setContentWithString:content];
   [newEntry addAuthor:[GDataPerson personWithName:@"Blogger Sample App"
                                             email:nil]];
-    
-  NSURL* postURL = [[[self selectedBlog] postLink] URL];
-  if (postURL) {
-    mIsEntriesFetchPending = YES;
-    
-    GDataServiceGoogle *service = [self bloggerService];
+  GDataAtomPubControl *atomPub;
+  atomPub = [GDataAtomPubControl atomPubControlWithIsDraft:isDraft];
+  [newEntry setAtomPubControl:atomPub];
+
+  NSURL *postURL = [[[self selectedBlog] postLink] URL];
+  if (postURL != nil) {
+    GDataServiceGoogleBlogger *service = [self bloggerService];
     [service setServiceUserData:newEntry];
-    [service fetchAuthenticatedEntryByInsertingEntry:newEntry
-                                        forFeedURL:postURL
-                                           delegate:self
-                                  didFinishSelector:@selector(addEntryTicket:finishedWithEntry:)
-                                    didFailSelector:@selector(addEntryTicket:failedWithError:)];  
-    
+
+    GDataServiceTicket *ticket;
+    ticket = [service fetchEntryByInsertingEntry:newEntry
+                                      forFeedURL:postURL
+                                        delegate:self
+                               didFinishSelector:@selector(addEntryTicket:finishedWithEntry:error:)];
+    [self setEditPostTicket:ticket];
     [self updateUI];
   }
 }
 
-// succeeded
+// add entry callback
 - (void)addEntryTicket:(GDataServiceTicket *)ticket
-     finishedWithEntry:(GDataEntryBase *)addedEntry {
-  
-  NSBeginAlertSheet(@"Add", nil, nil, nil,
-                    [self window], nil, nil,
-                    nil, nil, @"Added entry: %@", [[addedEntry title] stringValue]);
-  
-  NSMutableArray *entries = [NSMutableArray arrayWithArray:[mEntriesFeed entries]];
-  [entries insertObject:addedEntry atIndex:0];
-  [mEntriesFeed setEntries:entries];
-  
-  mIsEntriesFetchPending = NO;
-  [self updateUI];
-} 
+     finishedWithEntry:(GDataEntryBlogPost *)addedEntry
+                 error:(NSError *)error {
 
-// failed
-- (void)addEntryTicket:(GDataServiceTicket *)ticket
-       failedWithError:(NSError *)error {
-  
-  GDataEntryBase *addedEntry = [ticket userData];
-  NSBeginAlertSheet(@"Add", nil, nil, nil,
-                    [self window], nil, nil,
-                    nil, nil, @"Failed to add entry: %@\nError: %@", [[addedEntry title] stringValue], error);
-  
-  mIsEntriesFetchPending = NO;
+  if (error == nil) {
+    NSBeginAlertSheet(@"Add", nil, nil, nil,
+                      [self window], nil, nil,
+                      nil, nil, @"Added entry: %@", [[addedEntry title] stringValue]);
+
+    NSMutableArray *entries = [NSMutableArray arrayWithArray:[mPostFeed entries]];
+    [entries insertObject:addedEntry atIndex:0];
+    [mPostFeed setEntries:entries];
+  } else {
+    // failed to add entry
+    GDataEntryBlogPost *addedEntry = [ticket postedObject];
+    NSBeginAlertSheet(@"Add", nil, nil, nil,
+                      [self window], nil, nil,
+                      nil, nil, @"Failed to add entry: %@\nError: %@",
+                      [[addedEntry title] stringValue], error);
+  }
+
+  [self setEditPostTicket:nil];
   [self updateUI];
-  
 }
+
 
 #pragma mark Update an entry
 
 
-- (void)updateSelectedEntry {
-  GDataEntryBase *editedEntry = [[[self selectedEntry] copy] autorelease];
+- (void)updateSelectedPost {
+  GDataEntryBlogPost *editedEntry = [[[self selectedPost] copy] autorelease];
   if (editedEntry) {
-    
+
     // save the edited text into the entry
-    [[editedEntry content] setStringValue:[mEntryEditField stringValue]];
+    [[editedEntry content] setStringValue:[mPostEditField stringValue]];
 
-    // the entry, detached, needs namespaces to be valid
-    [editedEntry setNamespaces:[GDataEntryBase baseGDataNamespaces]];
-      
+    BOOL isDraft = ([mPostDraftCheckBox state] == NSOnState);
+
+    GDataAtomPubControl *atomPub = [editedEntry atomPubControl];
+    if (atomPub == nil) {
+      atomPub = [GDataAtomPubControl atomPubControl];
+      [editedEntry setAtomPubControl:atomPub];
+    }
+    [atomPub setIsDraft:isDraft];
+
     // send the edited entry to the server
-    NSURL *linkURL = [[editedEntry editLink] URL];
-    
-    mIsEntriesFetchPending = YES;
-    
-    GDataServiceGoogle *service = [self bloggerService];
-    [service setServiceUserData:[self selectedEntry]]; // remember the old entry; we'll replace the edited one with it later
-    [service fetchAuthenticatedEntryByUpdatingEntry:editedEntry
-                                        forEntryURL:linkURL
-                                           delegate:self
-                                  didFinishSelector:@selector(updateTicket:finishedWithEntry:)
-                                    didFailSelector:@selector(updateTicket:failedWithError:)];
-    
+    GDataServiceGoogleBlogger *service = [self bloggerService];
 
+    // remember the old entry; we'll replace the edited one with it later
+    [service setServiceUserData:[self selectedPost]];
+
+    GDataServiceTicket *ticket;
+    ticket = [service fetchEntryByUpdatingEntry:editedEntry
+                                       delegate:self
+                              didFinishSelector:@selector(updateTicket:finishedWithEntry:error:)];
+    [self setEditPostTicket:ticket];
     [self updateUI];
   }
-  
 }
 
+// update entry callback
 - (void)updateTicket:(GDataServiceTicket *)ticket
-   finishedWithEntry:(GDataEntryBase *)editedEntry {
-  
-  mIsEntriesFetchPending = NO;
-  
-  NSBeginAlertSheet(@"Update", nil, nil, nil,
-                    [self window], nil, nil,
-                    nil, nil, @"Updated entry: %@", [[editedEntry title] stringValue]);
-  
-  GDataEntryBase *oldEntry = [ticket userData];
-  NSMutableArray *entries = [NSMutableArray arrayWithArray:[mEntriesFeed entries]];
-  unsigned int indexOfOldEntry = [entries indexOfObject:oldEntry];
-  if (indexOfOldEntry != NSNotFound) {
-    [entries replaceObjectAtIndex:indexOfOldEntry withObject:editedEntry];
-    [mEntriesFeed setEntries:entries];
-  }
-  
-  [self updateUI];
-} 
+   finishedWithEntry:(GDataEntryBlogPost *)editedEntry
+               error:(NSError *)error {
+  if (error == nil) {
+    NSBeginAlertSheet(@"Update", nil, nil, nil,
+                      [self window], nil, nil,
+                      nil, nil, @"Updated entry: %@",
+                      [[editedEntry title] stringValue]);
 
-// failed
-- (void)updateTicket:(GDataServiceTicket *)ticket
-failedWithError:(NSError *)error {
-    
-  GDataEntryBase *editedEntry = [ticket userData];
-  NSBeginAlertSheet(@"Update", nil, nil, nil,
-                    [self window], nil, nil,
-                    nil, nil, @"Failed to update entry: %@\nError: %@", [[editedEntry title] stringValue], error);
-  
-  mIsEntriesFetchPending = NO;
-  
+    GDataEntryBlogPost *oldEntry = [ticket userData];
+    NSMutableArray *entries = [NSMutableArray arrayWithArray:[mPostFeed entries]];
+    unsigned int indexOfOldEntry = [entries indexOfObject:oldEntry];
+    if (indexOfOldEntry != NSNotFound) {
+      [entries replaceObjectAtIndex:indexOfOldEntry withObject:editedEntry];
+      [mPostFeed setEntries:entries];
+    }
+  } else {
+    // update failed
+    GDataEntryBlogPost *editedEntry = [ticket userData];
+    NSBeginAlertSheet(@"Update", nil, nil, nil,
+                      [self window], nil, nil,
+                      nil, nil, @"Failed to update entry: %@\nError: %@",
+                      [[editedEntry title] stringValue], error);
+  }
+
+  [self setEditPostTicket:nil];
   [self updateUI];
 }
 
 #pragma mark Delete an entry
 
-- (void)deleteSelectedEntry {
-  GDataEntryBase *entry = [[[self selectedEntry] copy] autorelease];
+- (void)deleteSelectedPost {
+  GDataEntryBlogPost *entry = [self selectedPost];
   if (entry) {
-        
-    // send the edited entry to the server
-    GDataLink *link = [entry editLink];
-        
-    mIsEntriesFetchPending = YES;
-    
-    GDataServiceGoogle *service = [self bloggerService];
-    [service setServiceUserData:[self selectedEntry]]; // remember which entry we're deleting
-    [service deleteAuthenticatedResourceURL:[link URL]
-                                   delegate:self
-                          didFinishSelector:@selector(deleteTicket:finishedWithNilObject:)
-                            didFailSelector:@selector(deleteTicket:failedWithError:)];
+    GDataServiceGoogleBlogger *service = [self bloggerService];
+    [service setServiceUserData:entry]; // remember which entry we're deleting
+
+    GDataServiceTicket *ticket;
+    ticket = [service deleteEntry:entry
+                         delegate:self
+                didFinishSelector:@selector(deleteTicket:finishedWithNil:error:)];
+
+    [ticket setUserData:entry];
+    [self setEditPostTicket:ticket];
     [self updateUI];
   }
 }
 
 - (void)deleteTicket:(GDataServiceTicket *)ticket
- finishedWithNilObject:(id)object {
-  
-  mIsEntriesFetchPending = NO;
-  
-  GDataEntryBase *entry = [ticket userData];
+     finishedWithNil:(id)object
+               error:(NSError *)error {
+  GDataEntryBlogPost *entry = [ticket userData];
 
-  NSBeginAlertSheet(@"Delete", nil, nil, nil,
-                    [self window], nil, nil,
-                    nil, nil, @"Deleted entry: %@", [[entry title] stringValue]);
-    
-  // remove the deleted entry from the list
-  NSMutableArray *entries = [NSMutableArray arrayWithArray:[mEntriesFeed entries]];
-  if ([entries containsObject:entry]) {
-    [entries removeObject:entry];
-    [mEntriesFeed setEntries:entries];
+  if (error == nil) {
+
+    NSBeginAlertSheet(@"Delete", nil, nil, nil,
+                      [self window], nil, nil,
+                      nil, nil, @"Deleted entry: %@",
+                      [[entry title] stringValue]);
+
+    // remove the deleted entry from the list
+    NSMutableArray *entries = [NSMutableArray arrayWithArray:[mPostFeed entries]];
+
+    if ([entries containsObject:entry]) {
+      [entries removeObject:entry];
+      [mPostFeed setEntries:entries];
+    }
+
+    [self reloadEntryEditField];
+
+  } else {
+    // delete failed
+    NSBeginAlertSheet(@"Delete", nil, nil, nil,
+                      [self window], nil, nil,
+                      nil, nil, @"Failed to delete entry: %@\nError: %@",
+                      [[entry title] stringValue], error);
   }
-    
-  [self updateUI];
-  
-  [self reloadEntryEditField];
-} 
 
-// failed
-- (void)deleteTicket:(GDataServiceTicket *)ticket
-failedWithError:(NSError *)error {
-  
-  GDataEntryBase *entry = [ticket userData];
-  
-  NSBeginAlertSheet(@"Delete", nil, nil, nil,
-                    [self window], nil, nil,
-                    nil, nil, @"Failed to delete entry: %@\nError: %@", [[entry title] stringValue], error);
-  
-  mIsEntriesFetchPending = NO;
-  
+  [self setEditPostTicket:nil];
   [self updateUI];
-  
 }
-
-
-#pragma mark Add an entry
 
 #pragma mark Text field delegate methods
 
 - (void)controlTextDidChange:(NSNotification *)note {
-  if ([note object] == mEntryEditField) {
-    
+  if ([note object] == mPostEditField) {
+
     [self updateUI]; // enabled/disable the Update button
   }
 }
@@ -567,76 +637,136 @@ failedWithError:(NSError *)error {
 //
 
 - (void)tableViewSelectionDidChange:(NSNotification *)notification {
-  
-  if ([notification object] == mBlogsTable) {
+
+  id object = [notification object];
+  if (object == mBlogsTable) {
     // the user clicked on a blog, so fetch its entries
-    [self fetchSelectedBlogEntries];
-  } else {
-    // the user clicked on an entry; just display it below the entry table
+    [self fetchPostsForSelectedBlog];
+  } else if (object == mPostsTable) {
+    // the user clicked on an blog post; display it below the posts table
     [self reloadEntryEditField];
-    
-    [self updateUI]; 
+
+    // fetch the comment list for the selected post
+    [self fetchCommentsForSelectedPost];
+  } else {
+    // the user clicked on a comment; redisplay the results field
+    [self updateUI];
   }
 }
 
 // table view data source methods
-- (int)numberOfRowsInTableView:(NSTableView *)tableView {
+- (GDataFeedBase *)feedForTableView:(NSTableView *)tableView {
+  GDataFeedBase *feed;
   if (tableView == mBlogsTable) {
-    return [[mBlogsFeed entries] count];
+    feed = mBlogFeed;
+  } else if (tableView == mPostsTable) {
+    feed = mPostFeed;
   } else {
-    return [[mEntriesFeed entries] count];
+    feed = mCommentFeed;
   }
+  return feed;
+}
+
+- (int)numberOfRowsInTableView:(NSTableView *)tableView {
+  return [[[self feedForTableView:tableView] entries] count];
 }
 
 - (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row {
-  if (tableView == mBlogsTable) {
-    // get the blog entry's title
-    GDataEntryBase *blog = [[mBlogsFeed entries] objectAtIndex:row];
-    return [[blog title] stringValue];
-  } else {
-    // get the entry's title
-    GDataEntryBase *entry = [[mEntriesFeed entries] objectAtIndex:row];
-    return [[entry title] stringValue];
-  }
+  GDataFeedBase *feed = [self feedForTableView:tableView];
+  GDataEntryBase *entry = [feed entryAtIndex:row];
+  return [[entry title] stringValue];
 }
 
 #pragma mark Setters and Getters
 
-- (GDataFeedBase *)blogsFeed {
-  return mBlogsFeed; 
+- (GDataFeedBase *)blogFeed {
+  return mBlogFeed;
 }
 
-- (void)setBlogsFeed:(GDataFeedBase *)feed {
-  [mBlogsFeed autorelease];
-  mBlogsFeed = [feed retain];
+- (void)setBlogFeed:(GDataFeedBase *)feed {
+  [mBlogFeed autorelease];
+  mBlogFeed = [feed retain];
 }
 
-- (NSError *)blogsFetchError {
-  return mBloggerFetchError; 
+- (NSError *)blogFetchError {
+  return mBlogFetchError;
 }
 
-- (void)setBlogsFetchError:(NSError *)error {
-  [mBloggerFetchError release];
-  mBloggerFetchError = [error retain];
+- (void)setBlogFetchError:(NSError *)error {
+  [mBlogFetchError release];
+  mBlogFetchError = [error retain];
 }
 
-- (GDataFeedBase *)entriesFeed {
-  return mEntriesFeed; 
+- (GDataServiceTicket *)blogFeedTicket {
+  return mBlogFeedTicket;
 }
 
-- (void)setEntriesFeed:(GDataFeedBase *)feed {
-  [mEntriesFeed autorelease];
-  mEntriesFeed = [feed retain];
+- (void)setBlogFeedTicket:(GDataServiceTicket *)ticket {
+  [mBlogFeedTicket autorelease];
+  mBlogFeedTicket = [ticket retain];
 }
 
-- (NSError *)entriesFetchError {
-  return mEntriesFetchError; 
+- (GDataFeedBase *)postFeed {
+  return mPostFeed;
 }
 
-- (void)setEntriesFetchError:(NSError *)error {
-  [mEntriesFetchError release];
-  mEntriesFetchError = [error retain];
+- (void)setPostFeed:(GDataFeedBase *)feed {
+  [mPostFeed autorelease];
+  mPostFeed = [feed retain];
 }
 
+- (NSError *)postFetchError {
+  return mPostFetchError;
+}
+
+- (void)setPostFetchError:(NSError *)error {
+  [mPostFetchError release];
+  mPostFetchError = [error retain];
+}
+
+- (GDataServiceTicket *)postFeedTicket {
+  return mPostFeedTicket;
+}
+
+- (void)setPostFeedTicket:(GDataServiceTicket *)ticket {
+  [mPostFeedTicket autorelease];
+  mPostFeedTicket = [ticket retain];
+}
+
+- (GDataFeedBase *)commentFeed {
+  return mCommentFeed;
+}
+
+- (void)setCommentFeed:(GDataFeedBase *)feed {
+  [mCommentFeed autorelease];
+  mCommentFeed = [feed retain];
+}
+
+- (NSError *)commentFetchError {
+  return mCommentFetchError;
+}
+
+- (void)setCommentFetchError:(NSError *)error {
+  [mCommentFetchError release];
+  mCommentFetchError = [error retain];
+}
+
+- (GDataServiceTicket *)commentFeedTicket {
+  return mCommentFeedTicket;
+}
+
+- (void)setCommentFeedTicket:(GDataServiceTicket *)ticket {
+  [mCommentFeedTicket autorelease];
+  mCommentFeedTicket = [ticket retain];
+}
+
+- (GDataServiceTicket *)editPostTicket {
+  return mEditPostTicket;
+}
+
+- (void)setEditPostTicket:(GDataServiceTicket *)ticket {
+  [mEditPostTicket autorelease];
+  mEditPostTicket = [ticket retain];
+}
 
 @end

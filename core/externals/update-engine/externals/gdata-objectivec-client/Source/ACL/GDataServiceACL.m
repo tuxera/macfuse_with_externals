@@ -17,6 +17,9 @@
 //  GDataServiceACL.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_ACLS \
+  || GDATA_INCLUDE_CALENDAR_SERVICE
+
 #import "GDataServiceACL.h"
 #import "GDataEntryACL.h"
 
@@ -27,60 +30,67 @@
 
 - (GDataServiceTicket *)fetchACLFeedWithURL:(NSURL *)feedURL
                                    delegate:(id)delegate
-                          didFinishSelector:(SEL)finishedSelector
-                            didFailSelector:(SEL)failedSelector {
+                          didFinishSelector:(SEL)finishedSelector {
 
-  return [self fetchAuthenticatedFeedWithURL:feedURL
-                                   feedClass:kGDataUseRegisteredClass
-                                    delegate:delegate
-                           didFinishSelector:finishedSelector
-                             didFailSelector:failedSelector];
+  return [self fetchFeedWithURL:feedURL
+                       delegate:delegate
+              didFinishSelector:finishedSelector];
 }
 
 - (GDataServiceTicket *)fetchACLEntryByInsertingEntry:(GDataEntryACL *)entryToInsert
                                            forFeedURL:(NSURL *)feedURL
                                              delegate:(id)delegate
-                                    didFinishSelector:(SEL)finishedSelector
-                                      didFailSelector:(SEL)failedSelector {
+                                    didFinishSelector:(SEL)finishedSelector {
   // add ACL namespaces, if needed
   if ([entryToInsert namespaces] == nil) {
     [entryToInsert setNamespaces:[[entryToInsert class] ACLNamespaces]];
   }
 
-  return [self fetchAuthenticatedEntryByInsertingEntry:entryToInsert
-                                            forFeedURL:feedURL
-                                              delegate:delegate
-                                     didFinishSelector:finishedSelector
-                                       didFailSelector:failedSelector];
+  return [self fetchEntryByInsertingEntry:entryToInsert
+                               forFeedURL:feedURL
+                                 delegate:delegate
+                        didFinishSelector:finishedSelector];
 }
 
 - (GDataServiceTicket *)fetchACLEntryByUpdatingEntry:(GDataEntryACL *)entryToUpdate
-                                         forEntryURL:(NSURL *)entryURL
                                             delegate:(id)delegate
-                                   didFinishSelector:(SEL)finishedSelector
-                                     didFailSelector:(SEL)failedSelector {
+                                   didFinishSelector:(SEL)finishedSelector {
 
   // add ACL namespaces, if needed
   if ([entryToUpdate namespaces] == nil) {
     [entryToUpdate setNamespaces:[[entryToUpdate class] ACLNamespaces]];
   }
 
-  return [self fetchAuthenticatedEntryByUpdatingEntry:entryToUpdate
-                                          forEntryURL:entryURL
-                                             delegate:delegate
-                                    didFinishSelector:finishedSelector
-                                      didFailSelector:failedSelector];
+  return [self fetchEntryByUpdatingEntry:entryToUpdate
+                                delegate:delegate
+                       didFinishSelector:finishedSelector];
+}
+
+- (GDataServiceTicket *)fetchACLEntryByUpdatingEntry:(GDataEntryACL *)entryToUpdate
+                                         forEntryURL:(NSURL *)entryURL
+                                            delegate:(id)delegate
+                                   didFinishSelector:(SEL)finishedSelector {
+
+  // add ACL namespaces, if needed
+  if ([entryToUpdate namespaces] == nil) {
+    [entryToUpdate setNamespaces:[[entryToUpdate class] ACLNamespaces]];
+  }
+
+  return [self fetchEntryByUpdatingEntry:entryToUpdate
+                             forEntryURL:entryURL
+                                delegate:delegate
+                       didFinishSelector:finishedSelector];
 }
 
 - (GDataServiceTicket *)deleteACLEntry:(GDataEntryACL *)entryToDelete
                               delegate:(id)delegate
-                     didFinishSelector:(SEL)finishedSelector
-                       didFailSelector:(SEL)failedSelector {
+                     didFinishSelector:(SEL)finishedSelector {
 
-  return [self deleteAuthenticatedEntry:entryToDelete
-                               delegate:delegate
-                      didFinishSelector:finishedSelector
-                        didFailSelector:failedSelector];
+  return [self deleteEntry:entryToDelete
+                  delegate:delegate
+         didFinishSelector:finishedSelector];
 }
 
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDE || GDATA_INCLUDE_*

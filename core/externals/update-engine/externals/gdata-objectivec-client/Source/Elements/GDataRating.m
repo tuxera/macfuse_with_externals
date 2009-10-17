@@ -17,6 +17,9 @@
 //  GDataRating.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_BOOKS_SERVICE \
+  || GDATA_INCLUDE_CALENDAR_SERVICE || GDATA_INCLUDE_YOUTUBE_SERVICE
+
 #define GDATARATING_DEFINE_GLOBALS 1
 #import "GDataRating.h"
 
@@ -37,28 +40,28 @@ static NSString* const kNumRatersAttr = @"numRaters";
 + (NSString *)extensionElementPrefix    { return kGDataNamespaceGDataPrefix; }
 + (NSString *)extensionElementLocalName { return @"rating"; }
 
-+ (GDataRating *)ratingWithValue:(int)value
-                             max:(int)max
-                             min:(int)min {
++ (GDataRating *)ratingWithValue:(NSInteger)value
+                             max:(NSInteger)max
+                             min:(NSInteger)min {
   GDataRating *obj = [[[GDataRating alloc] init] autorelease];
-  [obj setValue:[NSNumber numberWithInt:value]];
-  [obj setMax:[NSNumber numberWithInt:max]];
-  [obj setMin:[NSNumber numberWithInt:min]];
+  [obj setValue:[NSNumber numberWithInt:(int)value]];
+  [obj setMax:[NSNumber numberWithInt:(int)max]];
+  [obj setMin:[NSNumber numberWithInt:(int)min]];
   return obj;
 }
 
 - (void)addParseDeclarations {
-  NSArray *attrs = [NSArray arrayWithObjects: 
+  NSArray *attrs = [NSArray arrayWithObjects:
                     kRelAttr, kValueAttr, kMaxAttr, kMinAttr,
                     kAverageAttr, kNumRatersAttr, nil];
-  
+
   [self addLocalAttributeDeclarations:attrs];
 }
 
 #pragma mark -
 
 - (NSString *)rel {
-  return [self stringValueForAttribute:kRelAttr]; 
+  return [self stringValueForAttribute:kRelAttr];
 }
 
 - (void)setRel:(NSString *)str {
@@ -66,7 +69,7 @@ static NSString* const kNumRatersAttr = @"numRaters";
 }
 
 - (NSNumber *)value {
-  return [self intNumberForAttribute:kValueAttr]; 
+  return [self intNumberForAttribute:kValueAttr];
 }
 
 - (void)setValue:(NSNumber *)num {
@@ -74,7 +77,7 @@ static NSString* const kNumRatersAttr = @"numRaters";
 }
 
 - (NSNumber *)max {
-  return [self intNumberForAttribute:kMaxAttr]; 
+  return [self intNumberForAttribute:kMaxAttr];
 }
 
 - (void)setMax:(NSNumber *)num {
@@ -82,7 +85,7 @@ static NSString* const kNumRatersAttr = @"numRaters";
 }
 
 - (NSNumber *)min {
-  return [self intNumberForAttribute:kMinAttr]; 
+  return [self intNumberForAttribute:kMinAttr];
 }
 
 - (void)setMin:(NSNumber *)num {
@@ -90,7 +93,7 @@ static NSString* const kNumRatersAttr = @"numRaters";
 }
 
 - (NSNumber *)average {
-  return [self doubleNumberForAttribute:kAverageAttr]; 
+  return [self doubleNumberForAttribute:kAverageAttr];
 }
 
 - (void)setAverage:(NSNumber *)num {
@@ -98,7 +101,7 @@ static NSString* const kNumRatersAttr = @"numRaters";
 }
 
 - (NSNumber *)numberOfRaters {
-  return [self intNumberForAttribute:kNumRatersAttr]; 
+  return [self intNumberForAttribute:kNumRatersAttr];
 }
 
 - (void)setNumberOfRaters:(NSNumber *)num {
@@ -107,3 +110,4 @@ static NSString* const kNumRatersAttr = @"numRaters";
 
 @end
 
+#endif // #if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_*_SERVICE

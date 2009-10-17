@@ -17,8 +17,10 @@
 //  GDataEntryYouTubeUserEvent.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_YOUTUBE_SERVICE
+
 #import "GDataEntryYouTubeUserEvent.h"
-#import "GDataEntryYouTubeVideo.h"
+#import "GDataYouTubeConstants.h"
 #import "GDataYouTubeElements.h"
 #import "GDataRating.h"
 
@@ -28,7 +30,7 @@
 
   GDataEntryYouTubeUserEvent *entry = [[[self alloc] init] autorelease];
 
-  [entry setNamespaces:[GDataEntryYouTubeVideo youTubeNamespaces]];
+  [entry setNamespaces:[GDataYouTubeConstants youTubeNamespaces]];
 
   return entry;
 }
@@ -154,3 +156,5 @@
 }
 
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_YOUTUBE_SERVICE

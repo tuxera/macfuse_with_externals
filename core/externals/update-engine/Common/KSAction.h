@@ -51,7 +51,7 @@
 //
 // KSAction subclasses may be created and configured as necessary to enable them
 // to perform their action. They should not actually perform their action until
-// they are sent the -performAction: message from a KSActionProcessor. If the
+// they are sent the -performAction message from a KSActionProcessor. If the
 // action runs asynchronously, it should also implement the -terminateAction
 // method, which should stop the action and only return once the action has been
 // terminated. Subclasses will typically only need to override two methods:
@@ -135,7 +135,7 @@
 // stop all processing before returning from this method.
 //
 // This method is optional. If your action doesn't need to do any cleanup, or
-// if it's synchronous (meaning, it will be done when -performAction:
+// if it's synchronous (meaning, it will be done when -performAction
 // returns), this method does not need to be overridden.
 //
 // Subclasses should NOT send -finishedProcessing:successfully: to the action

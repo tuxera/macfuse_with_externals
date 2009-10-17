@@ -1,25 +1,27 @@
 /* Copyright (c) 2008 Google Inc.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 //
 //  GDataYouTubeMediaElements.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_YOUTUBE_SERVICE
+
 #define GDATAYOUTUBEMEDIAELEMENTS_DEFINE_GLOBALS 1
 #import "GDataYouTubeMediaElements.h"
-#import "GDataEntryYouTubeVideo.h"
+#import "GDataYouTubeConstants.h"
 
 @interface GDataYouTubeFormatAttribute : GDataAttribute <GDataExtension>
 @end
@@ -30,19 +32,6 @@
 + (NSString *)extensionElementLocalName { return @"format"; }
 @end
 
-// v2.0 additions
-
-@implementation GDataYouTubeVideoID
-+ (NSString *)extensionElementURI { return kGDataNamespaceYouTube; }
-+ (NSString *)extensionElementPrefix { return kGDataNamespaceYouTubePrefix; }
-+ (NSString *)extensionElementLocalName { return @"videoid"; }
-@end
-
-@implementation GDataYouTubeUploadedDate
-+ (NSString *)extensionElementURI { return kGDataNamespaceYouTube; }
-+ (NSString *)extensionElementPrefix { return kGDataNamespaceYouTubePrefix; }
-+ (NSString *)extensionElementLocalName { return @"uploaded"; }
-@end
 
 @implementation GDataMediaContent (YouTubeExtensions)
 
@@ -119,6 +108,7 @@
   
   [self addExtensionDeclarationForParentClass:[self class]
                                  childClasses:
+   [GDataYouTubeAspectRatio class],
    [GDataYouTubeDuration class],
    [GDataYouTubePrivate class],
    [GDataYouTubeVideoID class],
@@ -142,10 +132,11 @@
 - (NSMutableArray *)itemsForDescription {
 
   static struct GDataDescriptionRecord descRecs[] = {
-    { @"duration", @"duration",     kGDataDescValueLabeled   },
-    { @"videoID",  @"videoID",      kGDataDescValueLabeled   },
-    { @"uploaded", @"uploadedDate", kGDataDescValueLabeled   },
-    { @"private",  @"isPrivate",    kGDataDescBooleanPresent },
+    { @"duration",    @"duration",     kGDataDescValueLabeled   },
+    { @"videoID",     @"videoID",      kGDataDescValueLabeled   },
+    { @"aspectRatio", @"aspectRatio",  kGDataDescValueLabeled   },
+    { @"uploaded",    @"uploadedDate", kGDataDescValueLabeled   },
+    { @"private",     @"isPrivate",    kGDataDescBooleanPresent },
     { nil, nil, 0 }
   };
 
@@ -204,9 +195,49 @@
 
 - (void)setUploadedDate:(GDataDateTime *)dateTime {
   GDataYouTubeUploadedDate *obj;
-  
+
   obj = [GDataYouTubeUploadedDate valueWithDateTime:dateTime];
   [self setObject:obj forExtensionClass:[GDataYouTubeUploadedDate class]];
 }
 
+// aspectRatio available in v2.0
+- (NSString *)aspectRatio {
+  GDataYouTubeAspectRatio *obj;
+
+  obj = [self objectForExtensionClass:[GDataYouTubeAspectRatio class]];
+  return [obj stringValue];
+}
+
+- (void)setAspectRatio:(NSString *)str {
+  GDataYouTubeAspectRatio *obj = [GDataYouTubeAspectRatio valueWithString:str];
+  [self setObject:obj forExtensionClass:[GDataYouTubeAspectRatio class]];
+}
+
+// convenience accessors
+- (GDataMediaThumbnail *)highQualityThumbnail {
+  // the HQ thumbnail is the one lacking a time attribute
+  NSArray *array = [self mediaThumbnails];
+  GDataMediaThumbnail *obj = [GDataUtilities firstObjectFromArray:array
+                                                        withValue:nil
+                                                       forKeyPath:@"time"];
+  return obj;
+}
+
+- (GDataMediaContent *)mediaContentWithFormatNumber:(NSInteger)formatNumber {
+  NSArray *mediaContents = [self mediaContents];
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
+  NSNumber *formatNum = [NSNumber numberWithInt:formatNumber];
+#else
+  NSNumber *formatNum = [NSNumber numberWithInteger:formatNumber];
+#endif
+
+  GDataMediaContent *content;
+  content = [GDataUtilities firstObjectFromArray:mediaContents
+                                       withValue:formatNum
+                                      forKeyPath:@"youTubeFormatNumber"];
+  return content;
+}
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_YOUTUBE_SERVICE

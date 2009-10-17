@@ -21,14 +21,17 @@
 // can include just the client service header needed, like
 //   #import "GData/GDataCalendar.h"
 
+#import "GDataAnalytics.h"
+#import "GDataBlogger.h"
 #import "GDataBooks.h"
 #import "GDataCalendar.h"
 #import "GDataContacts.h"
 #import "GDataCodeSearch.h"
 #import "GDataDocs.h"
-#import "GDataElements.h"
 #import "GDataFinance.h"
 #import "GDataGoogleBase.h"
+#import "GDataHealth.h"
+#import "GDataMaps.h"
 #import "GDataPhotos.h"
 #import "GDataSpreadsheet.h"
 #import "GDataWebmasterTools.h"

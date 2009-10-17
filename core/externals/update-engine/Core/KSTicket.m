@@ -22,7 +22,6 @@
                   version:(NSString *)version
          existenceChecker:(KSExistenceChecker *)xc
                 serverURL:(NSURL *)serverURL {
-
   return [[[self alloc] initWithProductID:productid
                                   version:version
                          existenceChecker:xc
@@ -35,7 +34,6 @@
          existenceChecker:(KSExistenceChecker *)xc
                 serverURL:(NSURL *)serverURL
        trustedTesterToken:(NSString *)trustedTesterToken {
-
   return [[[self alloc] initWithProductID:productid
                                   version:version
                          existenceChecker:xc
@@ -43,40 +41,105 @@
                        trustedTesterToken:trustedTesterToken] autorelease];
 }
 
++ (id)ticketWithProductID:(NSString *)productid
+                  version:(NSString *)version
+         existenceChecker:(KSExistenceChecker *)xc
+                serverURL:(NSURL *)serverURL
+       trustedTesterToken:(NSString *)trustedTesterToken 
+             creationDate:(NSDate *)creationDate {
+  return [[[self alloc] initWithProductID:productid
+                                  version:version
+                         existenceChecker:xc
+                                serverURL:serverURL
+                       trustedTesterToken:trustedTesterToken
+                             creationDate:creationDate] autorelease];
+}
+
++ (id)ticketWithProductID:(NSString *)productid
+                  version:(NSString *)version
+         existenceChecker:(KSExistenceChecker *)xc
+                serverURL:(NSURL *)serverURL
+       trustedTesterToken:(NSString *)trustedTesterToken
+             creationDate:(NSDate *)creationDate
+                      tag:(NSString *)tag {
+  return [[[self alloc] initWithProductID:productid
+                                  version:version
+                         existenceChecker:xc
+                                serverURL:serverURL
+                       trustedTesterToken:trustedTesterToken
+                             creationDate:creationDate
+                                      tag:tag] autorelease];
+}
+
 - (id)init {
   return [self initWithProductID:nil
-                    version:nil
-           existenceChecker:nil
-                  serverURL:nil];
+                         version:nil
+                existenceChecker:nil
+                       serverURL:nil
+              trustedTesterToken:nil
+                    creationDate:nil
+                             tag:nil];
 }
 
 - (id)initWithProductID:(NSString *)productid
                 version:(NSString *)version
        existenceChecker:(KSExistenceChecker *)xc
               serverURL:(NSURL *)serverURL {
-
   return [self initWithProductID:productid
                          version:version
                 existenceChecker:xc
                        serverURL:serverURL
-              trustedTesterToken:nil];
+              trustedTesterToken:nil
+                    creationDate:nil];
 }
+
 
 - (id)initWithProductID:(NSString *)productid
                 version:(NSString *)version
        existenceChecker:(KSExistenceChecker *)xc
               serverURL:(NSURL *)serverURL
      trustedTesterToken:(NSString *)trustedTesterToken {
+  return [self initWithProductID:productid
+                         version:version
+                existenceChecker:xc
+                       serverURL:serverURL
+              trustedTesterToken:trustedTesterToken
+                    creationDate:nil];
+}
 
+- (id)initWithProductID:(NSString *)productid
+                version:(NSString *)version
+       existenceChecker:(KSExistenceChecker *)xc
+              serverURL:(NSURL *)serverURL
+     trustedTesterToken:(NSString *)trustedTesterToken
+           creationDate:(NSDate *)creationDate {
+  return [self initWithProductID:productid
+                         version:version
+                existenceChecker:xc
+                       serverURL:serverURL
+              trustedTesterToken:trustedTesterToken
+                    creationDate:creationDate
+                             tag:nil];
+}
+
+- (id)initWithProductID:(NSString *)productid
+                version:(NSString *)version
+       existenceChecker:(KSExistenceChecker *)xc
+              serverURL:(NSURL *)serverURL
+     trustedTesterToken:(NSString *)trustedTesterToken
+           creationDate:(NSDate *)creationDate
+                    tag:(NSString *)tag {
   if ((self = [super init])) {
     productID_ = [productid copy];
     version_ = [version copy];
     existenceChecker_ = [xc retain];
     serverURL_ = [serverURL retain];
-    creationDate_ = [[NSDate alloc] init];
+    creationDate_ = [creationDate retain];
     trustedTesterToken_ = [trustedTesterToken retain];
+    if (creationDate_ == nil) creationDate_ = [[NSDate alloc] init];
+    tag_ = [tag copy];
 
-    // ensure that no ivars (other than trustedTesterToken_) are nil
+    // Ensure that no ivars (other than trustedTesterToken_) are nil.
     if (productID_ == nil || version_ == nil ||
         existenceChecker_ == nil || serverURL == nil) {
       [self release];
@@ -90,11 +153,16 @@
   if ((self = [super init])) {
     productID_ = [[coder decodeObjectForKey:@"product_id"] retain];
     version_ = [[coder decodeObjectForKey:@"version"] retain];
-    existenceChecker_ = [[coder decodeObjectForKey:@"existence_checker"] retain];
+    existenceChecker_ =
+      [[coder decodeObjectForKey:@"existence_checker"] retain];
     serverURL_ = [[coder decodeObjectForKey:@"server_url"] retain];
     creationDate_ = [[coder decodeObjectForKey:@"creation_date"] retain];
     if ([coder containsValueForKey:@"trusted_tester_token"]) {
-      trustedTesterToken_ = [[coder decodeObjectForKey:@"trusted_tester_token"] retain];
+      trustedTesterToken_ =
+        [[coder decodeObjectForKey:@"trusted_tester_token"] retain];
+    }
+    if ([coder containsValueForKey:@"tag"]) {
+      tag_ = [[coder decodeObjectForKey:@"tag"] retain];
     }
   }
   return self;
@@ -106,6 +174,8 @@
   [existenceChecker_ release];
   [serverURL_ release];
   [creationDate_ release];
+  [trustedTesterToken_ release];
+  [tag_ release];
   [super dealloc];
 }
 
@@ -117,9 +187,11 @@
   [coder encodeObject:creationDate_ forKey:@"creation_date"];
   if (trustedTesterToken_)
     [coder encodeObject:trustedTesterToken_ forKey:@"trusted_tester_token"];
+  if (tag_)
+    [coder encodeObject:tag_ forKey:@"tag"];
 }
 
-// trustedTesterToken_ intentionally excluded from hash
+// trustedTesterToken_ and tag intentionally excluded from hash
 - (unsigned)hash {
   return [productID_ hash] + [version_ hash] + [existenceChecker_ hash]
        + [serverURL_ hash] + [creationDate_ hash];
@@ -149,6 +221,9 @@
   if (trustedTesterToken_ &&
       ![trustedTesterToken_ isEqual:[ticket trustedTesterToken]])
     return NO;
+  if (tag_ && ![tag_ isEqual:[ticket tag]])
+    return NO;
+
   return YES;
 }
 
@@ -158,13 +233,17 @@
     tttokenString = [NSString stringWithFormat:@"\n\ttrustedTesterToken=%@",
                               trustedTesterToken_];
   }
+  NSString *tagString = @"";
+  if (tag_) {
+    tagString = [NSString stringWithFormat:@"\n\ttag=%@", tag_];
+  }
 
   return [NSString stringWithFormat:
                    @"<%@:%p\n\tproductID=%@\n\tversion=%@\n\t"
-                   @"xc=%@\n\turl=%@\n\tcreationDate=%@%@\n>",
+                   @"xc=%@\n\turl=%@\n\tcreationDate=%@%@%@\n>",
                    [self class], self, productID_,
                    version_, existenceChecker_, serverURL_, creationDate_,
-                   tttokenString];
+                   tttokenString, tagString];
 }
 
 - (NSString *)productID {
@@ -189,6 +268,10 @@
 
 - (NSString *)trustedTesterToken {
   return trustedTesterToken_;
+}
+
+- (NSString *)tag {
+  return tag_;
 }
 
 @end

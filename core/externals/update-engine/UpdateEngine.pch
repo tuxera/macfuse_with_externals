@@ -14,11 +14,14 @@
 
 #ifdef __OBJC__
 
+  // Don't need GDATA HTTPFetcher's payload logging support.
+  #define STRIP_GDATA_FETCH_LOGGING 1
+
   #import <Foundation/Foundation.h>
-  #import "GTMLogger.h"
 
   // Define _GTMDevLog messages to show up as GTMLoggerInfo calls.
   #define _GTMDevLog GTMLoggerInfo
+  #import "GTMLogger.h"
   #import "GTMDefines.h"
 
 #endif

@@ -17,10 +17,12 @@
 //  GDataSiteVerificationMethod.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_WEBMASTERTOOLS_SERVICE
+
 #define GDATASITEVERIFICATIONMETHOD_DEFINE_GLOBALS 1
 #import "GDataSiteVerificationMethod.h"
 
-#import "GDataEntrySite.h" // for namespaces
+#import "GDataWebmasterToolsConstants.h"
 
 static NSString* const kTypeAttr = @"type";
 static NSString* const kInUseAttr = @"in-use";
@@ -107,3 +109,5 @@ static NSString* const kInUseAttr = @"in-use";
 }
 
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_WEBMASTERTOOLS_SERVICE

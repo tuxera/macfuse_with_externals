@@ -17,6 +17,8 @@
 //  GDataEntryVolume.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_BOOKS_SERVICE
+
 #define GDATAENTRYVOLUME_DEFINE_GLOBALS 1
 
 #import "GDataEntryVolume.h"
@@ -67,7 +69,7 @@
 + (GDataEntryVolume *)volumeEntry {
   
   GDataEntryVolume *obj;
-  obj = [[[[self class] alloc] init] autorelease];
+  obj = [[[self alloc] init] autorelease];
   
   [obj setNamespaces:[GDataEntryVolume booksNamespaces]];
   
@@ -333,4 +335,11 @@
   return [self linkWithRelAttributeValue:kGDataBooksAnnotationRel]; 
 }
 
+- (GDataLink *)EPubDownloadLink {
+  return [self linkWithRelAttributeValue:kGDataBooksEPubDownloadRel];
+}
+
+
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_BOOKS_SERVICE

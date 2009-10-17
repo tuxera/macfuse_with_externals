@@ -17,6 +17,8 @@
 //  GDataFinanceTransactionData.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_FINANCE_SERVICE
+
 #import "GDataFinanceTransactionData.h"
 
 #import "GDataEntryFinancePortfolio.h" // for namespaces
@@ -125,7 +127,7 @@ static NSString* const kNotesAttr = @"notes";
 }
 
 - (void)setCommission:(GDataCommission *)obj {
-  [self setObject:obj forExtensionClass:[obj class]];   
+  [self setObject:obj forExtensionClass:[GDataCommission class]];
 }
 
 - (GDataPrice *)price {
@@ -133,7 +135,9 @@ static NSString* const kNotesAttr = @"notes";
 }
 
 - (void)setPrice:(GDataPrice *)obj {
-  [self setObject:obj forExtensionClass:[obj class]];
+  [self setObject:obj forExtensionClass:[GDataPrice class]];
 }
 
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_FINANCE_SERVICE

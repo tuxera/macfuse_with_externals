@@ -40,7 +40,7 @@ static NSString *const kUpdatedMinParamName  = @"updated-min";
 @implementation GDataCategoryFilter
 
 + (GDataCategoryFilter *)categoryFilter {
-  return [[[self alloc] init] autorelease];  
+  return [[[self alloc] init] autorelease];
 }
 
 - (void)dealloc {
@@ -61,12 +61,12 @@ static NSString *const kUpdatedMinParamName  = @"updated-min";
 }
 
 - (NSString *)description {
-  return [NSString stringWithFormat:@"%@ 0x%lX: {%@}",
+  return [NSString stringWithFormat:@"%@ %p: {%@}",
     [self class], self, [self stringValue]];
 }
 
 - (NSArray *)categories {
-  return categories_;  
+  return categories_;
 }
 
 - (void)setCategories:(NSArray *)array {
@@ -78,12 +78,17 @@ static NSString *const kUpdatedMinParamName  = @"updated-min";
   if (!categories_) {
     categories_ = [[NSMutableArray alloc] init];
   }
-  
+
   [categories_ addObject:category];
 }
 
+- (void)addCategoryWithScheme:(NSString *)scheme term:(NSString *)term {
+  GDataCategory *cat = [GDataCategory categoryWithScheme:scheme term:term];
+  [self addCategory:cat];
+}
+
 - (NSArray *)excludeCategories {
-  return excludeCategories_;  
+  return excludeCategories_;
 }
 
 - (void)setExcludeCategories:(NSArray *)array {
@@ -93,43 +98,48 @@ static NSString *const kUpdatedMinParamName  = @"updated-min";
 
 - (void)addExcludeCategory:(GDataCategory *)excludeCategory {
   if (!excludeCategories_) {
-    excludeCategories_ = [[NSMutableArray alloc] init]; 
+    excludeCategories_ = [[NSMutableArray alloc] init];
   }
-  
+
   [excludeCategories_ addObject:excludeCategory];
 }
 
+- (void)addExcludeCategoryWithScheme:(NSString *)scheme term:(NSString *)term {
+  GDataCategory *cat = [GDataCategory categoryWithScheme:scheme term:term];
+  [self addExcludeCategory:cat];
+}
+
 - (NSString *)queryStringForCategory:(GDataCategory *)category {
-  
+
   // precede the category term with {scheme} if there's a scheme
   NSString *prefix = @"";
   NSString *scheme = [category scheme];
   if (scheme) {
     prefix = [NSString stringWithFormat:@"{%@}", scheme];
   }
-  
+
   NSString *term = [category term];
   NSString *result = [NSString stringWithFormat:@"%@%@", prefix, term];
   return result;
 }
 
 - (NSString *)stringValue {
-  
+
   NSMutableString *result = [NSMutableString string];
-  
+
   // append include categories
   GDataCategory *cat;
   GDATA_FOREACH(cat, categories_) {
-    if ([result length]) {
-      [result appendString:@"|"]; 
+    if ([result length] > 0) {
+      [result appendString:@"|"];
     }
     [result appendString:[self queryStringForCategory:cat]];
   }
 
   // append exclude categories, preceded by "-"
   GDATA_FOREACH(cat, excludeCategories_) {
-    if ([result length]) {
-      [result appendString:@"|"]; 
+    if ([result length] > 0) {
+      [result appendString:@"|"];
     }
     [result appendFormat:@"-%@", [self queryStringForCategory:cat]];
   }
@@ -139,12 +149,12 @@ static NSString *const kUpdatedMinParamName  = @"updated-min";
 @end
 
 //
-// GDataQuery 
-// 
+// GDataQuery
+//
 @implementation GDataQuery
 
 + (id)queryWithFeedURL:(NSURL *)feedURL {
-  return [[[self alloc] initWithFeedURL:feedURL] autorelease];  
+  return [[[self alloc] initWithFeedURL:feedURL] autorelease];
 }
 
 - (id)initWithFeedURL:(NSURL *)feedURL {
@@ -173,36 +183,36 @@ static NSString *const kUpdatedMinParamName  = @"updated-min";
 
 
 - (NSString *)description {
- return [NSString stringWithFormat:@"%@ 0x%lX: {%@}",
+ return [NSString stringWithFormat:@"%@ %p: {%@}",
    [self class], self, [[self URL] absoluteString]];
 }
 
 - (NSURL *)feedURL {
-  return feedURL_;  
+  return feedURL_;
 }
 
 - (void)setFeedURL:(NSURL *)feedURL {
-  [feedURL_ release]; 
+  [feedURL_ release];
   feedURL_ = [feedURL retain];
 }
 
-- (int)startIndex {
+- (NSInteger)startIndex {
   return [self intValueForParameterWithName:kStartIndexParamName
                       missingParameterValue:-1];
 }
 
-- (void)setStartIndex:(int)startIndex {
+- (void)setStartIndex:(NSInteger)startIndex {
   [self addCustomParameterWithName:kStartIndexParamName
                           intValue:startIndex
                     removeForValue:-1];
 }
 
-- (int)maxResults {
+- (NSInteger)maxResults {
   return [self intValueForParameterWithName:kMaxResultsParamName
                       missingParameterValue:-1];
 }
 
-- (void)setMaxResults:(int)maxResults {
+- (void)setMaxResults:(NSInteger)maxResults {
   [self addCustomParameterWithName:kMaxResultsParamName
                           intValue:maxResults
                     removeForValue:-1];
@@ -353,7 +363,7 @@ static NSString *const kUpdatedMinParamName  = @"updated-min";
 }
 
 - (NSArray *)categoryFilters {
-  return categoryFilters_; 
+  return categoryFilters_;
 }
 
 - (void)setCategoryFilters:(NSArray *)filters {
@@ -363,16 +373,24 @@ static NSString *const kUpdatedMinParamName  = @"updated-min";
 
 - (void)addCategoryFilter:(GDataCategoryFilter *)filter {
   if (!categoryFilters_) {
-    categoryFilters_ = [[NSMutableArray alloc] init]; 
+    categoryFilters_ = [[NSMutableArray alloc] init];
   }
-  
+
   [categoryFilters_ addObject:filter];
+}
+
+- (void)addCategoryFilterWithScheme:(NSString *)scheme term:(NSString *)term {
+
+  GDataCategoryFilter *filter = [GDataCategoryFilter categoryFilter];
+  [filter addCategoryWithScheme:scheme term:term];
+
+  [self addCategoryFilter:filter];
 }
 
 #pragma mark -
 
 - (NSDictionary *)customParameters {
-  return customParameters_; 
+  return customParameters_;
 }
 
 - (void)setCustomParameters:(NSDictionary *)dict {
@@ -382,16 +400,16 @@ static NSString *const kUpdatedMinParamName  = @"updated-min";
 
 - (void)addCustomParameterWithName:(NSString *)name
                              value:(NSString *)value {
-  
+
   if (value == nil) {
     [self removeCustomParameterWithName:name];
     return;
   }
-  
+
   if (!customParameters_) {
-    customParameters_ = [[NSMutableDictionary alloc] init]; 
+    customParameters_ = [[NSMutableDictionary alloc] init];
   }
-  
+
   [customParameters_ setValue:value forKey:name];
 }
 
@@ -401,7 +419,7 @@ static NSString *const kUpdatedMinParamName  = @"updated-min";
 
 - (NSString *)valueForParameterWithName:(NSString *)name {
   NSString *str = [[self customParameters] objectForKey:name];
-  return str; 
+  return str;
 }
 
 // convenience methods for dateTime parameters
@@ -425,13 +443,13 @@ static NSString *const kUpdatedMinParamName  = @"updated-min";
 //
 // if val==invalidVal, the parameter is removed
 - (void)addCustomParameterWithName:(NSString *)name
-                          intValue:(int)val
-                    removeForValue:(int)invalidVal {
+                          intValue:(NSInteger)val
+                    removeForValue:(NSInteger)invalidVal {
 
   NSString *str = nil;
 
   if (val != invalidVal) {
-    str = [[NSNumber numberWithInt:val] stringValue];
+    str = [[NSNumber numberWithInt:(int)val] stringValue];
   }
 
   [self addCustomParameterWithName:name
@@ -439,12 +457,12 @@ static NSString *const kUpdatedMinParamName  = @"updated-min";
 }
 
 // if the named parameter is not found, missingVal is returned
-- (int)intValueForParameterWithName:(NSString *)name
-              missingParameterValue:(int)missingVal {
+- (NSInteger)intValueForParameterWithName:(NSString *)name
+                    missingParameterValue:(NSInteger)missingVal {
 
   NSString *str = [customParameters_ objectForKey:name];
-  if (str != nil) return [str intValue];
-
+  if (str != nil) return (NSInteger) [str intValue];
+  
   return missingVal;
 }
 

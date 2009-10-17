@@ -21,6 +21,7 @@
 
 // Health
 
+#import "GDataHealthConstants.h"
 #import "GDataHealthElements.h"
 #import "GDataEntryHealthProfile.h"
 #import "GDataEntryHealthRegister.h"

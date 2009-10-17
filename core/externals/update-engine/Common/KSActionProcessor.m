@@ -143,7 +143,7 @@
       // COV_NF_END
     }
         
-    [self updateProgressWithFraction:1.0];
+    [self updateProgressWithFraction:1.0f];
     
     SEL sel = @selector(processor:finishedAction:successfully:);
     if ([delegate_ respondsToSelector:sel])
@@ -167,7 +167,7 @@
 @implementation KSActionProcessor (PrivateMethods)
 
 - (void)updateProgressWithFraction:(float)fraction {
-  int totalActions = [actionQ_ count] + actionsCompleted_;
+  NSInteger totalActions = [actionQ_ count] + actionsCompleted_;
   // Count the currently running action, and don't let totalActions == 0
   if (isProcessing_ || totalActions == 0) totalActions += 1;
   _GTMDevAssert(totalActions != 0, @"totalActions must not be 0");
@@ -175,8 +175,8 @@
   @synchronized (self) {
     progress_ = (unit * actionsCompleted_) + (unit * fraction);
     // ensures 0.0 < progress_ < 1.0
-    progress_ = (progress_ > 1.0) ? 1.0 : progress_;
-    progress_ = (progress_ < 0.0) ? 0.0 : progress_;
+    progress_ = (progress_ > 1.0f) ? 1.0f : progress_;
+    progress_ = (progress_ < 0.0f) ? 0.0f : progress_;
   }
 }
 

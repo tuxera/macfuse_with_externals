@@ -46,10 +46,12 @@ _EXTERN NSString* const kGDataQueryResultServiceDocument _INITIALIZE_AS(@"atom-s
 - (NSArray *)categories;
 - (void)setCategories:(NSArray *)categories;
 - (void)addCategory:(GDataCategory *)category;
+- (void)addCategoryWithScheme:(NSString *)scheme term:(NSString *)term;
 
 - (NSArray *)excludeCategories;
-- (void)setExcludeCategories:(NSArray *)excludeCategories;  
+- (void)setExcludeCategories:(NSArray *)excludeCategories;
 - (void)addExcludeCategory:(GDataCategory *)excludeCategory;
+- (void)addExcludeCategoryWithScheme:(NSString *)scheme term:(NSString *)term;
 
 - (NSString *)stringValue;
 @end
@@ -71,11 +73,11 @@ _EXTERN NSString* const kGDataQueryResultServiceDocument _INITIALIZE_AS(@"atom-s
 - (void)setFeedURL:(NSURL *)feedURL;
 
 // startIndex and maxResults use -1 to indicate parameter is not set
-- (int)startIndex;
-- (void)setStartIndex:(int)startIndex;
+- (NSInteger)startIndex;
+- (void)setStartIndex:(NSInteger)startIndex;
 
-- (int)maxResults;
-- (void)setMaxResults:(int)maxResults;
+- (NSInteger)maxResults;
+- (void)setMaxResults:(NSInteger)maxResults;
 
 - (NSString *)fullTextQueryString;
 - (void)setFullTextQueryString:(NSString *)str;
@@ -122,6 +124,7 @@ _EXTERN NSString* const kGDataQueryResultServiceDocument _INITIALIZE_AS(@"atom-s
 - (NSArray *)categoryFilters;
 - (void)setCategoryFilters:(NSArray *)filters;
 - (void)addCategoryFilter:(GDataCategoryFilter *)filter;
+- (void)addCategoryFilterWithScheme:(NSString *)scheme term:(NSString *)term;
 
 - (NSDictionary *)customParameters;
 - (void)setCustomParameters:(NSDictionary *)dict;
@@ -138,12 +141,12 @@ _EXTERN NSString* const kGDataQueryResultServiceDocument _INITIALIZE_AS(@"atom-s
 
 // if val==invalidVal, the parameter is removed
 - (void)addCustomParameterWithName:(NSString *)name
-                          intValue:(int)val
-                    removeForValue:(int)invalidVal;
+                          intValue:(NSInteger)val
+                    removeForValue:(NSInteger)invalidVal;
 
 // if the named parameter is not found, missingVal is returned
-- (int)intValueForParameterWithName:(NSString *)name
-              missingParameterValue:(int)missingVal;
+- (NSInteger)intValueForParameterWithName:(NSString *)name
+                    missingParameterValue:(NSInteger)missingVal;
 
 // convenience methods for boolean parameters
 - (void)addCustomParameterWithName:(NSString *)name

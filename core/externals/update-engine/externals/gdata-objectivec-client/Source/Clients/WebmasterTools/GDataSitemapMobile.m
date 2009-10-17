@@ -17,9 +17,11 @@
 //  GDataSitemapMobile.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_WEBMASTERTOOLS_SERVICE
+
 #import "GDataSitemapMobile.h"
 
-#import "GDataEntrySite.h" // for namespaces
+#import "GDataWebmasterToolsConstants.h"
 
 // Mobile elements, like
 //
@@ -72,3 +74,5 @@
 }
 
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_WEBMASTERTOOLS_SERVICE

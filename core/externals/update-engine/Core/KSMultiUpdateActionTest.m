@@ -17,10 +17,12 @@
 
 #import "KSActionPipe.h"
 #import "KSActionProcessor.h"
+#import "KSInstallAction.h"
 #import "KSMemoryTicketStore.h"
 #import "KSTicketStore.h"
 #import "KSUpdateAction.h"
 #import "KSUpdateEngine.h"
+#import "KSUpdateEngineParameters.h"
 #import "KSUpdateInfo.h"
 
 
@@ -28,6 +30,8 @@
 @end
 
 
+// Turn the abstract KSMultiUpdateAction into a concrete class we can
+// instantiate.
 @interface Concrete : KSMultiUpdateAction {
   // Hang on to the avaialble updates array we get from Update Engine
   // to verify that the ticket info has been added.
@@ -56,6 +60,117 @@
 
 - (NSArray *)availableUpdates {
   return availableUpdates_;
+}
+
+@end
+
+
+// A fake action processor that hangs on to any actions that are enqueued,
+// without actually running any.
+@interface FakeSubProcessor : NSObject {
+  NSMutableArray *actions_;
+}
+
+// Returns the collected actions.
+- (NSArray *)actions;
+@end
+
+@implementation FakeSubProcessor
+
+- (id)init {
+  if ((self = [super init])) {
+    actions_ = [[NSMutableArray alloc] init];
+  }
+  return self;
+}
+
+- (void)dealloc {
+  [actions_ release];
+  [super dealloc];
+}
+
+- (void)enqueueAction:(KSAction *)action {
+  [actions_ addObject:action];
+}
+
+- (NSArray *)actions {
+  return actions_;
+}
+
+- (void)finishedProcessing:(KSAction *)action successfully:(BOOL)successfully {
+}
+
+- (void)startProcessing {
+}
+
+@end
+
+
+// A multi-action that provides a fake action subprocessor.  The actions
+// created by KSMultiUpdateAction are accumulated, without being executed,
+// and then later examined to make sure proper configuration values (in
+// particular, user-initiated) filter down where they should.
+@interface SubprocessAccessMultiAction : KSMultiUpdateAction {
+  FakeSubProcessor *fakeSubProcessor_;
+}
+
+// Make sure the |uiValue| user-initiated value made it where it
+// should have.
+- (BOOL)verifyUserInitiatedValue:(BOOL)uiValue;
+@end
+
+@implementation SubprocessAccessMultiAction
+
+- (KSActionProcessor *)processor {
+  if (fakeSubProcessor_ == nil) {
+    fakeSubProcessor_ = [[FakeSubProcessor alloc] init];
+  }
+  return (id)fakeSubProcessor_;
+}
+
+- (KSActionProcessor *)subProcessor {
+  return [self processor];
+}
+
+- (NSArray *)productsToUpdateFromAvailable:(NSArray *)availableUpdates {
+  return availableUpdates;
+}
+
+- (BOOL)verifyUserInitiatedValue:(BOOL)uiValue {
+
+  if ([[fakeSubProcessor_ actions] count] == 0) {
+    return NO;
+  }
+
+  BOOL success = YES;
+
+  // Walk the fake sub processor, looking for Update actions.
+  NSEnumerator *actionEnumerator =
+    [[fakeSubProcessor_ actions] objectEnumerator];
+
+  KSAction *action;
+  while ((action = [actionEnumerator nextObject])) {
+    if ([action isKindOfClass:[KSUpdateAction class]]) {
+      // We got an Upate action.  Walk its actions looking for an Install
+      // action.
+      NSEnumerator *subActionEnumerator =
+        [[(KSUpdateAction *)action actions] objectEnumerator];
+      KSAction *subAction;
+      while ((subAction = [subActionEnumerator nextObject])) {
+        if ([subAction isKindOfClass:[KSInstallAction class]]) {
+          // The Install action is what has the user-initiated value.
+          // Make sure it jives with |uiValue|.
+          NSNumber *userInitiatedNumber = [subAction valueForKey:@"ui_"];
+          if (( [userInitiatedNumber boolValue] && !uiValue) ||
+              (![userInitiatedNumber boolValue] &&  uiValue)) {
+            success = NO;
+            break;
+          }
+        }
+      }
+    }
+  }
+  return success;
 }
 
 @end
@@ -92,13 +207,13 @@ static NSString *const kTicketStorePath = @"/tmp/KSMultiUpdateActionTest.tickets
 - (void)testCreation {
   Concrete *action = [Concrete actionWithEngine:nil];
   STAssertNil(action, nil);
-  
+
   action = [[[Concrete alloc] init] autorelease];
   STAssertNil(action, nil);
-  
+
   action = [[[Concrete alloc] initWithEngine:nil] autorelease];
   STAssertNil(action, nil);
-  
+
   KSUpdateEngine *engine = [KSUpdateEngine engineWithDelegate:self];
   action = [Concrete actionWithEngine:engine];
   STAssertNotNil(action, nil);
@@ -154,10 +269,10 @@ static RawTicketInfo denyTix[] = {
   KSUpdateEngine *engine =
     [KSUpdateEngine engineWithTicketStore:store delegate:self];
   STAssertNotNil(engine, nil);
-  
+
   Concrete *action = [Concrete actionWithEngine:engine];
   STAssertNotNil(action, nil);
-  
+
   NSArray *availableProducts =
   [[NSArray alloc] initWithObjects:
    [NSDictionary dictionaryWithObjectsAndKeys:
@@ -175,14 +290,14 @@ static RawTicketInfo denyTix[] = {
     @"a://b", kServerMoreInfoURLString,
     nil],
    nil];
-  
+
   KSActionPipe *pipe = [KSActionPipe pipe];
   [pipe setContents:availableProducts];
   [action setInPipe:pipe];
-  
+
   KSActionProcessor *ap = [[[KSActionProcessor alloc] init] autorelease];
   [ap enqueueAction:action];
-  
+
   STAssertEqualsWithAccuracy([ap progress], 0.0f, 0.01, nil);
   [ap startProcessing];
   [self loopUntilDone:ap];
@@ -201,30 +316,81 @@ static RawTicketInfo denyTix[] = {
     NSString *infoProductID = [info productID];
     STAssertEqualObjects(ticketProductID, infoProductID, nil);
   }
-  
+
   STAssertEquals([action subActionsProcessed], 0, nil);
 }
 
 - (void)testNoUpdates {
   KSUpdateEngine *engine = [KSUpdateEngine engineWithDelegate:self];
   STAssertNotNil(engine, nil);
-  
+
   Concrete *action = [Concrete actionWithEngine:engine];
   STAssertNotNil(action, nil);
-  
+
   KSActionPipe *pipe = [KSActionPipe pipe];
   [action setInPipe:pipe];  // This pipe is empty
-  
+
   KSActionProcessor *ap = [[[KSActionProcessor alloc] init] autorelease];
   [ap enqueueAction:action];
-  
+
   STAssertEqualsWithAccuracy([ap progress], 0.0f, 0.01, nil);
   [ap startProcessing];
   [self loopUntilDone:ap];
   STAssertFalse([ap isProcessing], nil);
   STAssertEqualsWithAccuracy([ap progress], 1.0f, 0.01, nil);
-  
+
   STAssertEqualObjects([[action outPipe] contents], nil, nil);
+}
+
+- (void)testUserInitiatedFlag {
+
+  // These values are common to the subsequent tests.
+  NSNumber *yesNumber = [NSNumber numberWithBool:YES];
+  NSNumber *noNumber = [NSNumber numberWithBool:NO];
+  NSDictionary *params = nil;
+  KSTicketStore *store = [[[KSMemoryTicketStore alloc] init] autorelease];
+  KSUpdateEngine *engine =
+    [KSUpdateEngine engineWithTicketStore:store delegate:nil];
+  NSArray *pipeContents =
+  [[[NSArray alloc] initWithObjects:
+    [NSDictionary dictionaryWithObjectsAndKeys:
+     @"bassenstein", kServerProductID,
+     [NSURL URLWithString:@"a://b"], kServerCodebaseURL,
+     [NSNumber numberWithInt:1], kServerCodeSize,
+     @"vvv", kServerCodeHash,
+     @"a://b", kServerMoreInfoURLString,
+     nil],
+    nil] autorelease];
+  KSActionPipe *pipe = [KSActionPipe pipeWithContents:pipeContents];
+
+  // YES for UserInitiated should filter down through the actions
+  params = [NSDictionary dictionaryWithObjectsAndKeys:
+                         yesNumber,
+                         kUpdateEngineUserInitiated, nil];
+  [engine setParams:params];
+  SubprocessAccessMultiAction *action =
+    [SubprocessAccessMultiAction actionWithEngine:engine];
+  [action setInPipe:pipe];
+  [action performAction];
+  STAssertTrue([action verifyUserInitiatedValue:YES], nil);
+
+  // NO for UserInitiated should filter down through the actions
+  params = [NSDictionary dictionaryWithObjectsAndKeys:
+                         noNumber,
+                         kUpdateEngineUserInitiated, nil];
+  [engine setParams:params];
+  action = [SubprocessAccessMultiAction actionWithEngine:engine];
+  [action setInPipe:pipe];
+  [action performAction];
+  STAssertTrue([action verifyUserInitiatedValue:NO], nil);
+
+  // Default should be NO
+  params = [NSDictionary dictionary];
+  [engine setParams:params];
+  action = [SubprocessAccessMultiAction actionWithEngine:engine];
+  [action setInPipe:pipe];
+  [action performAction];
+  STAssertTrue([action verifyUserInitiatedValue:NO], nil);
 }
 
 @end

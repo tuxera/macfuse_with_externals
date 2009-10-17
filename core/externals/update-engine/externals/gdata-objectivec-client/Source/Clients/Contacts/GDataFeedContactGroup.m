@@ -17,18 +17,24 @@
 //  GDataFeedContactGroup.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_CONTACTS_SERVICE
 
 #import "GDataFeedContactGroup.h"
 #import "GDataEntryContact.h"
 #import "GDataEntryContactGroup.h"
 #import "GDataCategory.h"
+#import "GDataContactConstants.h"
 
 @implementation GDataFeedContactGroup
 
-+ (GDataFeedContactGroup *)contactGroupFeed {
-  GDataFeedContactGroup *obj = [[[[self class] alloc] init] autorelease];
++ (NSString *)coreProtocolVersionForServiceVersion:(NSString *)serviceVersion {
+  return [GDataContactConstants coreProtocolVersionForServiceVersion:serviceVersion];
+}
 
-  [obj setNamespaces:[GDataEntryContact contactNamespaces]];
++ (GDataFeedContactGroup *)contactGroupFeed {
+  GDataFeedContactGroup *obj = [[[self alloc] init] autorelease];
+
+  [obj setNamespaces:[GDataContactConstants contactNamespaces]];
 
   return obj;
 }
@@ -57,3 +63,5 @@
 }
 
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_CONTACTS_SERVICE

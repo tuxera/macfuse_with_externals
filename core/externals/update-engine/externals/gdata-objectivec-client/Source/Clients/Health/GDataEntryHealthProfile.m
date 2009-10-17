@@ -17,29 +17,20 @@
 //  GDataEntryHealthProfile.m
 //
 
-#define GDATAENTRYHEALTHPROFILE_DEFINE_GLOBALS 1
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_HEALTH_SERVICE
+
 #import "GDataEntryHealthProfile.h"
 
+#import "GDataHealthConstants.h"
 #import "GDataHealthElements.h"
 
 @implementation GDataEntryHealthProfile
-
-+ (NSDictionary *)healthNamespaces {
-  NSMutableDictionary *namespaces;
-
-  namespaces = [NSMutableDictionary dictionaryWithObject:kGDataNamespaceCCR
-                                                  forKey:kGDataNamespaceCCRPrefix];
-
-  [namespaces addEntriesFromDictionary:[GDataEntryBase baseGDataNamespaces]];
-
-  return namespaces;
-}
 
 + (id)profileEntry {
 
   GDataEntryHealthProfile *obj = [[[self alloc] init] autorelease];
 
-  [obj setNamespaces:[self healthNamespaces]];
+  [obj setNamespaces:[GDataHealthConstants healthNamespaces]];
 
   return obj;
 }
@@ -112,4 +103,29 @@
   return [self linkWithRelAttributeValue:@"next"];
 }
 
+- (GDataCategory *)healthItemCategory {
+  NSArray *categories = [self categories];
+  GDataCategory *category = [GDataUtilities firstObjectFromArray:categories
+                                                       withValue:kGDataHealthSchemeItem
+                                                      forKeyPath:@"scheme"];
+  return category;
+}
+
+- (GDataCategory *)CCRCategory {
+  NSArray *categories = [self categories];
+  GDataCategory *category = [GDataUtilities firstObjectFromArray:categories
+                                                       withValue:kGDataHealthSchemeCCR
+                                                      forKeyPath:@"scheme"];
+  if (category == nil) {
+    // CCR categories may be missing a scheme element, since CCR is implicit
+    category = [GDataUtilities firstObjectFromArray:categories
+                                          withValue:nil
+                                         forKeyPath:@"scheme"];
+  }
+
+  return category;
+}
+
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_HEALTH_SERVICE

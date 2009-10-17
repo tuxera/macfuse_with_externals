@@ -17,8 +17,10 @@
 //  GDataFeedSite.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_WEBMASTERTOOLS_SERVICE
+
 #import "GDataFeedSite.h"
-#import "GDataEntrySite.h"
+#import "GDataWebmasterToolsConstants.h"
 
 @implementation GDataFeedSite
 
@@ -26,7 +28,7 @@
   
   GDataFeedSite *feed = [[[self alloc] init] autorelease];
   
-  [feed setNamespaces:[GDataEntrySite webmasterToolsNamespaces]];
+  [feed setNamespaces:[GDataWebmasterToolsConstants webmasterToolsNamespaces]];
   
   return feed;
 }
@@ -48,3 +50,5 @@
 }
 
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_WEBMASTERTOOLS_SERVICE

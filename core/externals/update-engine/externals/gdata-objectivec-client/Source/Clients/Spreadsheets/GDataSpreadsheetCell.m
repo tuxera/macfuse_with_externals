@@ -17,7 +17,11 @@
 //  GDataSpreadsheetCell.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_SPREADSHEET_SERVICE
+
 #import "GDataSpreadsheetCell.h"
+
+#import "GDataEntrySpreadsheet.h" // for namespaces
 
 @implementation GDataSpreadsheetCell
 
@@ -27,12 +31,12 @@
 //
 // http://code.google.com/apis/spreadsheets/reference.html#gs_reference
 
-+ (NSString *)extensionElementURI       { return @"http://schemas.google.com/spreadsheets/2006"; }
-+ (NSString *)extensionElementPrefix    { return @"gs"; }
++ (NSString *)extensionElementURI       { return kGDataNamespaceGSpread; }
++ (NSString *)extensionElementPrefix    { return kGDataNamespaceGSpreadPrefix; }
 + (NSString *)extensionElementLocalName { return @"cell"; }
 
-+ (GDataSpreadsheetCell *)cellWithRow:(int)row
-                               column:(int)column
++ (GDataSpreadsheetCell *)cellWithRow:(NSInteger)row
+                               column:(NSInteger)column
                           inputString:(NSString *)inputStr
                          numericValue:(NSNumber *)numericValue
                          resultString:(NSString *)resultStr {
@@ -149,17 +153,17 @@
   return element;
 }
 
-- (int)row {
+- (NSInteger)row {
   return row_; 
 }
-- (void)setRow:(int)row {
+- (void)setRow:(NSInteger)row {
   row_ = row; 
 }
 
-- (int)column {
+- (NSInteger)column {
   return column_; 
 }
-- (void)setColumn:(int)column {
+- (void)setColumn:(NSInteger)column {
   column_ = column; 
 }
 
@@ -189,3 +193,4 @@
 
 @end
 
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_SPREADSHEET_SERVICE

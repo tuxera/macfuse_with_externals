@@ -13,20 +13,21 @@
 * limitations under the License.
 */
 
+#if !STRIP_GDATA_FETCH_LOGGING
 
 #import "GDataHTTPFetcherLogging.h"
 
-#if !STRIP_GDATA_FETCH_LOGGING
-
-#import "GDataProgressMonitorInputStream.h"
-
-// If logging isn't being stripped, make sure we have all the defines from
-// GDataDefines.h
-#import "GDataDefines.h"
-
-@interface GDataInputStreamLogger : GDataProgressMonitorInputStream
-// GDataInputStreamLogger is wraps any NSInputStream used for
-// uploading so we can capture a copy of the data for the log
+// If GDataProgressMonitorInputStream is available, it can be used for
+// capturing uploaded streams of data
+//
+// We locally declare some methods of GDataProgressMonitorInputStream so we
+// do not need to import the header, as some projects may not have it available
+@interface GDataProgressMonitorInputStream : NSInputStream
++ (id)inputStreamWithStream:(NSInputStream *)input
+                     length:(unsigned long long)length;
+- (void)setMonitorDelegate:(id)monitorDelegate;
+- (void)setMonitorSelector:(SEL)monitorSelector;
+- (void)setReadSelector:(SEL)readSelector;
 @end
 
 // We don't invoke Leopard methods on 10.4, because we check if the methods are
@@ -47,31 +48,7 @@
 @end
 #endif  // MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_4
 
-#endif  // !STRIP_GDATA_FETCH_LOGGING
-
 @implementation GDataHTTPFetcher (GDataHTTPFetcherLogging)
-
-// if STRIP_GDATA_FETCH_LOGGING is defined by the user's project then
-// logging code will not be compiled into the framework
-
-#if STRIP_GDATA_FETCH_LOGGING
-- (void)logFetchWithError:(NSError *)error {}
-
-+ (void)setLoggingDirectory:(NSString *)path {}
-+ (NSString *)loggingDirectory {return nil;}
-
-+ (void)setIsLoggingEnabled:(BOOL)flag {}
-+ (BOOL)isLoggingEnabled {return NO;}
-
-+ (void)setLoggingProcessName:(NSString *)str {}
-+ (NSString *)loggingProcessName {return nil;}
-
-+ (void)setLoggingDateStamp:(NSString *)str {}
-+ (NSString *)loggingDateStamp {return nil;}
-
-- (void)appendLoggedStreamData:(NSData *)newData {}
-- (void)logCapturePostStream {}
-#else
 
 // fetchers come and fetchers go, but statics are forever
 static BOOL gIsLoggingEnabled = NO;
@@ -203,7 +180,7 @@ static NSString* gLoggingProcessName = nil;
 // and a plain string for other input data
 - (NSString *)formattedStringFromData:(NSData *)inputData {
 
-#if (!GDATA_FOUNDATION_ONLY || TARGET_IPHONE_SIMULATOR) && !GDATA_SKIP_LOG_XMLFORMAT
+#if !GDATA_FOUNDATION_ONLY && !GDATA_SKIP_LOG_XMLFORMAT
   // verify that this data starts with the bytes indicating XML
 
   NSString *const kXMLLintPath = @"/usr/bin/xmllint";
@@ -297,6 +274,23 @@ static NSString* gLoggingProcessName = nil;
   return originalStr;
 }
 
+- (void)setupStreamLogging {
+  // if logging is enabled, it needs a buffer to accumulate data from any
+  // NSInputStream used for uploading.  Logging will wrap the input
+  // stream with a stream that lets us keep a copy the data being read.
+  if ([GDataHTTPFetcher isLoggingEnabled] && postStream_ != nil) {
+    loggedStreamData_ = [[NSMutableData alloc] init];
+
+    BOOL didCapture = [self logCapturePostStream];
+    if (!didCapture) {
+      // upload stream logging requires the class
+      // GDataProgressMonitorInputStream be available
+      NSString const *str = @"<<Uploaded stream data logging unavailable>>";
+      [loggedStreamData_ setData:[str dataUsingEncoding:NSUTF8StringEncoding]];
+    }
+  }
+}
+
 // stringFromStreamData creates a string given the supplied data
 //
 // If NSString can create a UTF-8 string from the data, then that is returned.
@@ -382,7 +376,8 @@ static NSString* gLoggingProcessName = nil;
 
   if (!streamDataStr) {
     // give up; just make a string showing the uploaded bytes
-    streamDataStr = [NSString stringWithFormat:@"<<%u bytes>>", [data length]];
+    streamDataStr = [NSString stringWithFormat:@"<<%u bytes>>",
+                     (unsigned int)[data length]];
   }
   return streamDataStr;
 }
@@ -584,7 +579,7 @@ static NSString* gLoggingProcessName = nil;
       "request headers (%d)</a><div id=\"%@\"><pre>%@</pre></div><br>\n";
     [outputHTML appendFormat:requestHeadersFormat,
       requestHeadersName, // layer name
-      [requestHeaders count],
+      (int)[requestHeaders count],
       requestHeadersName,
       [requestHeaders description]]; // description gives a human-readable dump
   } else {
@@ -597,7 +592,7 @@ static NSString* gLoggingProcessName = nil;
     postData = loggedStreamData_;
   }
 
-  if ([postData length]) {
+  if ([postData length] > 0) {
     NSString *postDataFormat = @"<a href=\"javascript:toggleLayer('%@');\">"
       "posted data (%d bytes)</a><div id=\"%@\">%@</div><br>\n";
     NSString *postDataStr = [self stringFromStreamData:postData];
@@ -667,7 +662,7 @@ static NSString* gLoggingProcessName = nil;
         "</div><br>\n";
       [outputHTML appendFormat:responseHeadersFormat,
         responseHeadersName,
-        [responseHeaders count],
+        (int)[responseHeaders count],
         (cookiesSet ? @"<i>sets cookies</i>" : @""),
         responseHeadersName,
         [responseHeaders description]];
@@ -690,7 +685,7 @@ static NSString* gLoggingProcessName = nil;
     // response data, toggleable links -- formatted and text versions
     if (responseDataFormattedFileName) {
       [outputHTML appendFormat:@"response data (%d bytes) formatted <b>%@</b> ",
-        responseDataLength,
+        (int)responseDataLength,
         [responseDataFormattedFileName pathExtension]];
 
       // inline (iframe) link
@@ -708,7 +703,7 @@ static NSString* gLoggingProcessName = nil;
     }
     if (responseDataUnformattedFileName) {
       [outputHTML appendFormat:@"response data (%d bytes) plain text ",
-        responseDataLength];
+        (int)responseDataLength];
 
       // inline (iframe) link
       NSString *responseInlineDataNameFormat = @"&nbsp;&nbsp;<a href=\""
@@ -738,7 +733,7 @@ static NSString* gLoggingProcessName = nil;
   } else {
     // could not parse response data; just show the length of it
     [outputHTML appendFormat:@"<i>Response data: %d bytes </i>\n",
-      responseDataLength];
+      (int)responseDataLength];
   }
 
   [outputHTML appendString:@"<br><hr><p>"];
@@ -780,48 +775,42 @@ static NSString* gLoggingProcessName = nil;
 #endif
 }
 
-- (void)logCapturePostStream {
-
+- (BOOL)logCapturePostStream {
   // This is called when beginning a fetch.  The caller should have already
   // verified that logging is enabled, and should have allocated
   // loggedStreamData_ as a mutable object.
 
+  // if the class GDataProgressMonitorInputStream is not available, bail now
+  Class monitorClass = NSClassFromString(@"GDataProgressMonitorInputStream");
+  if (!monitorClass) return NO;
+
   // If we're logging, we need to wrap the upload stream with our monitor
-  // stream subclass that will call us back with the bytes being read from the
-  // stream
+  // stream that will call us back with the bytes being read from the stream
 
   // our wrapper will retain the old post stream
   [postStream_ autorelease];
 
-  // length can be
-  postStream_ = [GDataInputStreamLogger inputStreamWithStream:postStream_
-                                                       length:0];
+  postStream_ = [monitorClass inputStreamWithStream:postStream_
+                                             length:0];
   [postStream_ retain];
-  [(GDataInputStreamLogger *)postStream_ setMonitorDelegate:self];
 
-  // we don't really want monitoring callbacks; our subclass will be
-  // calling our appendLoggedStreamData: method at every read instead
-  [(GDataInputStreamLogger *)postStream_ setMonitorSelector:nil];
+  [(GDataProgressMonitorInputStream *)postStream_ setMonitorDelegate:self];
+
+  SEL readSel = @selector(inputStream:readIntoBuffer:length:);
+  [(GDataProgressMonitorInputStream *)postStream_ setReadSelector:readSel];
+
+  // we don't really want monitoring callbacks
+  [(GDataProgressMonitorInputStream *)postStream_ setMonitorSelector:NULL];
+  return YES;
 }
 
-- (void)appendLoggedStreamData:(NSData *)newData {
-  [loggedStreamData_ appendData:newData];
+- (void)inputStream:(GDataProgressMonitorInputStream *)stream
+     readIntoBuffer:(void *)buffer
+             length:(unsigned long long)length {
+  // append the captured data
+  [loggedStreamData_ appendBytes:buffer length:length];
 }
 
-#endif // !STRIP_GDATA_FETCH_LOGGING
 @end
 
-#if !STRIP_GDATA_FETCH_LOGGING
-@implementation GDataInputStreamLogger
-- (NSInteger)read:(uint8_t *)buffer maxLength:(NSUInteger)len {
-
-  // capture the read stream data, and pass it to the delegate to append to
-  NSInteger result = [super read:buffer maxLength:len];
-  if (result >= 0) {
-    NSData *data = [NSData dataWithBytes:buffer length:result];
-    [monitorDelegate_ appendLoggedStreamData:data];
-  }
-  return result;
-}
-@end
 #endif // !STRIP_GDATA_FETCH_LOGGING

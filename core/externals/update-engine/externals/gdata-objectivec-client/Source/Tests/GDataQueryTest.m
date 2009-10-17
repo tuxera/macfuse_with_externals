@@ -78,10 +78,8 @@
   GDataCategoryFilter *categoryFilter = [GDataCategoryFilter categoryFilter];
   [categoryFilter addCategory:[GDataCategory categoryWithScheme:@"http://schemas.google.com/g/2005#kind" 
                                                            term:@"http://schemas.google.com/g/2005#event"]];
-  [categoryFilter addCategory:[GDataCategory categoryWithScheme:@"MyScheme2" 
-                                                           term:@"MyTerm2"]];
-  [categoryFilter addExcludeCategory:[GDataCategory categoryWithScheme:nil
-                                                                  term:@"MyTerm3"]];
+  [categoryFilter addCategoryWithScheme:@"MyScheme2" term:@"MyTerm2"];
+  [categoryFilter addExcludeCategoryWithScheme:nil term:@"MyTerm3"];
 
   // test a query with categories but no params
   GDataQuery* query3 = [GDataQuery queryWithFeedURL:feedURL];
@@ -95,11 +93,8 @@
   
   // finally, add the previous category filter and another category filter
   // to the second query's parameters
-  GDataCategoryFilter *categoryFilter2 = [GDataCategoryFilter categoryFilter];
-  [categoryFilter2 addCategory:[GDataCategory categoryWithScheme:nil term:@"Zonk4"]];
-
   [query2 addCategoryFilter:categoryFilter];
-  [query2 addCategoryFilter:categoryFilter2];
+  [query2 addCategoryFilterWithScheme:nil term:@"Zonk4"];
   
   NSURL* resultURL2a = [query2 URL];
 
@@ -123,6 +118,7 @@
   [queryCal setMinimumStartTime:dateTime1];
   [queryCal setMaximumStartTime:dateTime2];
   [queryCal setShouldShowInlineComments:YES];
+  [queryCal setShouldShowHiddenEvents:NO];
   
   NSURL* resultURLC1 = [queryCal URL];
   NSString *expectedC1 = @"http://www.google.com/calendar/feeds/userID/private/basic?"
@@ -137,13 +133,14 @@
   [queryCal2 setShouldExpandRecurrentEvents:YES];
   [queryCal2 setCurrentTimeZoneName:@"America/Los Angeles"];
   [queryCal2 setShouldShowInlineComments:NO];
+  [queryCal2 setShouldShowHiddenEvents:YES];
 
   NSURL* resultURLC2 = [queryCal2 URL];
   NSString *expectedC2 = @"http://www.google.com/calendar/feeds/userID/private/basic?"
     "ctz=America%2FLos_Angeles&futureevents=true&"
     "recurrence-expansion-end=2006-03-29T07%3A35%3A59Z&"
     "recurrence-expansion-start=2006-03-29T07%3A35%3A59Z&"
-    "showinlinecomments=false&singleevents=true";
+    "showhidden=true&showinlinecomments=false&singleevents=true";
   STAssertEqualObjects([resultURLC2 absoluteString], expectedC2, @"Query error");
   
 }
@@ -225,7 +222,7 @@
     "access=private&imgmax=32&kind=photo&tag=dog&thumbsize=80";
   STAssertEqualObjects([resultURL1 absoluteString], expected1, 
                        @"PWA query 1 generation error");
-  STAssertEquals([pwaQuery1 imageSize], 32, @"image size error");
+  STAssertEquals([pwaQuery1 imageSize], (NSInteger) 32, @"image size error");
   
   GDataQueryGooglePhotos *pwaQuery2; 
   pwaQuery2 = [GDataQueryGooglePhotos photoQueryForUserID:@"fredflintstone"
@@ -248,7 +245,7 @@
   // test the generator for photo contact feed URLs
   NSURL *contactsURL = [GDataServiceGooglePhotos photoContactsFeedURLForUserID:@"fred@gmail.com"];
   NSString *contactsURLString = [contactsURL absoluteString];
-  NSString *expectedContactsURLString = @"http://photos.googleapis.com/data/feed/api/user/fred@gmail.com/contacts?kind=user";
+  NSString *expectedContactsURLString = @"http://photos.googleapis.com/data/feed/api/user/fred%40gmail.com/contacts?kind=user";
   STAssertEqualObjects(contactsURLString, expectedContactsURLString, 
                        @"contacts URL error");
 
@@ -303,7 +300,7 @@
   [query1 setGroupIdentifier:@"http://www.google.com/m8/feeds/groups/user%40gmail.com/base/6"];
   
   NSURL *resultURL1 = [query1 URL];
-  NSString *expected1 = @"http://www.google.com/m8/feeds/contacts/user@gmail.com/full?group=http%3A%2F%2Fwww.google.com%2Fm8%2Ffeeds%2Fgroups%2Fuser%2540gmail.com%2Fbase%2F6";
+  NSString *expected1 = @"http://www.google.com/m8/feeds/contacts/user%40gmail.com/full?group=http%3A%2F%2Fwww.google.com%2Fm8%2Ffeeds%2Fgroups%2Fuser%2540gmail.com%2Fbase%2F6";
   STAssertEqualObjects([resultURL1 absoluteString], expected1, 
                        @"Contacts query 1 generation error");
 }
@@ -320,7 +317,7 @@
   [query1 setShouldIncludeTransactions:NO];
 
   NSURL *resultURL1 = [query1 URL];
-  NSString *expected1 = @"http://finance.google.com/finance/feeds/user@gmail.com/portfolios";
+  NSString *expected1 = @"http://finance.google.com/finance/feeds/user%40gmail.com/portfolios";
   STAssertEqualObjects([resultURL1 absoluteString], expected1, 
                        @"Finance query 1 generation error");
   
@@ -332,7 +329,7 @@
   [query2 setShouldIncludeTransactions:YES];
   
   NSURL *resultURL2 = [query2 URL];
-  NSString *expected2 = @"http://finance.google.com/finance/feeds/user@gmail.com/portfolios?positions=true&returns=true&transactions=true";
+  NSString *expected2 = @"http://finance.google.com/finance/feeds/user%40gmail.com/portfolios?positions=true&returns=true&transactions=true";
   
   STAssertEqualObjects([resultURL2 absoluteString], expected2, 
                        @"Finance query 2 generation error");
@@ -344,15 +341,16 @@
   GDataQueryBooks *query1 = [GDataQueryBooks booksQueryWithFeedURL:feedURL];
 
   [query1 setMinimumViewability:kGDataGoogleBooksMinViewabilityFull];
+  [query1 setEBook:@"frogchild"];
 
   NSURL *resultURL1 = [query1 URL];
-  NSString *expected1 = @"http://books.google.com/books/feeds/volumes?min-viewability=full";
+  NSString *expected1 = @"http://books.google.com/books/feeds/volumes?ebook=frogchild&min-viewability=full";
   STAssertEqualObjects([resultURL1 absoluteString], expected1,
                        @"Books query 1 generation error");
 }
 
 - (void)testDocsQuery {
-  NSURL *feedURL = [NSURL URLWithString:kGDataGoogleDocsDefaultPrivateFullFeed];
+  NSURL *feedURL = [GDataServiceGoogleDocs docsFeedURLUsingHTTPS:YES];
   GDataQueryDocs *query1 = [GDataQueryDocs documentQueryWithFeedURL:feedURL];
 
   [query1 setTitleQuery:@"King Of Oceania"];
@@ -361,7 +359,7 @@
   [query1 setShouldShowFolders:YES];
 
   NSURL *resultURL1 = [query1 URL];
-  NSString *expected1 = @"http://docs.google.com/feeds/documents/private/full?"
+  NSString *expected1 = @"https://docs.google.com/feeds/default/private/full?"
     "folder=Major+Folder&showfolders=true&title=King+Of+Oceania&title-exact=true";
   STAssertEqualObjects([resultURL1 absoluteString], expected1,
                        @"Docs query 1 generation error");
@@ -371,23 +369,50 @@
   [query2 setReader:@"wilma@flintstone.com,pebbles@flintstone.com"];
   [query2 setWriter:@"barney@rubble.com,betty@rubble.com"];
   NSURL *resultURL2 = [query2 URL];
-  NSString *expected2 = @"http://docs.google.com/feeds/documents/private/full?"
+  NSString *expected2 = @"https://docs.google.com/feeds/default/private/full?"
     "owner=fred%40flintstone.com&reader=wilma%40flintstone.com%2C"
     "pebbles%40flintstone.com&writer=barney%40rubble.com%2Cbetty%40rubble.com";
   STAssertEqualObjects([resultURL2 absoluteString], expected2,
                        @"Docs query 2 generation error");
-  
+
   GDataDateTime* minDate = [GDataDateTime dateTimeWithRFC3339String:@"2006-03-29T07:35:59.000Z"];
   GDataDateTime* maxDate = [GDataDateTime dateTimeWithRFC3339String:@"2006-03-30T07:35:59.000Z"];
-  
+  GDataDateTime* minDate2 = [GDataDateTime dateTimeWithRFC3339String:@"2006-04-29T07:35:59.000Z"];
+  GDataDateTime* maxDate2 = [GDataDateTime dateTimeWithRFC3339String:@"2006-04-30T07:35:59.000Z"];
+
   GDataQueryDocs *query3 = [GDataQueryDocs documentQueryWithFeedURL:feedURL];
   [query3 setOpenedMinDateTime:minDate];
-  [query3 setOpenedMaxDateTime:maxDate];  
+  [query3 setOpenedMaxDateTime:maxDate];
+  [query3 setEditedMinDateTime:minDate2];
+  [query3 setEditedMaxDateTime:maxDate2];
   NSURL *resultURL3 = [query3 URL];
-  NSString *expected3 = @"http://docs.google.com/feeds/documents/private/full?"
+  NSString *expected3 = @"https://docs.google.com/feeds/default/private/full?"
+    "edited-max=2006-04-30T07%3A35%3A59Z&edited-min=2006-04-29T07%3A35%3A59Z&"
     "opened-max=2006-03-30T07%3A35%3A59Z&opened-min=2006-03-29T07%3A35%3A59Z";
   STAssertEqualObjects([resultURL3 absoluteString], expected3,
                        @"Docs query 3 generation error");
+}
+
+- (void)testAnalyticsQuery {
+  GDataQueryAnalytics *query1;
+
+  query1 = [GDataQueryAnalytics analyticsDataQueryWithTableID:@"9876"
+                                              startDateString:@"2001-01-01"
+                                                endDateString:@"2001-12-01"];
+
+  [query1 setDimensions:@"ga:browser,ga:country"];
+  [query1 setMetrics:@"ga:pageviews"];
+  [query1 setFilters:@"ga:country==United States,ga:country==Canada"];
+  [query1 setSort:@"ga:browser,ga:pageviews"];
+
+  NSURL *resultURL1 = [query1 URL];
+  NSString *expected1 = @"https://www.google.com/analytics/feeds/data?"
+    "dimensions=ga%3Abrowser%2Cga%3Acountry&end-date=2001-12-01&"
+    "filters=ga%3Acountry%3D%3DUnited+States%2Cga%3Acountry%3D%3DCanada&"
+    "ids=9876&metrics=ga%3Apageviews&sort=ga%3Abrowser%2Cga%3Apageviews&"
+    "start-date=2001-01-01";
+  STAssertEqualObjects([resultURL1 absoluteString], expected1,
+                       @"Analytics query 1 generation error");
 }
 
 - (void)testMixedCategoryParamQueries {

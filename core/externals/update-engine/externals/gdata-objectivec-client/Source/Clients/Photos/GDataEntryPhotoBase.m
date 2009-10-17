@@ -17,30 +17,13 @@
 //  GDataEntryPhotoBase.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_PHOTOS_SERVICE
+
 #define GDATAPHOTOBASE_DEFINE_GLOBALS 1
 #import "GDataEntryPhotoBase.h"
-#import "GDataMediaGroup.h"
-#import "GDataGeo.h"
+#import "GDataPhotoConstants.h"
 
 @implementation GDataEntryPhotoBase
-
-+ (NSDictionary *)photoNamespaces {
-  NSMutableDictionary *namespaces = [NSMutableDictionary dictionaryWithDictionary:
-    [GDataEntryBase baseGDataNamespaces]];
-  
-  [namespaces setObject:kGDataNamespacePhotos 
-                 forKey:kGDataNamespacePhotosPrefix]; // "gphoto"
-  
-  [namespaces setObject:kGDataNamespacePhotosEXIF 
-                 forKey:kGDataNamespacePhotosEXIFPrefix]; // "exif"
-
-  [namespaces setObject:kGDataNamespaceMedia
-                 forKey:kGDataNamespaceMediaPrefix]; // "media"
-  
-  [namespaces addEntriesFromDictionary:[GDataGeo geoNamespaces]]; // geo, georss, gml
-  
-  return namespaces;  
-}
 
 - (void)addExtensionDeclarations {
   
@@ -99,3 +82,5 @@
 }
 
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_PHOTOS_SERVICE

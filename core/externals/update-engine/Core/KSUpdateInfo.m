@@ -53,6 +53,10 @@
   return [self objectForKey:kServerDisplayVersion];
 }
 
+- (NSString *)version {
+  return [self objectForKey:kServerVersion];
+}
+
 - (KSTicket *)ticket {
   return [self objectForKey:kTicket];
 }

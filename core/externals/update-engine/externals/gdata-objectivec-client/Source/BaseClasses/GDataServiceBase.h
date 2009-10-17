@@ -25,7 +25,7 @@
 #undef _EXTERN
 #undef _INITIALIZE_AS
 #ifdef GDATASERVICEBASE_DEFINE_GLOBALS
-#define _EXTERN 
+#define _EXTERN
 #define _INITIALIZE_AS(x) =x
 #else
 #define _EXTERN extern
@@ -51,8 +51,12 @@ _EXTERN NSString* const kGDataStructuredErrorsKey _INITIALIZE_AS(@"serverErrors"
 // unconditionally.  Do not use this in entries in a batch feed.
 _EXTERN NSString* const kGDataETagWildcard _INITIALIZE_AS(@"*");
 
+// notifications when parsing of a fetcher feed or entry begins or ends
+_EXTERN NSString* const kGDataServiceTicketParsingStartedNotification _INITIALIZE_AS(@"kGDataServiceTicketParsingStartedNotification");
+_EXTERN NSString* const kGDataServiceTicketParsingStoppedNotification _INITIALIZE_AS(@"kGDataServiceTicketParsingStoppedNotification");
+
 enum {
- kGDataCouldNotConstructObjectError = -100 
+ kGDataCouldNotConstructObjectError = -100
 };
 
 @class GDataServiceBase;
@@ -62,19 +66,20 @@ enum {
 //
 @interface GDataServiceTicketBase : NSObject {
   GDataServiceBase *service_;
-  
+
   id userData_;
   NSMutableDictionary *ticketProperties_;
   NSDictionary *surrogates_;
-  
+
   GDataHTTPFetcher *currentFetcher_; // object or auth fetcher if mid-fetch
   GDataHTTPFetcher *objectFetcher_;
   SEL uploadProgressSelector_;
   BOOL shouldFollowNextLinks_;
+  BOOL shouldFeedsIgnoreUnknowns_;
   BOOL isRetryEnabled_;
   SEL retrySEL_;
   NSTimeInterval maxRetryInterval_;
-  
+
   GDataObject *postedObject_;
   GDataObject *fetchedObject_;
   GDataFeedBase *accumulatedFeed_;
@@ -92,7 +97,7 @@ enum {
 // (though the client must still release the ticket if it retained the ticket)
 - (void)cancelTicket;
 
-- (GDataServiceBase *)service;
+- (id)service;
 
 - (id)userData;
 - (void)setUserData:(id)obj;
@@ -121,6 +126,9 @@ enum {
 - (BOOL)shouldFollowNextLinks;
 - (void)setShouldFollowNextLinks:(BOOL)flag;
 
+- (BOOL)shouldFeedsIgnoreUnknowns;
+- (void)setShouldFeedsIgnoreUnknowns:(BOOL)flag;
+
 - (BOOL)isRetryEnabled;
 - (void)setIsRetryEnabled:(BOOL)flag;
 
@@ -134,7 +142,7 @@ enum {
 - (void)setHasCalledCallback:(BOOL)flag;
 
 - (void)setPostedObject:(GDataObject *)obj;
-- (GDataObject *)postedObject;
+- (id)postedObject;
 
 - (void)setFetchedObject:(GDataObject *)obj;
 - (GDataObject *)fetchedObject;
@@ -156,33 +164,46 @@ enum {
 @end
 
 
+// category to provide opaque access to tickets stored in fetcher properties
+@interface GDataHTTPFetcher (GDataServiceTicketAdditions)
+- (id)ticket;
+@end
+
+
 //
 // service base class
 //
 
 @interface GDataServiceBase : NSObject {
+#if MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_4
+  NSOperationQueue *operationQueue_;
+#else
+  id operationQueue_;
+#endif
+
   NSString *serviceVersion_;
   NSString *userAgent_;
-  NSMutableDictionary *fetchHistory_;
+  GDataHTTPFetchHistory *fetchHistory_;
   NSArray *runLoopModes_;
-  
+
   NSString *username_;
   NSMutableData *password_;
-  
+
   NSString *serviceUserData_; // initial value for userData in future tickets
   NSMutableDictionary *serviceProperties_; // initial values for properties in future tickets
-  
+
   NSDictionary *serviceSurrogates_; // initial value for surrogates in future tickets
 
   BOOL shouldServiceFeedsIgnoreUnknowns_; // YES when feeds should ignore unknown XML
 
   SEL serviceUploadProgressSelector_; // optional
-  
+
   BOOL isServiceRetryEnabled_;      // user allows auto-retries
   SEL serviceRetrySEL_;             // optional; set with setServiceRetrySelector
   NSTimeInterval serviceMaxRetryInterval_; // default to 600. seconds
 
   BOOL shouldCacheDatedData_;
+  NSUInteger datedDataCacheCapacity_;
   BOOL serviceShouldFollowNextLinks_;
 }
 
@@ -199,7 +220,7 @@ enum {
 // NSModalPanelRunLoopMode as one of the modes.
 - (NSArray *)runLoopModes;
 - (void)setRunLoopModes:(NSArray *)modes;
-	
+
 // The request user agent includes the library and OS version appended to the
 // base userAgent
 - (NSString *)requestUserAgent;
@@ -207,7 +228,7 @@ enum {
 // Users may call requestForURL:httpMethod to get a request with the proper
 // user-agent and authentication token
 //
-// For http method, pass nil (for default GET method), POST, PUT, or DELETE 
+// For http method, pass nil (for default GET method), POST, PUT, or DELETE
 - (NSMutableURLRequest *)requestForURL:(NSURL *)url
                                   ETag:(NSString *)etag
                             httpMethod:(NSString *)httpMethod;
@@ -217,7 +238,7 @@ enum {
 //
 // the object is the object being sent to the server, or nil;
 // the http method may be nil for get, or POST, PUT, DELETE
-- (NSMutableURLRequest *)objectRequestForURL:(NSURL *)url 
+- (NSMutableURLRequest *)objectRequestForURL:(NSURL *)url
                                       object:(GDataObject *)object
                                         ETag:(NSString *)etag
                                   httpMethod:(NSString *)httpMethod;
@@ -225,90 +246,71 @@ enum {
 //
 // Fetch methods
 //
-//  fetchFeed/fetchEntry/fetchQuery (GET)
-//  fetchEntryByInsertingEntry (POST)
-//  fetchEntryByUpdatingEntry (PUT)
+//  fetchPublicFeed/fetchPublicEntry/fetchPublicFeedWithQuery (GET)
+//  fetchPublicEntryByInsertingEntry (POST)
+//  fetchPublicEntryByUpdatingEntry (PUT)
 //  deleteEntry/deleteResourceURL (DELETE)
 //
+//   NOTE:
 // These base class methods are for unauthenticated fetches to public feeds.
 //
 // To make authenticated fetches to a user's account, use the methods in the
 // service's GDataServiceXxxx class, or in the GDataServiceGoogle class.
 //
 
-// finishedSelector has signature like:
-//   serviceTicket:(GDataServiceTicketBase *)ticket finishedWithObject:(GDataObject *)object;
-// failedSelector has signature like:
-//   serviceTicket:(GDataServiceTicketBase *)ticket failedWithError:(NSError *)error
+// finishedSelector has a signature like:
+//
+//   - (void)serviceTicket:(GDataServiceTicketBase *)ticket
+//      finishedWithObject:(GDataObject *)object          // a feed or an entry
+//                   error:(NSError *)error
+//
+// If an error occurred, the error parameter will be non-nil.  Otherwise,
+// the object parameter will point to a feed or entry, if any was returned by
+// the fetch.  (Delete fetches return no object, so the second parameter will
+// be nil.)
 
-- (GDataServiceTicketBase *)fetchFeedWithURL:(NSURL *)feedURL
-                                   feedClass:(Class)feedClass
-                                    delegate:(id)delegate
-                           didFinishSelector:(SEL)finishedSelector
-                             didFailSelector:(SEL)failedSelector;
-
-- (GDataServiceTicketBase *)fetchEntryWithURL:(NSURL *)entryURL
-                                   entryClass:(Class)entryClass
-                                     delegate:(id)delegate
-                            didFinishSelector:(SEL)finishedSelector
-                              didFailSelector:(SEL)failedSelector;
-
-- (GDataServiceTicketBase *)fetchEntryByInsertingEntry:(GDataEntryBase *)entryToInsert
-                                            forFeedURL:(NSURL *)feedURL
-                                              delegate:(id)delegate
-                                     didFinishSelector:(SEL)finishedSelector
-                                       didFailSelector:(SEL)failedSelector;
-
-- (GDataServiceTicketBase *)fetchEntryByUpdatingEntry:(GDataEntryBase *)entryToUpdate
-                                          forEntryURL:(NSURL *)entryURL
-                                             delegate:(id)delegate
-                                    didFinishSelector:(SEL)finishedSelector
-                                      didFailSelector:(SEL)failedSelector;
-
-- (GDataServiceTicketBase *)deleteEntry:(GDataEntryBase *)entryToDelete
-                               delegate:(id)delegate
-                      didFinishSelector:(SEL)finishedSelector // object parameter will be nil
-                        didFailSelector:(SEL)failedSelector;
-
-- (GDataServiceTicketBase *)deleteResourceURL:(NSURL *)resourceEditURL
-                                     delegate:(id)delegate
-                            didFinishSelector:(SEL)finishedSelector // object parameter will be nil
-                              didFailSelector:(SEL)failedSelector;
-
-- (GDataServiceTicketBase *)deleteResourceURL:(NSURL *)resourceEditURL
-                                         ETag:(NSString *)etag
-                                     delegate:(id)delegate
-                            didFinishSelector:(SEL)finishedSelector
-                              didFailSelector:(SEL)failedSelector;  
-
-- (GDataServiceTicketBase *)fetchQuery:(GDataQuery *)query
-                             feedClass:(Class)feedClass
-                              delegate:(id)delegate
-                     didFinishSelector:(SEL)finishedSelector
-                       didFailSelector:(SEL)failedSelector;
-
-- (GDataServiceTicketBase *)fetchFeedWithBatchFeed:(GDataFeedBase *)batchFeed
-                                        forFeedURL:(NSURL *)feedURL
+- (GDataServiceTicketBase *)fetchPublicFeedWithURL:(NSURL *)feedURL
+                                         feedClass:(Class)feedClass
                                           delegate:(id)delegate
-                                 didFinishSelector:(SEL)finishedSelector
-                                   didFailSelector:(SEL)failedSelector;
+                                 didFinishSelector:(SEL)finishedSelector;
+
+- (GDataServiceTicketBase *)fetchPublicFeedWithQuery:(GDataQuery *)query
+                                           feedClass:(Class)feedClass
+                                            delegate:(id)delegate
+                                   didFinishSelector:(SEL)finishedSelector;
+
+- (GDataServiceTicketBase *)fetchPublicEntryWithURL:(NSURL *)entryURL
+                                         entryClass:(Class)entryClass
+                                           delegate:(id)delegate
+                                  didFinishSelector:(SEL)finishedSelector;
+
+- (GDataServiceTicketBase *)fetchPublicFeedWithBatchFeed:(GDataFeedBase *)batchFeed
+                                              forFeedURL:(NSURL *)feedURL
+                                                delegate:(id)delegate
+                                       didFinishSelector:(SEL)finishedSelector;
 
 // reset the last modified dates to avoid getting a Not Modified status
 // based on prior queries
 - (void)clearLastModifiedDates;
-  
-// Turn on data caching to receive a copy of previously-retrieved objects.
-// Otherwise, fetches may return status 304 (No Change) rather than actual data
+
+// Turn on data caching to receive a copy of previously-retrieved objects rather
+// than a Status 304 (Not Modified) from the server rather than the actual
+// data.
 - (void)setShouldCacheDatedData:(BOOL)flag;
-- (BOOL)shouldCacheDatedData;  
+- (BOOL)shouldCacheDatedData;
+
+// If dated data caching is on, this specifies the capacity of the cache.
+// Default is 15MB for Mac and 1 MB for iPhone.
+- (void)setDatedDataCacheCapacity:(NSUInteger)totalBytes;
+- (NSUInteger)datedDataCacheCapacity;
 
 // For feed requests, where the feed requires following "next" links to retrieve
 // all entries, the service can optionally do the additional fetches using the
-// original ticket, calling the client's finish selector only when a complete 
+// original ticket, calling the client's finish selector only when a complete
 // feed has been obtained.  During the fetch, the feed accumulated so far is
-// available from the ticket.  
+// available from the ticket.
 //
-// Note that the final feed may be a combination of multiple partial feeds, 
+// Note that the final feed may be a combination of multiple partial feeds,
 // so is not exactly a genuine feed. In particular, it will not have a valid
 // "self" link, as it does not represent an object with a distinct URL.
 //
@@ -319,8 +321,8 @@ enum {
 // The service userData becomes the initial value for each future ticket's
 // userData.
 //
-// Since the network transactions may begin before the client has been 
-// returned the ticket by the fetch call, it's preferable to call 
+// Since the network transactions may begin before the client has been
+// returned the ticket by the fetch call, it's preferable to call
 // setServiceUserData before the ticket is created rather than call the
 // ticket's setUserData:.  Either way, the ticket's userData:
 // method will return the value.
@@ -372,11 +374,9 @@ enum {
 // The optional uploadProgressSelector will be called in the delegate as bytes
 // are uploaded to the server.  It should have a signature matching
 //
-// - (void)inputStream:(GDataProgressMonitorInputStream *)stream 
-//   hasDeliveredByteCount:(unsigned long long)numberOfBytesRead 
+// - (void)ticket:(GDataServiceTicketBase *)ticket
+//   hasDeliveredByteCount:(unsigned long long)numberOfBytesRead
 //        ofTotalByteCount:(unsigned long long)dataLength;
-//
-// The progress method can obtain the ticket by calling [stream monitorSource];
 - (void)setServiceUploadProgressSelector:(SEL)progressSelector;
 - (SEL)serviceUploadProgressSelector;
 
@@ -385,7 +385,7 @@ enum {
 - (BOOL)isServiceRetryEnabled;
 - (void)setIsServiceRetryEnabled:(BOOL)flag;
 
-// retry selector is optional for retries. 
+// retry selector is optional for retries.
 //
 // If present, it should have the signature:
 //   -(BOOL)ticket:(GDataServiceTicketBase *)ticket willRetry:(BOOL)suggestedWillRetry forError:(NSError *)error
@@ -414,7 +414,7 @@ enum {
 - (void)setServiceVersion:(NSString *)str;
 
 // Wait synchronously for fetch to complete (strongly discouraged)
-// 
+//
 // This just runs the current event loop until the fetch completes
 // or the timout limit is reached.  This may discard unexpected events
 // that occur while spinning, so it's really not appropriate for use
@@ -429,20 +429,23 @@ enum {
 - (BOOL)waitForTicket:(GDataServiceTicketBase *)ticket
               timeout:(NSTimeInterval)timeoutInSeconds
         fetchedObject:(GDataObject **)outObjectOrNil
-                error:(NSError **)outErrorOrNil;  
+                error:(NSError **)outErrorOrNil;
 
+//
 // internal utilities
-- (NSString *)stringByURLEncoding:(NSString *)param;
+//
 
 - (void)addAuthenticationToFetcher:(GDataHTTPFetcher *)fetcher;
 
-- (void)objectFetcher:(GDataHTTPFetcher *)fetcher failedWithStatus:(int)status data:(NSData *)data;
+- (void)objectFetcher:(GDataHTTPFetcher *)fetcher failedWithStatus:(NSInteger)status data:(NSData *)data;
 
-- (NSString *)defaultApplicationIdentifier;
++ (NSString *)defaultApplicationIdentifier;
 
-- (NSString *)systemVersionString;
++ (NSString *)systemVersionString;
 
 - (BOOL)invokeRetrySelector:(SEL)retrySelector delegate:(id)delegate ticket:(GDataServiceTicketBase *)ticket willRetry:(BOOL)willRetry error:(NSError *)error;
+
++ (void)invokeCallback:(SEL)callbackSel target:(id)target ticket:(id)ticket object:(id)object error:(id)error;
 
 @end
 

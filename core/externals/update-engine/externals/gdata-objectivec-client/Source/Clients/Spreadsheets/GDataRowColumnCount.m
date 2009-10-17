@@ -1,23 +1,27 @@
 /* Copyright (c) 2007 Google Inc.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 //
 //  GDataColumnCount.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_SPREADSHEET_SERVICE
+
 #import "GDataRowColumnCount.h"
+
+#import "GDataEntrySpreadsheet.h" // for namespace
 
 // For rowCount and colCount, like:
 //   <gs:rowCount>100</gs:rowCount>
@@ -27,12 +31,12 @@
 
 @implementation GDataColumnCount
 
-+ (NSString *)extensionElementURI       { return @"http://schemas.google.com/spreadsheets/2006"; }
-+ (NSString *)extensionElementPrefix    { return @"gs"; }
++ (NSString *)extensionElementURI       { return kGDataNamespaceGSpread; }
++ (NSString *)extensionElementPrefix    { return kGDataNamespaceGSpreadPrefix; }
 + (NSString *)extensionElementLocalName { return @"colCount"; }
 
 
-+ (GDataColumnCount *)columnCountWithInt:(int)val {
++ (GDataColumnCount *)columnCountWithInt:(NSInteger)val {
   GDataColumnCount *obj = [[[GDataColumnCount alloc] init] autorelease];
   [obj setCount:val];
   return obj;
@@ -42,12 +46,12 @@
 
 @implementation GDataRowCount
 
-+ (NSString *)extensionElementURI       { return @"http://schemas.google.com/spreadsheets/2006"; }
-+ (NSString *)extensionElementPrefix    { return @"gs"; }
++ (NSString *)extensionElementURI       { return kGDataNamespaceGSpread; }
++ (NSString *)extensionElementPrefix    { return kGDataNamespaceGSpreadPrefix; }
 + (NSString *)extensionElementLocalName { return @"rowCount"; }
 
 
-+ (GDataRowCount *)rowCountWithInt:(int)val {
++ (GDataRowCount *)rowCountWithInt:(NSInteger)val {
   GDataRowCount *obj = [[[GDataRowCount alloc] init] autorelease];
   [obj setCount:val];
   return obj;
@@ -100,7 +104,7 @@
 - (NSMutableArray *)itemsForDescription {
   NSMutableArray *items = [NSMutableArray array];
   
-  NSString *str = [NSString stringWithFormat:@"%d", [self count]];
+  NSString *str = [NSString stringWithFormat:@"%ld", (long) [self count]];
   [self addToArray:items objectDescriptionIfNonNil:str withName:@"count"];
   
   return items;
@@ -111,21 +115,23 @@
   
   NSXMLElement *element = [self XMLElementWithExtensionsAndDefaultName:@"gs:count"];
   
-  int count = [self count];
+  NSInteger count = [self count];
   if (count >= 0) {
-    NSString *str = [NSString stringWithFormat:@"%d", [self count]];
+    NSString *str = [NSString stringWithFormat:@"%ld", (long) [self count]];
     [element addStringValue:str];
   }
   
   return element;
 }
 
-- (int)count {
+- (NSInteger)count {
   return count_; 
 }
-- (void)setCount:(int)val {
+
+- (void)setCount:(NSInteger)val {
   count_ = val; 
 }
 
 @end
 
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_SPREADSHEET_SERVICE

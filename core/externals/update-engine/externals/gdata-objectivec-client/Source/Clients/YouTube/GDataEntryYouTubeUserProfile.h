@@ -17,6 +17,8 @@
 //  GDataEntryYouTubeUserProfile.h
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_YOUTUBE_SERVICE
+
 #import "GDataEntryBase.h"
 #import "GDataFeedLink.h"
 #import "GDataYouTubeStatistics.h"
@@ -102,7 +104,9 @@
 - (GDataFeedLink *)playlistsFeedLink;
 - (GDataFeedLink *)subscriptionsFeedLink;
 - (GDataFeedLink *)uploadsFeedLink;
-- (GDataFeedLink *)newSubscriptionVideosFeedLink;
+- (GDataFeedLink *)recentSubscriptionVideosFeedLink; // previously newSubscriptionVideosFeedLink
 - (GDataFeedLink *)friendsActivityFeedLink;
 - (GDataFeedLink *)recentActivityFeedLink;
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_YOUTUBE_SERVICE

@@ -17,6 +17,8 @@
 //  GDataPostalAddress.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_CONTACTS_SERVICE
+
 #import "GDataPostalAddress.h"
 
 static NSString* const kRelAttr = @"rel";
@@ -44,23 +46,23 @@ static NSString* const kPrimaryAttr = @"primary";
 
 
 - (void)addParseDeclarations {
-  NSArray *attrs = [NSArray arrayWithObjects: 
+  NSArray *attrs = [NSArray arrayWithObjects:
                     kLabelAttr, kRelAttr, kPrimaryAttr, nil];
-  
+
   [self addLocalAttributeDeclarations:attrs];
-  
+
   [self addContentValueDeclaration];
 }
 
 - (NSArray *)attributesIgnoredForEquality {
-  
+
   return [NSArray arrayWithObject:kPrimaryAttr];
 }
 
 #pragma mark -
 
 - (NSString *)label {
-  return [self stringValueForAttribute:kLabelAttr]; 
+  return [self stringValueForAttribute:kLabelAttr];
 }
 
 - (void)setLabel:(NSString *)str {
@@ -68,7 +70,7 @@ static NSString* const kPrimaryAttr = @"primary";
 }
 
 - (NSString *)stringValue {
-  return [self contentStringValue]; 
+  return [self contentStringValue];
 }
 
 - (void)setStringValue:(NSString *)str {
@@ -76,7 +78,7 @@ static NSString* const kPrimaryAttr = @"primary";
 }
 
 - (NSString *)rel {
-  return [self stringValueForAttribute:kRelAttr]; 
+  return [self stringValueForAttribute:kRelAttr];
 }
 
 - (void)setRel:(NSString *)str {
@@ -84,7 +86,7 @@ static NSString* const kPrimaryAttr = @"primary";
 }
 
 - (BOOL)isPrimary {
-  return [self boolValueForAttribute:kPrimaryAttr defaultValue:NO]; 
+  return [self boolValueForAttribute:kPrimaryAttr defaultValue:NO];
 }
 
 - (void)setIsPrimary:(BOOL)flag {
@@ -92,3 +94,4 @@ static NSString* const kPrimaryAttr = @"primary";
 }
 @end
 
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_CONTACTS_SERVICE

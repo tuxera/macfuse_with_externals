@@ -17,12 +17,18 @@
 //  GDataFeedWorksheet.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_SPREADSHEET_SERVICE
+
 #import "GDataEntryWorksheet.h"
-#import "GDataEntrySpreadsheet.h"
+#import "GDataSpreadsheetConstants.h"
 #import "GDataFeedWorksheet.h"
 #import "GDataCategory.h"
 
 @implementation GDataFeedWorksheet
+
++ (NSString *)coreProtocolVersionForServiceVersion:(NSString *)serviceVersion {
+  return [GDataSpreadsheetConstants coreProtocolVersionForServiceVersion:serviceVersion];
+}
 
 + (GDataFeedWorksheet *)worksheetFeedWithXMLData:(NSData *)data {
   return [[[self alloc] initWithData:data] autorelease];
@@ -30,7 +36,7 @@
 
 + (GDataFeedWorksheet *)worksheetFeed {
   GDataFeedWorksheet *feed = [[[self alloc] init] autorelease];
-  [feed setNamespaces:[GDataEntrySpreadsheet spreadsheetNamespaces]];
+  [feed setNamespaces:[GDataSpreadsheetConstants spreadsheetNamespaces]];
   return feed;
 }
 
@@ -68,3 +74,5 @@
 }
 
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_SPREADSHEET_SERVICE

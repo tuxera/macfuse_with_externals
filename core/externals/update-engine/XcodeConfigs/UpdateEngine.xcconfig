@@ -13,5 +13,5 @@
 // limitations under the License.
 
 // Define the current Update Engine version.
-UPDATE_ENGINE_VERSION = R5
+UPDATE_ENGINE_VERSION = R7
 

@@ -13,6 +13,8 @@
 * limitations under the License.
 */
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_PHOTOS_SERVICE \
+  || GDATA_INCLUDE_YOUTUBE_SERVICE
 
 #import "GDataNormalPlayTime.h"
 
@@ -70,8 +72,8 @@ static NSString* const kNowString = @"now";
   if (isNow_) {
     return kNowString;
   }
-  long seconds = (long) (ms_ / 1000LL);
-  long fractional = (long) (ms_ % 1000LL);
+  int seconds = (int) (ms_ / 1000LL);
+  int fractional = (int) (ms_ % 1000LL);
   
   if (fractional == 0) {
     return [NSString stringWithFormat:@"%d", seconds];
@@ -102,19 +104,19 @@ static NSString* const kNowString = @"now";
   if ([scanner scanInt:&scannedInt]) {
     seconds = scannedInt;
     
-    if ([scanner scanCharactersFromSet:colon intoString:nil]
+    if ([scanner scanCharactersFromSet:colon intoString:NULL]
         && [scanner scanInt:&scannedInt]) {
       // push seconds to minutes
       seconds = seconds * 60 + scannedInt;
     }
   
-    if ([scanner scanCharactersFromSet:colon intoString:nil]
+    if ([scanner scanCharactersFromSet:colon intoString:NULL]
         && [scanner scanInt:&scannedInt]) {
       // push minutes to hours, seconds to minutes
       seconds = seconds * 60 + scannedInt;
     }
     
-    if ([scanner scanCharactersFromSet:period intoString:nil]
+    if ([scanner scanCharactersFromSet:period intoString:NULL]
         && [scanner scanInt:&scannedInt]) {
       
       // append 000 and take the first 3 digits to create thousands
@@ -142,9 +144,11 @@ static NSString* const kNowString = @"now";
 }
 
 - (NSString *)description {
-  return [NSString stringWithFormat:@"%@ 0x%lX: {%@}",
+  return [NSString stringWithFormat:@"%@ %p: {%@}",
     [self class], self, [self HHMMSSString]];
 
 }
 
 @end
+
+#endif // #if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_*_SERVICE

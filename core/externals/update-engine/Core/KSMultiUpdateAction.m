@@ -20,6 +20,7 @@
 #import "KSTicket.h"
 #import "KSUpdateAction.h"
 #import "KSUpdateEngine.h"
+#import "KSUpdateEngineParameters.h"
 #import "KSUpdateInfo.h"
 
 @interface KSMultiUpdateAction(PrivateMethods)
@@ -81,7 +82,7 @@
   NSEnumerator *updateEnumerator = [updates objectEnumerator];
   KSUpdateInfo *info = nil;
   while ((info = [updateEnumerator nextObject])) {
-    KSUpdateInfo *mutableInfo = [info mutableCopy];
+    KSUpdateInfo *mutableInfo = [[info mutableCopy] autorelease];
     [availableUpdates addObject:mutableInfo];
 
     // Put the ticket into the info.
@@ -123,6 +124,10 @@
   // Use -description because it prints nicer than the way CF would format it
   GTMLoggerInfo(@"filteredUpdates=%@", [filteredUpdates description]);
 
+  // Have we been initiated by the user?
+  BOOL userInitiated =
+    [[[engine_ params] objectForKey:kUpdateEngineUserInitiated] boolValue];
+
   // Convert each dictionary in |filteredUpdates| into a KSUpdateAction and
   // enqueue it on our subProcessor_
   NSEnumerator *filteredUpdateEnumerator = [filteredUpdates objectEnumerator];
@@ -131,7 +136,7 @@
     KSAction *action =
       [KSUpdateAction actionWithUpdateInfo:info
                                     runner:runner
-                             userInitiated:NO];
+                             userInitiated:userInitiated];
     [[self subProcessor] enqueueAction:action];
   }
 

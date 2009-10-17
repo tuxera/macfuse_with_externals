@@ -1,30 +1,29 @@
 /* Copyright (c) 2007 Google Inc.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 //
 //  GDataEntryWorksheet.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_SPREADSHEET_SERVICE
+
 #define GDATAENTRYWORKSHEET_DEFINE_GLOBALS 1
 
 #import "GDataEntryWorksheet.h"
-#import "GDataEntrySpreadsheet.h"
+#import "GDataSpreadsheetConstants.h"
 #import "GDataRowColumnCount.h"
-
-// extensions
-
 
 
 @implementation GDataEntryWorksheet
@@ -33,11 +32,15 @@
 + (GDataEntryWorksheet *)worksheetEntry {
   GDataEntryWorksheet *entry = [[[GDataEntryWorksheet alloc] init] autorelease];
 
-  [entry setNamespaces:[GDataEntrySpreadsheet spreadsheetNamespaces]];
+  [entry setNamespaces:[GDataSpreadsheetConstants spreadsheetNamespaces]];
   return entry;
 }
 
 #pragma mark -
+
++ (NSString *)coreProtocolVersionForServiceVersion:(NSString *)serviceVersion {
+  return [GDataSpreadsheetConstants coreProtocolVersionForServiceVersion:serviceVersion];
+}
 
 + (NSString *)standardEntryKind {
   // spreadsheet categories do not use the standard Kind scheme
@@ -58,7 +61,6 @@
   [super addExtensionDeclarations];
   
   Class entryClass = [self class];
-  
   
   // Worksheet extensions
   [self addExtensionDeclarationForParentClass:entryClass
@@ -101,24 +103,24 @@
 
 #pragma mark -
 
-- (int)rowCount {
+- (NSInteger)rowCount {
   GDataRowCount *rowCount = [self objectForExtensionClass:[GDataRowCount class]];
   
   return [rowCount count];
 }
 
-- (void)setRowCount:(int)val {
+- (void)setRowCount:(NSInteger)val {
   GDataRowCount *obj = [GDataRowCount rowCountWithInt:val];
   [self setObject:obj forExtensionClass:[GDataRowCount class]];
 }
 
-- (int)columnCount {
+- (NSInteger)columnCount {
   GDataColumnCount *columnCount = [self objectForExtensionClass:[GDataColumnCount class]];
   
   return [columnCount count];
 }
 
-- (void)setColumnCount:(int)val {
+- (void)setColumnCount:(NSInteger)val {
   GDataColumnCount *obj = [GDataColumnCount columnCountWithInt:val];
   [self setObject:obj forExtensionClass:[GDataColumnCount class]];
 }
@@ -130,7 +132,7 @@
 }
 
 - (GDataLink *)listLink {
-  GDATA_DEBUG_ASSERT_MAX_SERVICE_V1();
+  GDATA_DEBUG_ASSERT_MAX_SERVICE_VERSION(kGDataSpreadsheetServiceV1);
 
   return [self linkWithRelAttributeValue:kGDataLinkListFeed];
 }
@@ -154,3 +156,4 @@
 
 @end
 
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_SPREADSHEET_SERVICE

@@ -1,19 +1,18 @@
 /* Copyright (c) 2007 Google Inc.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-#import "GDataDefines.h"
 #import "GDataProgressMonitorInputStream.h"
 
 
@@ -28,7 +27,7 @@
   return [NSInputStream methodSignatureForSelector:selector];
 }
 
-+ (void)forwardInvocation:(NSInvocation*)invocation {  
++ (void)forwardInvocation:(NSInvocation*)invocation {
   [invocation invokeWithTarget:[NSInputStream class]];
 }
 
@@ -36,24 +35,24 @@
   return [inputStream_ methodSignatureForSelector:selector];
 }
 
-- (void)forwardInvocation:(NSInvocation*)invocation {    
+- (void)forwardInvocation:(NSInvocation*)invocation {
   [invocation invokeWithTarget:inputStream_];
 }
 
 #pragma mark -
 
-+ (id)inputStreamWithStream:(NSInputStream *)input 
++ (id)inputStreamWithStream:(NSInputStream *)input
                      length:(unsigned long long)length {
-  
-  return [[[self alloc] initWithStream:input 
+
+  return [[[self alloc] initWithStream:input
                                         length:length] autorelease];
 }
 
-- (id)initWithStream:(NSInputStream *)input 
+- (id)initWithStream:(NSInputStream *)input
               length:(unsigned long long)length {
-  
+
   if ((self = [super init]) != nil) {
-    
+
     inputStream_ = [input retain];
     dataSize_ = length;
   }
@@ -68,33 +67,48 @@
 
 - (void)dealloc {
   [inputStream_ release];
-  [super dealloc]; 
+  [super dealloc];
 }
 
 #pragma mark -
 
-
 - (NSInteger)read:(uint8_t *)buffer maxLength:(NSUInteger)len {
 
   NSInteger numRead = [inputStream_ read:buffer maxLength:len];
-  
+
   if (numRead > 0) {
-    
+
     numBytesRead_ += numRead;
-    
-    if (monitorDelegate_ && monitorSelector_) {
-      
-      // call the monitor delegate with the number of bytes read and the
-      // total bytes read
-      
-      NSMethodSignature *signature = [monitorDelegate_ methodSignatureForSelector:monitorSelector_];
-      NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
-      [invocation setSelector:monitorSelector_];
-      [invocation setTarget:monitorDelegate_];
-      [invocation setArgument:&self atIndex:2];
-      [invocation setArgument:&numBytesRead_ atIndex:3];
-      [invocation setArgument:&dataSize_ atIndex:4];
-      [invocation invoke];
+
+    if (monitorDelegate_) {
+
+      if (monitorSelector_) {
+        // call the monitor delegate with the number of bytes read and the
+        // total bytes read
+        NSMethodSignature *signature = [monitorDelegate_ methodSignatureForSelector:monitorSelector_];
+        NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+        [invocation setSelector:monitorSelector_];
+        [invocation setTarget:monitorDelegate_];
+        [invocation setArgument:&self atIndex:2];
+        [invocation setArgument:&numBytesRead_ atIndex:3];
+        [invocation setArgument:&dataSize_ atIndex:4];
+        [invocation invoke];
+      }
+
+      if (readSelector_) {
+        // call the read selector with the buffer and number of bytes actually
+        // read into it
+        unsigned long long length = numRead;
+
+        NSMethodSignature *signature = [monitorDelegate_ methodSignatureForSelector:readSelector_];
+        NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+        [invocation setSelector:readSelector_];
+        [invocation setTarget:monitorDelegate_];
+        [invocation setArgument:&self atIndex:2];
+        [invocation setArgument:&buffer atIndex:3];
+        [invocation setArgument:&length atIndex:4];
+        [invocation invoke];
+      }
     }
   }
   return numRead;
@@ -115,37 +129,37 @@
 // We want our encapsulated NSInputStream to handle the standard messages;
 // we don't want the superclass to handle them.
 - (void)open {
-  [inputStream_ open]; 
+  [inputStream_ open];
 }
 
 - (void)close {
-  [inputStream_ close]; 
+  [inputStream_ close];
 }
 
 - (id)delegate {
-  return [inputStream_ delegate]; 
+  return [inputStream_ delegate];
 }
 
 - (void)setDelegate:(id)delegate {
-  [inputStream_ setDelegate:delegate]; 
+  [inputStream_ setDelegate:delegate];
 }
 
 - (id)propertyForKey:(NSString *)key {
-  return [inputStream_ propertyForKey:key]; 
+  return [inputStream_ propertyForKey:key];
 }
 - (BOOL)setProperty:(id)property forKey:(NSString *)key {
-  return [inputStream_ setProperty:property forKey:key]; 
+  return [inputStream_ setProperty:property forKey:key];
 }
 
 - (void)scheduleInRunLoop:(NSRunLoop *)aRunLoop forMode:(NSString *)mode {
-  [inputStream_ scheduleInRunLoop:aRunLoop forMode:mode]; 
+  [inputStream_ scheduleInRunLoop:aRunLoop forMode:mode];
 }
 - (void)removeFromRunLoop:(NSRunLoop *)aRunLoop forMode:(NSString *)mode {
-  [inputStream_ removeFromRunLoop:aRunLoop forMode:mode]; 
+  [inputStream_ removeFromRunLoop:aRunLoop forMode:mode];
 }
 
 - (NSStreamStatus)streamStatus {
-  return [inputStream_ streamStatus]; 
+  return [inputStream_ streamStatus];
 }
 
 - (NSError *)streamError {
@@ -159,15 +173,23 @@
 }
 
 - (id)monitorDelegate {
-  return monitorDelegate_; 
+  return monitorDelegate_;
 }
 
 - (void)setMonitorSelector:(SEL)monitorSelector {
-  monitorSelector_ = monitorSelector; 
+  monitorSelector_ = monitorSelector;
 }
 
 - (SEL)monitorSelector {
   return monitorSelector_;
+}
+
+- (void)setReadSelector:(SEL)readSelector {
+  readSelector_ = readSelector;
+}
+
+- (SEL)readSelector {
+  return readSelector_;
 }
 
 - (void)setMonitorSource:(id)source {
@@ -175,7 +197,7 @@
 }
 
 - (id)monitorSource {
-  return monitorSource_; 
+  return monitorSource_;
 }
 
 @end

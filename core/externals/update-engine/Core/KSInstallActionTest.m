@@ -34,6 +34,7 @@
 
 @interface KSInstallAction (Friend)
 - (NSString *)mountPoint;
+- (NSMutableDictionary *)environment;
 @end
 
 
@@ -295,6 +296,110 @@
 }
 
 - (void)testEnvironmentVariables {
+  KSTicket *ticket =
+      [KSTicket ticketWithProductID:@"com.google.hasselhoff"
+                            version:@"3.14.15.9"
+                   existenceChecker:[KSPathExistenceChecker
+                                      checkerWithPath:@"/oombly/foombly"]
+                          serverURL:[NSURL URLWithString:@"http://google.com"]];
+  id<KSCommandRunner> runner = [KSTaskCommandRunner commandRunner];
+
+  // Make sure the environemnt variables dictionary used by the install
+  // action is sane.
+  KSUpdateInfo *info;
+  info = [NSDictionary dictionaryWithObjectsAndKeys:
+            @"com.google.hasselhoff", kServerProductID,
+            [NSURL URLWithString:@"a://a"], kServerCodebaseURL,
+            [NSNumber numberWithInt:2], kServerCodeSize,
+            @"zzz", kServerCodeHash,
+            @"a://b", kServerMoreInfoURLString,
+            [NSNumber numberWithBool:YES], kServerPromptUser,
+            [NSNumber numberWithBool:YES], kServerRequireReboot,
+            @"/Hassel/Hoff", kServerLocalizationBundle,
+            @"1.3.2 (with pudding)", kServerDisplayVersion,
+            ticket, kTicket,
+            nil];
+
+  KSInstallAction *action = nil;
+  action = [KSInstallAction actionWithDMGPath:@""
+                                       runner:runner
+                                userInitiated:NO
+                                   updateInfo:info];
+  STAssertNotNil(action, nil);
+
+  NSDictionary *env = [action environment];
+  // Make sure everything is set.
+  STAssertEqualObjects([env objectForKey:@"KS_SUPPORTS_TAG"],
+                       @"YES", nil);
+  STAssertEqualObjects([env objectForKey:@"KS_TICKET_PRODUCT_ID"],
+                       @"com.google.hasselhoff", nil);
+  STAssertEqualObjects([env objectForKey:@"KS_TICKET_VERSION"],
+                       @"3.14.15.9", nil);
+  STAssertEqualObjects([env objectForKey:@"KS_TICKET_SERVER_URL"],
+                       @"http://google.com", nil);
+  STAssertEqualObjects([env objectForKey:@"KS_TICKET_XC_PATH"],
+                       @"/oombly/foombly", nil);
+  STAssertEqualObjects([env objectForKey:@"KS_INTERACTIVE"],
+                       @"YES", nil);
+  STAssertEqualObjects([env objectForKey:@"KS_USER_INITIATED"],
+                       @"NO", nil);
+  STAssertEqualObjects([env objectForKey:@"KS_kServerCodeHash"],
+                       @"zzz", nil);
+  STAssertEqualObjects([env objectForKey:@"KS_kServerCodeSize"],
+                       @"2", nil);
+  STAssertEqualObjects([env objectForKey:@"KS_kServerCodebaseURL"],
+                       @"a://a", nil);
+  STAssertEqualObjects([env objectForKey:@"KS_kServerDisplayVersion"],
+                       @"1.3.2 (with pudding)", nil);
+  STAssertEqualObjects([env objectForKey:@"KS_kServerLocalizationBundle"],
+                       @"/Hassel/Hoff", nil);
+  STAssertEqualObjects([env objectForKey:@"KS_kServerMoreInfoURLString"],
+                       @"a://b", nil);
+  STAssertEqualObjects([env objectForKey:@"KS_kServerProductID"],
+                       @"com.google.hasselhoff", nil);
+  STAssertEqualObjects([env objectForKey:@"KS_kServerPromptUser"],
+                       @"1", nil);
+  STAssertEqualObjects([env objectForKey:@"KS_kServerRequireReboot"],
+                       @"1", nil);
+  NSString *path = [env objectForKey:@"PATH"];
+  STAssertTrue([path length] != 0, nil);
+  STAssertTrue([path rangeOfString:@"/bin"].location != NSNotFound, nil);
+
+  // Now exercise the KS_INTERACTIVE values.  It should be YES if
+  // the server says to prompt, or the update is user initiated.
+  typedef struct TestSettings {
+    BOOL prompt_;
+    BOOL userInitiated_;
+    NSString *expected_;
+  } TestSettings;
+
+  TestSettings settings[] = {
+    { YES,  NO, @"YES" },
+    {  NO, YES, @"YES" },
+    { YES, YES, @"YES" },  // oh, yes
+    {  NO,  NO,  @"NO" },
+  };
+
+  TestSettings *scan = settings;
+  TestSettings *stop = scan + sizeof(settings) / sizeof(*settings);
+
+  while (scan < stop) {
+    info = [NSDictionary dictionaryWithObjectsAndKeys:
+                         [NSNumber numberWithBool:scan->prompt_],
+                         kServerPromptUser,
+                         nil];
+    action = [KSInstallAction actionWithDMGPath:@""
+                                         runner:runner
+                                  userInitiated:scan->userInitiated_
+                                   updateInfo:info];
+    env = [action environment];
+    STAssertEqualObjects([env objectForKey:@"KS_INTERACTIVE"],
+                         scan->expected_, nil);
+    scan++;
+  }
+}
+
+- (void)testRunningEnvironmentVariables {
   id<KSCommandRunner> runner = [KSTaskCommandRunner commandRunner];
   STAssertNotNil(runner, nil);
 
@@ -307,7 +412,7 @@
   KSTicket *ticket =
       [KSTicket ticketWithProductID:@"com.google.hasselhoff"
                             version:@"3.14.15.9"
-                   existenceChecker:[KSPathExistenceChecker 
+                   existenceChecker:[KSPathExistenceChecker
                                       checkerWithPath:@"/oombly/foombly"]
                           serverURL:[NSURL URLWithString:@"http://google.com"]];
 
@@ -347,18 +452,18 @@
 - (void)testMountPointGeneration {
   id<KSCommandRunner> runner = [KSTaskCommandRunner commandRunner];
   STAssertNotNil(runner, nil);
-  
+
   NSDictionary *fakeUpdateInfo = [NSDictionary dictionaryWithObjectsAndKeys:
                                   @"product", @"kServerProductID",
                                   @"hash", @"kServerCodeHash", nil];
-  
+
   KSInstallAction *action = nil;
   action = [KSInstallAction actionWithDMGPath:successDMGPath_
                                        runner:runner
                                 userInitiated:NO
                                    updateInfo:fakeUpdateInfo];
   STAssertEqualObjects([action mountPoint], @"/Volumes/product-hash", nil);
-  
+
   // Now try the test w/ a huge product ID and it should be truncated to 50 cols
   // This test also uses a real hash to test that we replace "/" w/ "_"
   fakeUpdateInfo = [NSDictionary dictionaryWithObjectsAndKeys:

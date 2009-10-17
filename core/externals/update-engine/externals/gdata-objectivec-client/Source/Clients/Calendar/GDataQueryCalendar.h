@@ -17,6 +17,8 @@
 //  GDataQueryCalendar.h
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_CALENDAR_SERVICE
+
 // Calendar-specific query params, per 
 //   http://code.google.com/apis/calendar/reference.html#Parameters
 
@@ -49,8 +51,12 @@
 - (BOOL)shouldShowInlineComments;
 - (void)setShouldShowInlineComments:(BOOL)flag;
 
+- (BOOL)shouldShowHiddenEvents;
+- (void)setShouldShowHiddenEvents:(BOOL)flag;
+
 - (NSString *)currentTimeZoneName;
 - (void)setCurrentTimeZoneName:(NSString *)str;
   
 @end
 
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_CALENDAR_SERVICE

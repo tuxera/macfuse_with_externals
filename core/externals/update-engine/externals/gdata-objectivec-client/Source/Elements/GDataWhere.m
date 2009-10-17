@@ -17,6 +17,9 @@
 //  GDataWhere.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_CALENDAR_SERVICE \
+    || GDATA_INCLUDE_CONTACTS_SERVICE
+
 #define GDATAWHERE_DEFINE_GLOBALS 1
 #import "GDataWhere.h"
 
@@ -45,27 +48,27 @@ static NSString* const kLabelAttr = @"label";
 }
 
 - (void)addExtensionDeclarations {
-  
+
   [super addExtensionDeclarations];
-  
+
   [self addExtensionDeclarationForParentClass:[self class]
                                    childClass:[GDataEntryLink class]];
 }
 
 - (void)addParseDeclarations {
-  NSArray *attrs = [NSArray arrayWithObjects: 
+  NSArray *attrs = [NSArray arrayWithObjects:
                     kRelAttr, kValueStringAttr, kLabelAttr, nil];
-  
+
   [self addLocalAttributeDeclarations:attrs];
 }
 
 #if !GDATA_SIMPLE_DESCRIPTIONS
 - (NSMutableArray *)itemsForDescription {
   NSMutableArray *items = [super itemsForDescription];
-  
+
   // add the entryLink extension to the description
   [self addToArray:items objectDescriptionIfNonNil:[self entryLink] withName:@"entryLink"];
-  
+
   return items;
 }
 #endif
@@ -103,3 +106,5 @@ static NSString* const kLabelAttr = @"label";
 }
 
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_*_SERVICE

@@ -29,6 +29,7 @@
 #define kServerPromptUser         @"kServerPromptUser"      // BOOL as NSNumber
 #define kServerRequireReboot      @"kServerRequireReboot"   // BOOL as NSNumber
 #define kServerDisplayVersion     @"kServerDisplayVersion"  // NSString
+#define kServerVersion            @"kServerVersion"         // NSString
 #define kServerLocalizationBundle \
   @"kServerLocalizationBundle"  // NSString, either a path or a bundleID
 #define kTicket                   @"kTicket"                // KSTicket
@@ -59,16 +60,16 @@
 #define KSUpdateInfo NSDictionary
 @interface NSDictionary (KSUpdateInfoMethods)
 
-// Returns the object for kServerProductID
+// Returns the object for kServerProductID.
 - (NSString *)productID;
 
-// Returns the object for kServerCodebaseURL
+// Returns the object for kServerCodebaseURL.
 - (NSURL *)codebaseURL;
 
-// Returns the object for kServerCodeSize
+// Returns the object for kServerCodeSize.
 - (NSNumber *)codeSize;
 
-// Returns the object for kServerCodeHash
+// Returns the object for kServerCodeHash.
 - (NSString *)codeHash;
 
 // Returns the object for kServerMoreInfoURLString.
@@ -77,19 +78,25 @@
 // localization.
 - (NSString *)moreInfoURLString;
 
-// Returns the object for kServerPromptUser
+// Returns the object for kServerPromptUser.
 - (NSNumber *)promptUser;
 
-// Returns the object for kServerRequireReboot
+// Returns the object for kServerRequireReboot.
 - (NSNumber *)requireReboot;
 
-// Returns the object for kServerLocalizationBundle
+// Returns the object for kServerLocalizationBundle.
 - (NSString *)localizationBundle;
 
-// Returns the object for kServerDisplayVersion
+// Returns the object for kServerDisplayVersion.
 - (NSString *)displayVersion;
 
-// Returns the object for kTicket
+// Returns the object for kServerVersion.  Both the version "2.3.4.5"
+// and display version "2.3.4.5 (Koala)" can be specified in the
+// server response.  It's up to the caller to decide which one takes
+// precedence.
+- (NSString *)version;
+
+// Returns the object for kTicket.
 - (KSTicket *)ticket;
 
 @end

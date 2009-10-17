@@ -17,8 +17,10 @@
 //  GDataFeedHealthProfile.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_HEALTH_SERVICE
+
 #import "GDataFeedHealthProfile.h"
-#import "GDataEntryHealthProfile.h"
+#import "GDataHealthConstants.h"
 
 @implementation GDataFeedHealthProfile
 
@@ -26,7 +28,7 @@
 
   GDataFeedHealthProfile *feed = [[[self alloc] init] autorelease];
 
-  [feed setNamespaces:[GDataEntryHealthProfile healthNamespaces]];
+  [feed setNamespaces:[GDataHealthConstants healthNamespaces]];
 
   return feed;
 }
@@ -44,3 +46,5 @@
 }
 
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_HEALTH_SERVICE

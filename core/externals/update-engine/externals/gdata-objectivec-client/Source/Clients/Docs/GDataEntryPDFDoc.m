@@ -17,7 +17,8 @@
 //  GDataEntryPDFDoc.m
 //
 
-#define GDATAENTRYPDFDOC_DEFINE_GLOBALS 1
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_DOCS_SERVICE
+
 #import "GDataEntryPDFDoc.h"
 
 @implementation GDataEntryPDFDoc
@@ -31,3 +32,5 @@
 }
 
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_DOCS_SERVICE

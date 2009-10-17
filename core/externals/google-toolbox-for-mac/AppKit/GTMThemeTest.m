@@ -33,30 +33,35 @@
   
   // When there are no values, use window default colors
   STAssertEqualObjects([theme backgroundColor], 
-                       [NSColor colorWithCalibratedWhite:0.75 alpha:1.0], nil);
-  STAssertNil([theme windowBackgroundColor:YES], nil);
+                       [NSColor colorWithCalibratedWhite:0.5 alpha:1.0], nil);
+  STAssertNil([theme backgroundImageForStyle:GTMThemeStyleWindow
+                                       state:GTMThemeStateActiveWindow],
+              nil);
   STAssertNil([theme backgroundImage], nil);
 
   NSColor *color = [NSColor redColor];
   NSData *colorData = [NSArchiver archivedDataWithRootObject:color];
-  [[NSUserDefaults standardUserDefaults] setObject:colorData
-                                            forKey:@"GTMThemeBackgroundColor"];
-
-  STAssertNotNil([theme windowBackgroundColor:YES], nil);
-  STAssertNotNil([theme patternColorForStyle:GTMThemeStyleToolBar
-                                      active:YES], nil);
-  STAssertNotNil([theme strokeColorForStyle:GTMThemeStyleToolBar
-                                     active:YES], nil);
-  STAssertNotNil([theme gradientForStyle:GTMThemeStyleToolBar
-                                  active:YES], nil);
-
-  STAssertEqualObjects([theme backgroundColor], 
-                       color, nil);
+  NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+  [defaults setObject:colorData forKey:kGTMThemeBackgroundColorKey];
   
+  STAssertNotNil([theme textColorForStyle:GTMThemeStyleToolBar
+                                    state:GTMThemeStateActiveWindow], nil);
+  STAssertNotNil([theme backgroundColorForStyle:GTMThemeStyleToolBar
+                                          state:GTMThemeStateActiveWindow], nil);
+  STAssertNotNil([theme backgroundPatternColorForStyle:GTMThemeStyleToolBar
+                                         state:GTMThemeStateActiveWindow], nil);
+  STAssertNotNil([theme strokeColorForStyle:GTMThemeStyleToolBar
+                                      state:GTMThemeStateActiveWindow], nil);
+  STAssertNotNil([theme gradientForStyle:GTMThemeStyleToolBar
+                                   state:GTMThemeStateActiveWindow], nil);
+  
+  STAssertEqualObjects([theme backgroundColor], color, nil);
+  
+  NSBackgroundStyle style
+    = [theme interiorBackgroundStyleForStyle:GTMThemeStyleToolBar
+                                       state:GTMThemeStateActiveWindow];
   // TODO(alcor): add more of these cases once the constants are more concrete
-  STAssertEquals([theme interiorBackgroundStyleForStyle:GTMThemeStyleToolBar
-                                               active:YES],
-                 (NSBackgroundStyle)NSBackgroundStyleRaised, nil);
+  STAssertEquals(style, (NSBackgroundStyle)NSBackgroundStyleRaised, nil);
   
   [[NSUserDefaults standardUserDefaults] removeObjectForKey:
     @"GTMThemeBackgroundColor"];

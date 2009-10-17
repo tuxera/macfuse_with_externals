@@ -47,6 +47,11 @@
 + (NSString *)extensionElementURI       { return kGDataNamespaceAtomPub1_0; }
 + (NSString *)extensionElementPrefix    { return kGDataNamespaceAtomPubPrefix; }
 + (NSString *)extensionElementLocalName { return [super extensionElementLocalName]; }
+
++ (NSString *)defaultServiceVersion {
+  return @"1.0";
+}
+
 @end
 
 @implementation GDataAtomPubControl
@@ -74,6 +79,10 @@
   GDataAtomPubControl *obj = [self atomPubControl];
   [obj setIsDraft:isDraft];
   return obj;
+}
+
++ (NSString *)defaultServiceVersion {
+  return @"2.0";
 }
 
 - (Class)draftExtensionClass {
@@ -132,7 +141,7 @@
 + (Class)atomPubControlClassForObject:(GDataObject *)obj {
   // version 1 of GData used a preliminary namespace URI for the atom pub
   // element; the standard version of the class uses the proper URI
-  if ([obj isServiceVersion1]) {
+  if ([obj isCoreProtocolVersion1]) {
     return [GDataAtomPubControl1_0 class];
   } else {
     return [GDataAtomPubControl class];

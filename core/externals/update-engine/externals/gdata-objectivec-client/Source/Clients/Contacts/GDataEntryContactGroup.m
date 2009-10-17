@@ -17,10 +17,12 @@
 //  GDataEntryContactGroup.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_CONTACTS_SERVICE
+
 #define GDATAENTRYCONTACTGROUP_DEFINE_GLOBALS 1
 #import "GDataEntryContactGroup.h"
 
-#import "GDataEntryContact.h"      // for namespace
+#import "GDataContactConstants.h"
 
 // system group identifier, like <gContact:systemGroup id="Contacts"/>
 @implementation GDataContactSystemGroup
@@ -44,10 +46,14 @@
 
 @implementation GDataEntryContactGroup
 
++ (NSString *)coreProtocolVersionForServiceVersion:(NSString *)serviceVersion {
+  return [GDataContactConstants coreProtocolVersionForServiceVersion:serviceVersion];
+}
+
 + (GDataEntryContactGroup *)contactGroupEntryWithTitle:(NSString *)title {
   GDataEntryContactGroup *obj = [[[GDataEntryContactGroup alloc] init] autorelease];
   
-  [obj setNamespaces:[GDataEntryContact contactNamespaces]];
+  [obj setNamespaces:[GDataContactConstants contactNamespaces]];
   
   [obj setTitleWithString:title];
   return obj;
@@ -120,3 +126,5 @@
 }
 
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_CONTACTS_SERVICE

@@ -17,6 +17,8 @@
 //  GDataQueryGoogleHealth.h
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_HEALTH_SERVICE
+
 #import "GDataQuery.h"
 
 @interface GDataQueryGoogleHealth : GDataQuery
@@ -29,16 +31,18 @@
 - (void)setIsGrouped:(BOOL)flag;
 - (BOOL)isGrouped;
 
-- (void)setMaxResultsGroup:(int)val;
-- (int)maxResultsGroup;
+- (void)setMaxResultsGroup:(NSInteger)val;
+- (NSInteger)maxResultsGroup;
 
-- (void)setMaxResultsInGroup:(int)val;
-- (int)maxResultsInGroup;
+- (void)setMaxResultsInGroup:(NSInteger)val;
+- (NSInteger)maxResultsInGroup;
 
-- (void)setStartIndexGroup:(int)val;
-- (int)startIndexGroup;
+- (void)setStartIndexGroup:(NSInteger)val;
+- (NSInteger)startIndexGroup;
 
-- (void)setStartIndexInGroup:(int)va;
-- (int)startIndexInGroup;
+- (void)setStartIndexInGroup:(NSInteger)va;
+- (NSInteger)startIndexInGroup;
 
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_HEALTH_SERVICE

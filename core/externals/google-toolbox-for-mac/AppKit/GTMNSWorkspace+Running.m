@@ -21,6 +21,7 @@
 #import <unistd.h>
 #import "GTMGarbageCollection.h"
 #import "GTMSystemVersion.h"
+#import "GTMObjectSingleton.h"
 
 NSString *const kGTMWorkspaceRunningPSN = @"PSN";
 NSString *const kGTMWorkspaceRunningFlavor = @"Flavor";
@@ -38,12 +39,21 @@ NSString *const kGTMWorkspaceRunningLSUIPresentationMode
 NSString *const kGTMWorkspaceRunningBundlePath = @"BundlePath";
 NSString *const kGTMWorkspaceRunningBundleVersion = @"CFBundleVersion";
 
+@interface GTMWorkspaceRunningApplicationList : NSObject {
+ @private 
+  NSArray *launchedApps_;
+}
++ (GTMWorkspaceRunningApplicationList *)sharedApplicationList;
+- (NSArray *)launchedApplications;
+- (void)didLaunchOrTerminateApp:(NSNotification *)notification;
+@end
+
 @implementation NSWorkspace (GTMWorkspaceRunningAdditions)
 
 /// Returns a YES/NO if a process w/ the given identifier is running
 - (BOOL)gtm_isAppWithIdentifierRunning:(NSString *)identifier {
   if ([identifier length] == 0) return NO;
-  NSArray *launchedApps = [self launchedApplications];
+  NSArray *launchedApps = [self gtm_launchedApplications];
   NSArray *buildIDs 
     = [launchedApps valueForKey:@"NSApplicationBundleIdentifier"];
   return [buildIDs containsObject:identifier];
@@ -58,7 +68,7 @@ NSString *const kGTMWorkspaceRunningBundleVersion = @"CFBundleVersion";
   return dict;
 }
 
-- (NSDictionary *)gtm_processInfoDictionaryForPSN:(ProcessSerialNumberPtr)psn {
+- (NSDictionary *)gtm_processInfoDictionaryForPSN:(ProcessSerialNumberPtr const)psn {
   NSDictionary *dict = nil;
   if (psn) {
     CFDictionaryRef cfDict 
@@ -118,7 +128,7 @@ NSString *const kGTMWorkspaceRunningBundleVersion = @"CFBundleVersion";
     return NO;
   }
   
-  NSArray *apps = [self launchedApplications];
+  NSArray *apps = [self gtm_launchedApplications];
   
   NSEnumerator *enumerator = [apps objectEnumerator];
   NSDictionary *dict;
@@ -170,4 +180,82 @@ NSString *const kGTMWorkspaceRunningBundleVersion = @"CFBundleVersion";
   }
   return outPSN;
 }
+
+- (NSArray *)gtm_launchedApplications {
+  GTMWorkspaceRunningApplicationList *list 
+    = [GTMWorkspaceRunningApplicationList sharedApplicationList];
+  return [list launchedApplications];
+}
+@end
+
+@implementation GTMWorkspaceRunningApplicationList
+  
+GTMOBJECT_SINGLETON_BOILERPLATE(GTMWorkspaceRunningApplicationList, 
+                                sharedApplicationList)
+- (id)init {
+  if ((self = [super init])) {
+    [self didLaunchOrTerminateApp:nil];
+  }
+  return self;
+}
+
+- (void)finalize {
+  [self didLaunchOrTerminateApp:nil];
+  [super finalize];
+}
+
+- (void)dealloc {
+  [self didLaunchOrTerminateApp:nil];
+  [super dealloc];
+}
+
+- (void)didLaunchOrTerminateApp:(NSNotification *)notification {
+  @synchronized (self) {
+    [launchedApps_ autorelease];
+    NSNotificationCenter *workSpaceNC 
+      = [[NSWorkspace sharedWorkspace] notificationCenter];
+    [workSpaceNC removeObserver:self];
+    launchedApps_ = nil;
+  }
+}
+
+- (void)updateApps {
+  NSWorkspace *ws = [NSWorkspace sharedWorkspace];
+  NSNotificationCenter *workSpaceNC = [ws notificationCenter];
+  [workSpaceNC addObserver:self
+                  selector:@selector(didLaunchOrTerminateApp:)
+                      name:NSWorkspaceDidLaunchApplicationNotification
+                    object:nil];
+  [workSpaceNC addObserver:self
+                  selector:@selector(didLaunchOrTerminateApp:)
+                      name:NSWorkspaceDidTerminateApplicationNotification
+                    object:nil];
+  NSArray *launchedApps = [ws launchedApplications];
+  NSDictionary *ourApp = [ws activeApplication];
+  // Right now launchedApplications from NSWorkspace does not contain 
+  // UIElement apps. We may want to change our implementation. But at
+  // the very least we want to include ourselves in the list of running
+  // apps.
+  // TODO(dmaclach): revisit this and decide on something decent.
+  if (![launchedApps containsObject:ourApp]) {
+    launchedApps = [launchedApps arrayByAddingObject:ourApp];
+  }
+  launchedApps_ = [launchedApps retain];
+}
+
+- (NSArray *)launchedApplications {
+  NSArray *localReturn = nil;
+  @synchronized (self) {
+    if (!launchedApps_) {
+      [self performSelectorOnMainThread:@selector(updateApps)
+                             withObject:nil 
+                          waitUntilDone:YES];
+    }
+    localReturn = launchedApps_;
+    // We want to keep launchedApps_ in the autoreleasepool of this thread
+    [[localReturn retain] autorelease];
+  }
+  return localReturn;
+}
+  
 @end

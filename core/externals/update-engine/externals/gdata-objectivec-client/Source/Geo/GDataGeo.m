@@ -17,8 +17,12 @@
 //  GDataGeo.m
 //
 
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_CALENDAR_SERVICE \
+     || GDATA_INCLUDE_PHOTOS_SERVICE || GDATA_INCLUDE_YOUTUBE_SERVICE
+
 #define GDATAGEO_DEFINE_GLOBALS 1
 #import "GDataGeo.h"
+#include <math.h>
 
 // http://www.w3.org/2003/01/geo/
 // xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#"
@@ -402,3 +406,5 @@
 }
 
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_*_SERVICE

@@ -31,6 +31,8 @@ static NSString *gInstallScriptPrefix;
 - (NSString *)engineToolsPath;
 - (NSString *)mountPoint;
 - (void)addUpdateInfoToEnvironment:(NSMutableDictionary *)env;
+- (void)addSupportedFeaturesToEnvironment:(NSMutableDictionary *)env;
+- (NSMutableDictionary *)environment;
 - (BOOL)isPathToExecutableFile:(NSString *)path;
 @end
 
@@ -146,20 +148,7 @@ static NSString *gInstallScriptPrefix;
   NSString *output3 = nil;
 
   NSArray *args = [NSArray arrayWithObject:mountPoint];
-  NSMutableDictionary *env = [NSMutableDictionary dictionary];
-
-  // Start off by adding all of the keys in |updateInfo_| to the environment,
-  // but prepend them all with some unique string.
-  [self addUpdateInfoToEnvironment:env];
-
-  // Set a good default path that starts with the directory containing
-  // UpdateEngine Tools, such as ksadmin. This allows the scripts to be able to
-  // use UpdateEngine commands without having to know where they're located.
-  NSString *toolsPath = [self engineToolsPath];
-  NSString *path = [NSString stringWithFormat:@"%@:/bin:/usr/bin", toolsPath];
-  [env setObject:path forKey:@"PATH"];
-
-  [env setObject:(ui_ ? @"YES" : @"NO") forKey:@"KS_USER_INITIATED"];
+  NSMutableDictionary *env = [self environment];
 
   //
   // Script 1
@@ -288,11 +277,12 @@ bail_no_unmount:
 
 @implementation KSInstallAction (PrivateMethods)
 
-// Returns the path to the directory that contains "ksadmin". Yes, this is an
-// ugly hack because it forces an ugly dependency on this framework.
-// Specifically, the UpdateEngine framework must be located in a directory that is
-// a peer to a MacOS directory, which must contain the "ksadmin" command. Yeah.
-// ... but hey, it might make someone else's life a bit easier.
+// Returns the path to the directory that contains "ksadmin". Yes,
+// this is an ugly hack because it forces an ugly dependency on this
+// framework.  Specifically, the UpdateEngine framework must be
+// located in a directory that is a peer to a MacOS directory, which
+// must contain the "ksadmin" command. Yeah.  ... but hey, it might
+// make someone else's life a bit easier.
 - (NSString *)engineToolsPath {
   NSBundle *framework = [NSBundle bundleForClass:[KSInstallAction class]];
   return [NSString stringWithFormat:@"%@/../../MacOS", [framework bundlePath]];
@@ -366,6 +356,48 @@ bail_no_unmount:
               forKey:[@"KS_" stringByAppendingString:key]];
     }
   }
+}
+
+// Set environment variables of new-since-1.0 features that have been
+// added to UpdateEngine, so that install scripts can decide what features
+// to take advantage of.
+- (void)addSupportedFeaturesToEnvironment:(NSMutableDictionary *)env {
+  [env setObject:@"YES" forKey:@"KS_SUPPORTS_TAG"];
+}
+
+// Construct a dictionary of environment variables to be used when launching
+// the install script NSTasks.
+// A mutable dictionary is returned because the output of one task will
+// be added to the environment for the next task.
+- (NSMutableDictionary *)environment {
+  NSMutableDictionary *env = [NSMutableDictionary dictionary];
+
+  // Start off by adding all of the keys in |updateInfo_| to the environment,
+  // but prepend them all with some unique string.
+  [self addUpdateInfoToEnvironment:env];
+
+  // Set a good default path that starts with the directory containing
+  // UpdateEngine Tools, such as ksadmin. This allows the scripts to be able to
+  // use UpdateEngine commands without having to know where they're located.
+  NSString *toolsPath = [self engineToolsPath];
+  NSString *path = [NSString stringWithFormat:@"%@:/bin:/usr/bin", toolsPath];
+  [env setObject:path forKey:@"PATH"];
+
+  // Let scripts know if the user explicitly checked for updates.
+  [env setObject:(ui_ ? @"YES" : @"NO") forKey:@"KS_USER_INITIATED"];
+
+  // KS_INTERACTIVE means that the user has been involved in the process,
+  // either by the Prompt=true server configuration, or if the user has
+  // initiated the update process.
+  NSNumber *prompt = [updateInfo_ objectForKey:kServerPromptUser];
+  NSString *interactiveValue = @"NO";
+  if (ui_ || [prompt boolValue]) interactiveValue = @"YES";
+  [env setObject:interactiveValue forKey:@"KS_INTERACTIVE"];
+
+  // Add new-since-1.0 feature flags.
+  [self addSupportedFeaturesToEnvironment:env];
+
+  return env;
 }
 
 - (BOOL)isPathToExecutableFile:(NSString *)path {

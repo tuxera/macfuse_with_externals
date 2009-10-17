@@ -1,34 +1,38 @@
 /* Copyright (c) 2007 Google Inc.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 //
 //  GDataEntrySpreadsheetList.m
 //
 
-#define GDATAENTRYSPREADSHEETLIST_DEFINE_GLOBALS 1
+#if !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_SPREADSHEET_SERVICE
 
 #import "GDataEntrySpreadsheetList.h"
-#import "GDataEntrySpreadsheet.h"
+#import "GDataSpreadsheetConstants.h"
 #import "GDataSpreadsheetCustomElement.h"
 
 @implementation GDataEntrySpreadsheetList
 
-+ (GDataEntrySpreadsheetList *)listEntry {
-  GDataEntrySpreadsheetList *entry = [[[GDataEntrySpreadsheetList alloc] init] autorelease];
++ (NSString *)coreProtocolVersionForServiceVersion:(NSString *)serviceVersion {
+  return [GDataSpreadsheetConstants coreProtocolVersionForServiceVersion:serviceVersion];
+}
 
-  [entry setNamespaces:[GDataEntrySpreadsheet spreadsheetNamespaces]];
++ (GDataEntrySpreadsheetList *)listEntry {
+  GDataEntrySpreadsheetList *entry = [[[self alloc] init] autorelease];
+
+  [entry setNamespaces:[GDataSpreadsheetConstants spreadsheetNamespaces]];
   return entry;
 }
 
@@ -76,7 +80,7 @@
       [obj name], [obj stringValue]];
   }
   
-  if ([str length]) {
+  if ([str length] > 0) {
     [self addToArray:items objectDescriptionIfNonNil:str withName:@"customElements"];
   }
   
@@ -161,3 +165,5 @@
 }
 
 @end
+
+#endif // !GDATA_REQUIRE_SERVICE_INCLUDES || GDATA_INCLUDE_SPREADSHEET_SERVICE
