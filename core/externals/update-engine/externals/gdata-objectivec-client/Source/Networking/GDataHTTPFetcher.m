@@ -166,6 +166,8 @@ const NSTimeInterval kCachedURLReservationInterval = 60.; // 1 minute
 }
 
 + (void)initialize {
+  // note that initialize is guaranteed by the runtime to be called in a
+  // thread-safe manner
   if (!gGDataFetcherStaticCookieStorage) {
     gGDataFetcherStaticCookieStorage = [[GDataCookieStorage alloc] init];
   }
@@ -353,7 +355,8 @@ const NSTimeInterval kCachedURLReservationInterval = 60.; // 1 minute
 
   // get cookies for this URL from our storage array, if
   // we have a storage array
-  if (cookieStorageMethod_ != kGDataHTTPFetcherCookieStorageMethodSystemDefault) {
+  if (cookieStorageMethod_ != kGDataHTTPFetcherCookieStorageMethodSystemDefault
+      && cookieStorageMethod_ != kGDataHTTPFetcherCookieStorageMethodNone) {
 
     NSArray *cookies = [cookieStorage_ cookiesForURL:[request_ URL]];
     if ([cookies count]) {
@@ -630,9 +633,11 @@ CannotBeginFetch:
 // connection:willSendRequest:redirectResponse: and connection:didReceiveResponse:
 - (void)handleCookiesForResponse:(NSURLResponse *)response {
 
-  if (cookieStorageMethod_ == kGDataHTTPFetcherCookieStorageMethodSystemDefault) {
+  if (cookieStorageMethod_ == kGDataHTTPFetcherCookieStorageMethodSystemDefault
+    || cookieStorageMethod_ == kGDataHTTPFetcherCookieStorageMethodNone) {
 
     // do nothing special for NSURLConnection's default storage mechanism
+    // or when we're ignoring cookies
 
   } else if ([response respondsToSelector:@selector(allHeaderFields)]) {
 
@@ -1182,9 +1187,12 @@ totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite {
     if (method == kGDataHTTPFetcherCookieStorageMethodStatic) {
       // store cookies in the static array
       [self setCookieStorage:gGDataFetcherStaticCookieStorage];
-    } else {
+    } else if (method == kGDataHTTPFetcherCookieStorageMethodFetchHistory) {
       // store cookies in the fetch history
       [self setCookieStorage:[fetchHistory_ cookieStorage]];
+    } else {
+      // kGDataHTTPFetcherCookieStorageMethodNone - ignore cookies
+      [self setCookieStorage:nil];
     }
   }
 }
@@ -1205,11 +1213,17 @@ totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite {
 }
 
 + (BOOL)doesSupportSentDataCallback {
+#if GDATA_IPHONE
+  // NSURLConnection's didSendBodyData: delegate support appears to be
+  // available starting in iPhone OS 3.0
+  return (NSFoundationVersionNumber >= 678.47);
+#else
   // per WebKit's MaxFoundationVersionWithoutdidSendBodyDataDelegate
   //
   // indicates if NSURLConnection will invoke the didSendBodyData: delegate
   // method
   return (NSFoundationVersionNumber > 677.21);
+#endif
 }
 
 - (SEL)sentDataSelector {

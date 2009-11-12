@@ -22,6 +22,7 @@
 
 static NSString *const kAltParamName = @"alt";
 static NSString *const kAuthorParamName  = @"author";
+static NSString *const kErrorParamName  = @"err";
 static NSString *const kFullTextQueryStringParamName  = @"q";
 static NSString *const kLanguageParamName  = @"hl";
 static NSString *const kMaxResultsParamName = @"max-results";
@@ -181,11 +182,12 @@ static NSString *const kUpdatedMinParamName  = @"updated-min";
   return query;
 }
 
-
 - (NSString *)description {
  return [NSString stringWithFormat:@"%@ %p: {%@}",
    [self class], self, [[self URL] absoluteString]];
 }
+
+#pragma mark -
 
 - (NSURL *)feedURL {
   return feedURL_;
@@ -362,6 +364,18 @@ static NSString *const kUpdatedMinParamName  = @"updated-min";
                           dateTime:dateTime];
 }
 
+- (BOOL)shouldFormatErrorsAsXML {
+  NSString *value = [self valueForParameterWithName:kErrorParamName];
+  BOOL flag = (value != nil)
+    && ([value caseInsensitiveCompare:@"xml"] == NSOrderedSame);
+  return flag;
+}
+
+- (void)setShouldFormatErrorsAsXML:(BOOL)flag {
+  [self addCustomParameterWithName:kErrorParamName
+                             value:(flag ? @"xml" : nil)];
+}
+
 - (NSArray *)categoryFilters {
   return categoryFilters_;
 }
@@ -516,7 +530,7 @@ static NSString *const kUpdatedMinParamName  = @"updated-min";
     id filter;
     GDATA_FOREACH(filter, categoryFilters_) {
       NSString *filterValue = [filter stringValue];
-      NSString *filterStr = [GDataUtilities stringByURLEncodingString:filterValue];
+      NSString *filterStr = [GDataUtilities stringByURLEncodingForURI:filterValue];
       if ([filterStr length] > 0) {
         [pathStr appendFormat:@"/%@", filterStr];
       }

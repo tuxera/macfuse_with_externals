@@ -21,6 +21,10 @@
 
 @class GTMUILocalizer;
 
+// In addition to the information here, please see the project's documentation
+// (http://code.google.com/p/google-toolbox-for-mac/wiki/UILocalization) for
+// more information and examples.
+
 // This object will run a GTMUILocalizer on the given object, and then run
 // through the object's view heirarchy triggering any Tweakers to do their work.
 // (This "double duty" is needed so the work can be done in order during
@@ -42,7 +46,7 @@
 
 // This checks to see if |view| implements @selector(sizeToFit) and calls it.
 // It then checks the class of |view| and does some fixup for known issues
-// where sizeToFit doesn't product a view that meets UI guidelines.
+// where sizeToFit doesn't produce a view that meets UI guidelines.
 // Returns the amount the view changed in size.
 + (NSSize)sizeToFitView:(NSView *)view;
 
@@ -52,13 +56,23 @@
 // Returns the amount the field changed height.
 + (CGFloat)sizeToFitFixedWidthTextField:(NSTextField *)textField;
 
-// Resizes |window| by |delta| without letting the subviews of |window| get
+// Insert newlines into the title of the button (radio or checkbox) or all cells
+// in the radio group (NSMatrix) so they will word wrap to the item's current
+// width.  Then +sizeToFitView can be called to have then resize to the exact
+// width and height needed.  Note: any existing Opt-Return forced wraps are
+// removed from the existing titles.
++ (void)wrapButtonTitleForWidth:(NSButton *)button;
++ (void)wrapRadioGroupForWidth:(NSMatrix *)radioGroup;
+
+// Resizes |window| or |view| by |delta| without letting the subviews get
 // resized.  Useful when you've done manual tweaking by things like
-// +sizeToFitFixedWidthTextField.  The window's origin is not adjusted.  Passes
-// |NO| to for -setFrame:display:'s |displayViews| flag on the assumptions
-// the caller is doing all the invals/updates needed.
+// +sizeToFitFixedWidthTextField.  The origin is not adjusted.  For windows,
+// passes |NO| to for -setFrame:display:'s |displayViews| flag on the
+// assumptions the caller is doing all the invals/updates needed.
 + (void)resizeWindowWithoutAutoResizingSubViews:(NSWindow*)window
                                           delta:(NSSize)delta;
++ (void)resizeViewWithoutAutoResizingSubViews:(NSView*)view
+                                        delta:(NSSize)delta;
 
 @end
 

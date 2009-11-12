@@ -78,9 +78,11 @@
 		8207B89B0FEA7A9E008A527B /* GTMWindowSheetController.h in Headers */ = {isa = PBXBuildFile; fileRef = 8207B8970FEA7A98008A527B /* GTMWindowSheetController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		8207B89C0FEA7AA1008A527B /* GTMWindowSheetController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8207B8980FEA7A98008A527B /* GTMWindowSheetController.m */; };
 		8207B89D0FEA7AA6008A527B /* GTMWindowSheetControllerTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 8207B8990FEA7A98008A527B /* GTMWindowSheetControllerTest.m */; };
-		84B91B8B0EA3CC2E0087500F /* GTMUnitTestingImage.10.6.0.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 84B91B890EA3CC2E0087500F /* GTMUnitTestingImage.10.6.0.tiff */; };
-		84B91B8C0EA3CC2E0087500F /* GTMUnitTestingWindow.10.6.0.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 84B91B8A0EA3CC2E0087500F /* GTMUnitTestingWindow.10.6.0.tiff */; };
+		84B91B8B0EA3CC2E0087500F /* GTMUnitTestingImage.10.6.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 84B91B890EA3CC2E0087500F /* GTMUnitTestingImage.10.6.tiff */; };
+		84B91B8C0EA3CC2E0087500F /* GTMUnitTestingWindow.10.6.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 84B91B8A0EA3CC2E0087500F /* GTMUnitTestingWindow.10.6.tiff */; };
 		8B0E65510FD80D5E00461C4A /* GTMHotKeyTextField.strings in Resources */ = {isa = PBXBuildFile; fileRef = 8B0E653F0FD80D5E00461C4A /* GTMHotKeyTextField.strings */; };
+		8B158A9B10A8C31100C93125 /* GTMNSAnimation+Duration.m in Sources */ = {isa = PBXBuildFile; fileRef = 8B158A6010A8BE4500C93125 /* GTMNSAnimation+Duration.m */; };
+		8B158ADE10A8C42000C93125 /* GTMNSAnimation+Duration.h in Headers */ = {isa = PBXBuildFile; fileRef = 8B158A5F10A8BE4500C93125 /* GTMNSAnimation+Duration.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		8B1801A20E2533D500280961 /* GTMLargeTypeWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 8B1801A00E2533D500280961 /* GTMLargeTypeWindow.m */; };
 		8B1801A30E2533D500280961 /* GTMLargeTypeWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = 8B1801A10E2533D500280961 /* GTMLargeTypeWindow.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		8B1801AE0E25341B00280961 /* GTMLargeTypeWindowImageTest.gtmUTState in Resources */ = {isa = PBXBuildFile; fileRef = 8B1801A80E25341B00280961 /* GTMLargeTypeWindowImageTest.gtmUTState */; };
@@ -315,10 +317,20 @@
 		F49FA88B0EEF303D00077669 /* GTMFileSystemKQueueTest.m in Sources */ = {isa = PBXBuildFile; fileRef = F49FA88A0EEF303D00077669 /* GTMFileSystemKQueueTest.m */; };
 		F4A420EF0EDDF8E000397A11 /* GTMHotKeyTextField.h in Headers */ = {isa = PBXBuildFile; fileRef = F4A420EC0EDDF8E000397A11 /* GTMHotKeyTextField.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F4A420F00EDDF8E000397A11 /* GTMHotKeyTextField.m in Sources */ = {isa = PBXBuildFile; fileRef = F4A420ED0EDDF8E000397A11 /* GTMHotKeyTextField.m */; };
+		F4A486ED1097EA0A00513483 /* GTMUnitTestingView.10.6.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F4A486EC1097EA0A00513483 /* GTMUnitTestingView.10.6.tiff */; };
+		F4AA2CB2109B37650025C956 /* GTMUILocalizerAndLayoutTweakerTest3-4.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F4AA2CB1109B37650025C956 /* GTMUILocalizerAndLayoutTweakerTest3-4.tiff */; };
 		F4BC1C880DDDD45D00108B7D /* GTMHTTPServer.h in Headers */ = {isa = PBXBuildFile; fileRef = F4BC1C860DDDD45D00108B7D /* GTMHTTPServer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F4BC1C890DDDD45D00108B7D /* GTMHTTPServer.m in Sources */ = {isa = PBXBuildFile; fileRef = F4BC1C870DDDD45D00108B7D /* GTMHTTPServer.m */; };
 		F4BC1E8D0DE1FC4A00108B7D /* GTMHTTPServerTest.m in Sources */ = {isa = PBXBuildFile; fileRef = F4BC1E8C0DE1FC4A00108B7D /* GTMHTTPServerTest.m */; };
 		F4BC22D10DE4C39000108B7D /* GTMTestHTTPServer.m in Sources */ = {isa = PBXBuildFile; fileRef = F4BC22D00DE4C39000108B7D /* GTMTestHTTPServer.m */; };
+		F4C0B9C3108E27EE002FC8E4 /* GTMUILocalizerAndLayoutTweakerTest5.xib in Resources */ = {isa = PBXBuildFile; fileRef = F4C0B9C2108E27EE002FC8E4 /* GTMUILocalizerAndLayoutTweakerTest5.xib */; };
+		F4C0B9DA108E3142002FC8E4 /* GTMUILocalizerAndLayoutTweakerTest5-0.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F4C0B9D7108E3142002FC8E4 /* GTMUILocalizerAndLayoutTweakerTest5-0.tiff */; };
+		F4C0B9DB108E3142002FC8E4 /* GTMUILocalizerAndLayoutTweakerTest5-1.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F4C0B9D8108E3142002FC8E4 /* GTMUILocalizerAndLayoutTweakerTest5-1.tiff */; };
+		F4C0B9DC108E3142002FC8E4 /* GTMUILocalizerAndLayoutTweakerTest5-2.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F4C0B9D9108E3142002FC8E4 /* GTMUILocalizerAndLayoutTweakerTest5-2.tiff */; };
+		F4C62489109753960069CADD /* GTMIBArrayTest.m in Sources */ = {isa = PBXBuildFile; fileRef = F4C62486109753960069CADD /* GTMIBArrayTest.m */; };
+		F4C6248A109753960069CADD /* GTMIBArrayTest.xib in Resources */ = {isa = PBXBuildFile; fileRef = F4C62487109753960069CADD /* GTMIBArrayTest.xib */; };
+		F4C6248B109753960069CADD /* GTMIBArray.h in Headers */ = {isa = PBXBuildFile; fileRef = F4C62483109753960069CADD /* GTMIBArray.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		F4C6248C109753960069CADD /* GTMIBArray.m in Sources */ = {isa = PBXBuildFile; fileRef = F4C62484109753960069CADD /* GTMIBArray.m */; };
 		F4CA854F0DAFAAF600B4AB10 /* GTMObjC2Runtime.h in Headers */ = {isa = PBXBuildFile; fileRef = 8B6F32060DA34A1B0052CA40 /* GTMObjC2Runtime.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F4FC15DD1046AD66000AB7BC /* GTMUILocalizerAndLayoutTweakerTest3.xib in Resources */ = {isa = PBXBuildFile; fileRef = F4FC15DC1046AD66000AB7BC /* GTMUILocalizerAndLayoutTweakerTest3.xib */; };
 		F4FC16031046B581000AB7BC /* GTMUILocalizerAndLayoutTweakerTest3-0.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F4FC15FF1046B581000AB7BC /* GTMUILocalizerAndLayoutTweakerTest3-0.tiff */; };
@@ -458,8 +470,8 @@
 		8207B8990FEA7A98008A527B /* GTMWindowSheetControllerTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTMWindowSheetControllerTest.m; sourceTree = "<group>"; };
 		848269C80E9FF4BD006E6D9C /* DebugSnowLeopardOrLater.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = DebugSnowLeopardOrLater.xcconfig; sourceTree = "<group>"; };
 		848269C90E9FF4BD006E6D9C /* ReleaseSnowLeopardOrLater.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = ReleaseSnowLeopardOrLater.xcconfig; sourceTree = "<group>"; };
-		84B91B890EA3CC2E0087500F /* GTMUnitTestingImage.10.6.0.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = GTMUnitTestingImage.10.6.0.tiff; sourceTree = "<group>"; };
-		84B91B8A0EA3CC2E0087500F /* GTMUnitTestingWindow.10.6.0.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = GTMUnitTestingWindow.10.6.0.tiff; sourceTree = "<group>"; };
+		84B91B890EA3CC2E0087500F /* GTMUnitTestingImage.10.6.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = GTMUnitTestingImage.10.6.tiff; sourceTree = "<group>"; };
+		84B91B8A0EA3CC2E0087500F /* GTMUnitTestingWindow.10.6.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = GTMUnitTestingWindow.10.6.tiff; sourceTree = "<group>"; };
 		84D99F360EA661C900C007D5 /* BuildAllSDKs.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = BuildAllSDKs.sh; sourceTree = "<group>"; };
 		8B0E65400FD80D5E00461C4A /* da */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = da; path = da.lproj/GTMHotKeyTextField.strings; sourceTree = "<group>"; };
 		8B0E65410FD80D5E00461C4A /* de */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/GTMHotKeyTextField.strings; sourceTree = "<group>"; };
@@ -478,6 +490,8 @@
 		8B0E654E0FD80D5E00461C4A /* sv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = sv; path = sv.lproj/GTMHotKeyTextField.strings; sourceTree = "<group>"; };
 		8B0E654F0FD80D5E00461C4A /* zh_CN */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = zh_CN; path = zh_CN.lproj/GTMHotKeyTextField.strings; sourceTree = "<group>"; };
 		8B0E65500FD80D5E00461C4A /* zh_TW */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = zh_TW; path = zh_TW.lproj/GTMHotKeyTextField.strings; sourceTree = "<group>"; };
+		8B158A5F10A8BE4500C93125 /* GTMNSAnimation+Duration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "GTMNSAnimation+Duration.h"; sourceTree = "<group>"; };
+		8B158A6010A8BE4500C93125 /* GTMNSAnimation+Duration.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "GTMNSAnimation+Duration.m"; sourceTree = "<group>"; };
 		8B1801A00E2533D500280961 /* GTMLargeTypeWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTMLargeTypeWindow.m; sourceTree = "<group>"; };
 		8B1801A10E2533D500280961 /* GTMLargeTypeWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTMLargeTypeWindow.h; sourceTree = "<group>"; };
 		8B1801A40E2533DB00280961 /* GTMLargeTypeWindowTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTMLargeTypeWindowTest.m; sourceTree = "<group>"; };
@@ -707,11 +721,22 @@
 		F4A420EC0EDDF8E000397A11 /* GTMHotKeyTextField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTMHotKeyTextField.h; sourceTree = "<group>"; };
 		F4A420ED0EDDF8E000397A11 /* GTMHotKeyTextField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTMHotKeyTextField.m; sourceTree = "<group>"; };
 		F4A420EE0EDDF8E000397A11 /* GTMHotKeyTextFieldTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTMHotKeyTextFieldTest.m; sourceTree = "<group>"; };
+		F4A486EC1097EA0A00513483 /* GTMUnitTestingView.10.6.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = GTMUnitTestingView.10.6.tiff; sourceTree = "<group>"; };
+		F4AA2CB1109B37650025C956 /* GTMUILocalizerAndLayoutTweakerTest3-4.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = "GTMUILocalizerAndLayoutTweakerTest3-4.tiff"; sourceTree = "<group>"; };
 		F4BC1C860DDDD45D00108B7D /* GTMHTTPServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTMHTTPServer.h; sourceTree = "<group>"; };
 		F4BC1C870DDDD45D00108B7D /* GTMHTTPServer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTMHTTPServer.m; sourceTree = "<group>"; };
 		F4BC1E8C0DE1FC4A00108B7D /* GTMHTTPServerTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTMHTTPServerTest.m; sourceTree = "<group>"; };
 		F4BC22CF0DE4C39000108B7D /* GTMTestHTTPServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTMTestHTTPServer.h; sourceTree = "<group>"; };
 		F4BC22D00DE4C39000108B7D /* GTMTestHTTPServer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTMTestHTTPServer.m; sourceTree = "<group>"; };
+		F4C0B9C2108E27EE002FC8E4 /* GTMUILocalizerAndLayoutTweakerTest5.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = GTMUILocalizerAndLayoutTweakerTest5.xib; sourceTree = "<group>"; };
+		F4C0B9D7108E3142002FC8E4 /* GTMUILocalizerAndLayoutTweakerTest5-0.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = "GTMUILocalizerAndLayoutTweakerTest5-0.tiff"; sourceTree = "<group>"; };
+		F4C0B9D8108E3142002FC8E4 /* GTMUILocalizerAndLayoutTweakerTest5-1.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = "GTMUILocalizerAndLayoutTweakerTest5-1.tiff"; sourceTree = "<group>"; };
+		F4C0B9D9108E3142002FC8E4 /* GTMUILocalizerAndLayoutTweakerTest5-2.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = "GTMUILocalizerAndLayoutTweakerTest5-2.tiff"; sourceTree = "<group>"; };
+		F4C62483109753960069CADD /* GTMIBArray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTMIBArray.h; sourceTree = "<group>"; };
+		F4C62484109753960069CADD /* GTMIBArray.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTMIBArray.m; sourceTree = "<group>"; };
+		F4C62485109753960069CADD /* GTMIBArrayTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTMIBArrayTest.h; sourceTree = "<group>"; };
+		F4C62486109753960069CADD /* GTMIBArrayTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTMIBArrayTest.m; sourceTree = "<group>"; };
+		F4C62487109753960069CADD /* GTMIBArrayTest.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = GTMIBArrayTest.xib; sourceTree = "<group>"; };
 		F4C978090D5B79C7001C29A6 /* ReleaseNotes.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ReleaseNotes.txt; sourceTree = "<group>"; };
 		F4CA854E0DAFAAB600B4AB10 /* xcconfigs-readme.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "xcconfigs-readme.txt"; sourceTree = "<group>"; };
 		F4CA864A0DB3ACB200B4AB10 /* DebugLeopardOrLater.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = DebugLeopardOrLater.xcconfig; sourceTree = "<group>"; };
@@ -939,13 +964,14 @@
 				8B45A5F50DA5EB9F001148C5 /* GTMUnitTestingWindow.gtmUTState */,
 				8B45A5F60DA5EB9F001148C5 /* GTMUnitTestingTestApp.gtmUTState */,
 				8BEEA90A0DA7446300894774 /* GTMUnitTestingImage.tiff */,
-				84B91B890EA3CC2E0087500F /* GTMUnitTestingImage.10.6.0.tiff */,
+				84B91B890EA3CC2E0087500F /* GTMUnitTestingImage.10.6.tiff */,
 				8BEEA90B0DA7446300894774 /* GTMUnitTestingWindow.tiff */,
 				8B2789950EF855FB00D68C01 /* GTMUnitTestingWindow.10.5.6.tiff */,
 				F48D000C0FE994BF00428D0B /* GTMUnitTestingWindow.10.5.7.tiff */,
 				F42F50E81057E91A00BFC735 /* GTMUnitTestingWindow.10.5.8.tiff */,
-				84B91B8A0EA3CC2E0087500F /* GTMUnitTestingWindow.10.6.0.tiff */,
+				84B91B8A0EA3CC2E0087500F /* GTMUnitTestingWindow.10.6.tiff */,
 				8BEEA90C0DA7446300894774 /* GTMUnitTestingView.tiff */,
+				F4A486EC1097EA0A00513483 /* GTMUnitTestingView.10.6.tiff */,
 			);
 			path = TestData;
 			sourceTree = "<group>";
@@ -977,12 +1003,16 @@
 				F4FC16001046B581000AB7BC /* GTMUILocalizerAndLayoutTweakerTest3-1.tiff */,
 				F4FC16011046B581000AB7BC /* GTMUILocalizerAndLayoutTweakerTest3-2.tiff */,
 				F4FC16021046B581000AB7BC /* GTMUILocalizerAndLayoutTweakerTest3-3.tiff */,
+				F4AA2CB1109B37650025C956 /* GTMUILocalizerAndLayoutTweakerTest3-4.tiff */,
 				F4FC327A104EC6D5000AB7BC /* GTMUILocalizerAndLayoutTweakerTest4-0.tiff */,
 				F4FC327B104EC6D5000AB7BC /* GTMUILocalizerAndLayoutTweakerTest4-1.tiff */,
 				F4FC327C104EC6D5000AB7BC /* GTMUILocalizerAndLayoutTweakerTest4-2.tiff */,
 				F4FC333A104EE94F000AB7BC /* GTMUILocalizerAndLayoutTweakerTest4-0.10_4_SDK.tiff */,
 				F4FC333B104EE94F000AB7BC /* GTMUILocalizerAndLayoutTweakerTest4-1.10_4_SDK.tiff */,
 				F4FC333C104EE94F000AB7BC /* GTMUILocalizerAndLayoutTweakerTest4-2.10_4_SDK.tiff */,
+				F4C0B9D7108E3142002FC8E4 /* GTMUILocalizerAndLayoutTweakerTest5-0.tiff */,
+				F4C0B9D8108E3142002FC8E4 /* GTMUILocalizerAndLayoutTweakerTest5-1.tiff */,
+				F4C0B9D9108E3142002FC8E4 /* GTMUILocalizerAndLayoutTweakerTest5-2.tiff */,
 				8B409EC30F9530C200DF540E /* GTMUILocalizerWindow1State.gtmUTState */,
 				7F4C015E1055AD4200F88238 /* GTMUILocalizerWindow1State_10_4.gtmUTState */,
 				8B409EE80F95325000DF540E /* GTMUILocalizerWindow2State.gtmUTState */,
@@ -1031,6 +1061,11 @@
 				F4A420EE0EDDF8E000397A11 /* GTMHotKeyTextFieldTest.m */,
 				8BAA9B560F7B4C2400DF4F12 /* GTMHotKeyTextFieldTest.xib */,
 				8B0E653E0FD80D5E00461C4A /* GTMHotKeyTextFieldLocalizations */,
+				F4C62483109753960069CADD /* GTMIBArray.h */,
+				F4C62484109753960069CADD /* GTMIBArray.m */,
+				F4C62485109753960069CADD /* GTMIBArrayTest.h */,
+				F4C62486109753960069CADD /* GTMIBArrayTest.m */,
+				F4C62487109753960069CADD /* GTMIBArrayTest.xib */,
 				8B1801A10E2533D500280961 /* GTMLargeTypeWindow.h */,
 				8B1801A00E2533D500280961 /* GTMLargeTypeWindow.m */,
 				8B1801A40E2533DB00280961 /* GTMLargeTypeWindowTest.m */,
@@ -1040,6 +1075,8 @@
 				F43DCDCB0D4796C600959A62 /* GTMLoginItems.h */,
 				F43DCDCC0D4796C600959A62 /* GTMLoginItems.m */,
 				F43DCEC60D47BEA000959A62 /* GTMLoginItemsTest.m */,
+				8B158A5F10A8BE4500C93125 /* GTMNSAnimation+Duration.h */,
+				8B158A6010A8BE4500C93125 /* GTMNSAnimation+Duration.m */,
 				F428FEFF0D48E55E00382ED1 /* GTMNSBezierPath+CGPath.h */,
 				F428FF000D48E55E00382ED1 /* GTMNSBezierPath+CGPath.m */,
 				F428FF010D48E55E00382ED1 /* GTMNSBezierPath+CGPathTest.m */,
@@ -1075,6 +1112,7 @@
 				F42E2D07102B2283004DF054 /* GTMUILocalizerAndLayoutTweakerTest2.xib */,
 				F4FC15DC1046AD66000AB7BC /* GTMUILocalizerAndLayoutTweakerTest3.xib */,
 				F4FC324C104EBD70000AB7BC /* GTMUILocalizerAndLayoutTweakerTest4.xib */,
+				F4C0B9C2108E27EE002FC8E4 /* GTMUILocalizerAndLayoutTweakerTest5.xib */,
 				8B409E3E0F950DE900DF540E /* GTMUILocalizerTest.h */,
 				8B409BC50F94405A00DF540E /* GTMUILocalizerTest.m */,
 				8B409E8B0F952C2C00DF540E /* GTMUILocalizerTestWindow.xib */,
@@ -1378,6 +1416,8 @@
 				7F97DB32104EBCA0004DDDEE /* GTMFadeTruncatingTextFieldCell.h in Headers */,
 				7FF768E41051B17E00D34F4B /* GTMNSImage+SearchCache.h in Headers */,
 				8B307FF91056B773006C4C7A /* GTMNSNumber+64Bit.h in Headers */,
+				F4C6248B109753960069CADD /* GTMIBArray.h in Headers */,
+				8B158ADE10A8C42000C93125 /* GTMNSAnimation+Duration.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1594,11 +1634,12 @@
 				8BEEA90D0DA7446300894774 /* GTMUnitTestingImage.tiff in Resources */,
 				8BEEA90E0DA7446300894774 /* GTMUnitTestingWindow.tiff in Resources */,
 				8BEEA90F0DA7446300894774 /* GTMUnitTestingView.tiff in Resources */,
-				84B91B8B0EA3CC2E0087500F /* GTMUnitTestingImage.10.6.0.tiff in Resources */,
-				84B91B8C0EA3CC2E0087500F /* GTMUnitTestingWindow.10.6.0.tiff in Resources */,
+				84B91B8B0EA3CC2E0087500F /* GTMUnitTestingImage.10.6.tiff in Resources */,
+				84B91B8C0EA3CC2E0087500F /* GTMUnitTestingWindow.10.6.tiff in Resources */,
 				8B2789960EF855FB00D68C01 /* GTMUnitTestingWindow.10.5.6.tiff in Resources */,
 				F48D000D0FE994C900428D0B /* GTMUnitTestingWindow.10.5.7.tiff in Resources */,
 				F42F50F91057E99200BFC735 /* GTMUnitTestingWindow.10.5.8.tiff in Resources */,
+				F4A486ED1097EA0A00513483 /* GTMUnitTestingView.10.6.tiff in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1685,6 +1726,12 @@
 				F4FC333F104EE94F000AB7BC /* GTMUILocalizerAndLayoutTweakerTest4-2.10_4_SDK.tiff in Resources */,
 				7F6840D2105375A70057F4FA /* GTMUILocalizerTestWindow_10_4.xib in Resources */,
 				7F4C015F1055AD4200F88238 /* GTMUILocalizerWindow1State_10_4.gtmUTState in Resources */,
+				F4C0B9C3108E27EE002FC8E4 /* GTMUILocalizerAndLayoutTweakerTest5.xib in Resources */,
+				F4C0B9DA108E3142002FC8E4 /* GTMUILocalizerAndLayoutTweakerTest5-0.tiff in Resources */,
+				F4C0B9DB108E3142002FC8E4 /* GTMUILocalizerAndLayoutTweakerTest5-1.tiff in Resources */,
+				F4C0B9DC108E3142002FC8E4 /* GTMUILocalizerAndLayoutTweakerTest5-2.tiff in Resources */,
+				F4C6248A109753960069CADD /* GTMIBArrayTest.xib in Resources */,
+				F4AA2CB2109B37650025C956 /* GTMUILocalizerAndLayoutTweakerTest3-4.tiff in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1924,6 +1971,8 @@
 				0BFAD4C9104D06EF002BEB27 /* GTMNSDictionary+CaseInsensitive.m in Sources */,
 				7FF768E51051B17E00D34F4B /* GTMNSImage+SearchCache.m in Sources */,
 				8B307FF81056B773006C4C7A /* GTMNSNumber+64Bit.m in Sources */,
+				F4C6248C109753960069CADD /* GTMIBArray.m in Sources */,
+				8B158A9B10A8C31100C93125 /* GTMNSAnimation+Duration.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1955,6 +2004,7 @@
 				F42E2C69102B1261004DF054 /* GTMUILocalizerAndLayoutTweakerTest.m in Sources */,
 				7F97DB31104EBC8D004DDDEE /* GTMFadeTruncatingTextFieldCellTest.m in Sources */,
 				7FF768E31051B17900D34F4B /* GTMNSImage+SearchCacheTest.m in Sources */,
+				F4C62489109753960069CADD /* GTMIBArrayTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
